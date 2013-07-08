@@ -5,6 +5,82 @@
 	<title>The Alien</title>
 </head>
 <body>
+	<button id="stop">Stop</button>
 	<p>Hai world</p>
+
 </body>
+<script>
+
+	var Game = function() {
+		var fps = 60;
+
+		var interval;
+
+		function draw() {
+			document.write('draw<br>');
+		};
+
+		function update() {
+			document.write('update<br>');
+		};
+
+		var doLoop = (function() {
+			var loops = 0, skipTicks = 1000 / fps,
+				maxFrameSkip = 10,
+				nextGameTick = (new Date).getTime();
+		
+			return function() {
+				loops = 0;
+				while ((new Date).getTime() > nextGameTick && loops < maxFrameSkip) {
+					update();
+					nextGameTick += skipTicks;
+					loops += 1;
+				}
+		
+				draw();
+			};
+		})();
+
+
+		return {
+			run: function() {
+				interval = setInterval(doLoop, 0);
+			},
+			stop: function() {
+				clearInterval(interval);
+			},
+			getFPS: function() {
+				return fps;
+			}
+		};
+	}();
+
+	/**
+	 * Search for a requestAnimationFrame hack to reduce cpu usage
+	 * If it doesn't exist, just setInterval to the game's fps
+	 */
+	(function() {
+		var onEachFrame;
+		if (window.webkitRequestAnimationFrame) {
+			onEachFrame = function(callback) {
+				var _cb = function() { callback(); webkitRequestAnimationFrame(_cb); }
+				_cb();
+			};
+		} else if (window.mozRequestAnimationFrame) {
+			onEachFrame = function(callback) {
+				var _cb = function() { callback(); mozRequestAnimationFrame(_cb); }
+				_cb();
+			};
+		}else{
+			onEachFrame = function(callback) {
+				setInterval(callback, 1000 / Game.getFPS());
+			}
+		}
+		window.onEachFrame = onEachFrame;
+		
+	})();
+
+	window.onEachFrame(Game.run);
+	setTimeout(Game.stop, 3000)
+;</script>
 </html>
