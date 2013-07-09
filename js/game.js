@@ -1,4 +1,4 @@
-/**
+/***
  * The Alien
  * Written by faide
  * begun 8 July 2013
@@ -7,9 +7,10 @@
 
 
 
-/**
+/***
  * Search for a requestAnimationTick hack to reduce cpu usage
  * If it doesn't exist, fallback to setInterval on the game's tps
+
  */
 window.requestNextTick = function() {
 	return (
@@ -27,7 +28,10 @@ window.requestNextTick = function() {
 //alien namespace
 var alien = {};
 
-//Analytics and logging for game statistics (tickrate, time, call frequency, etc)
+/**
+ * Analytics and logging for game statistics (tickrate, time, call frequency, etc)
+ * @constructor
+ */
 alien.Report = function() {
 	//master switch that enables or disables reporting
 	var debug = true;
@@ -221,3 +225,20 @@ alien.Game = function() {
 	};
 }();
 
+alien.Renderer = function()
+{
+	var canvas = document.getElementById('alienCanvas');
+
+	return {
+		ctx: canvas.getContext('2d'),
+	};
+
+}();
+
+console.log(alien.Renderer.ctx);
+
+alien.Renderer.ctx.fillStyle = "rgb(200,0,0)";
+alien.Renderer.ctx.fillRect(10,10,55,50);
+
+alien.Renderer.ctx.fillStyle = "rgba(0,0,200, 0.5)";
+alien.Renderer.ctx.fillRect(30,30,55,50);
