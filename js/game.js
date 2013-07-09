@@ -5,6 +5,12 @@
  *
  */
 
+
+
+/**
+ * Search for a requestAnimationFrame hack to reduce cpu usage
+ * If it doesn't exist, fallback to setInterval on the game's fps
+ */
 window.requestNextFrame = function() {
 	return (
 		window.requestAnimationFrame ||
@@ -21,8 +27,9 @@ window.requestNextFrame = function() {
 //alien namespace
 var alien = {};
 
+
+//Timer object handles keeping track of gametime for updates, time-dependent gamelogic, etc
 alien.Timer = function() {
-	//Timer object that handles keeping track of gametime for updates, time-dependent gamelogic, etc
 	var fps = 60;
 	var minfps = 30;
 	var lastFrame = Date.now();
@@ -40,7 +47,7 @@ alien.Timer = function() {
 				//if we haven't reached the next step yet, bail out
 				return false; 
 			}
-			if (timeDelta > maxFrameTime) {
+			if (timeDelta > 2 * maxFrameTime) {
 				frameTime = maxFrameTime;
 			} else {
 				frameTime = timeDelta;
@@ -48,20 +55,28 @@ alien.Timer = function() {
 			time += frameTime;
 			lastFrame = now;
 			return true;
+		},
+		getTime: function() {
+			return time;
 		}
 	};
 }();
 
+//Game object manages game loop and game state
 alien.Game = function() {
 
 	var running = false;
+	var draws = 0, updates = 0;
 
 	function draw() {
-		document.write('draw<br>');
+		draws += 1;
+		document.getElementById('draws').innerHTML = draws;
 	};
 
 	function update() {
-		document.write('update<br>');
+		updates += 1;
+		document.getElementById('updates').innerHTML = updates;
+		
 	};
 
 	function run() {
@@ -75,6 +90,7 @@ alien.Game = function() {
 		if (alien.Timer.tick()) {
 			update();
 		}
+		document.getElementById('time').innerHTML = Math.round(alien.Timer.getTime());
 		window.requestNextFrame(draw);
 	};
 
@@ -92,10 +108,16 @@ alien.Game = function() {
 	};
 }();
 
-/**
- * Search for a requestAnimationFrame hack to reduce cpu usage
- * If it doesn't exist, fallback to setInterval on the game's fps
- */
+/* automatic game loop example */
+// alien.Game.begin();
+// setTimeout(alien.Game.stop, 1000);
 
-alien.Game.begin();
-setTimeout(alien.Game.stop, 1000);
+
+/* manual game loop example */
+document.getElementById('run').onmousedown = function() {
+	alien.Game.begin();
+};
+
+document.getElementById('run').onmouseup = function() {
+	alien.Game.stop();
+};
