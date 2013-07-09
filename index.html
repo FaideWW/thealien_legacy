@@ -7,12 +7,14 @@
 <body>
 	<button id="step">Step (hold)</button>
 	<button id="run">Run</button>
-	<input type="range" id="fps" min="1" max="60" step="1" value="30"><span id="fpsval"></span>
+	<input type="range" id="tpsselect" min="1" max="50" step="1" value="30"><span id="tpsval"></span>
 
 	<p>Time elapsed (in ms): <span id="time">0</span></p>
-	<p>Last frame time (in ms): <span id="frametime">0</span></p>
+	<p>Last tick time (in ms): <span id="ticktime">0</span></p>
+	<p>Average TPS (last 50 ticks): <span id="tps">0</span></p>
 	<p>Update calls: <span id="updates">0</span></p>
 	<p>Draw calls: <span id="draws">0</span></p>
+	<p>Draws per tick: <span id="dpt">0</span></p>
 
 <script src="js/game.js"></script>
 <script src="js/controls.js"></script>

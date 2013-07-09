@@ -8,18 +8,18 @@
 
 
 /**
- * Search for a requestAnimationFrame hack to reduce cpu usage
- * If it doesn't exist, fallback to setInterval on the game's fps
+ * Search for a requestAnimationTick hack to reduce cpu usage
+ * If it doesn't exist, fallback to setInterval on the game's tps
  */
-window.requestNextFrame = function() {
+window.requestNextTick = function() {
 	return (
-		window.requestAnimationFrame ||
-		window.webkitRequestAnimationFrame ||
-		window.mozRequestAnimationFrame ||
-		window.oRequestAnimationFrame ||
-		window.msRequestAnimationFrame ||
+		window.requestAnimationTick ||
+		window.webkitRequestAnimationTick ||
+		window.mozRequestAnimationTick ||
+		window.oRequestAnimationTick ||
+		window.msRequestAnimationTick ||
 		function(callback) {
-			window.setTimeout(callback, 1000 / Game.getFPS);
+			window.setTimeout(callback, 1000 / alien.Game.getTPS);
 		}
 	);
 }();
@@ -27,22 +27,87 @@ window.requestNextFrame = function() {
 //alien namespace
 var alien = {};
 
+//Analytics and logging for game statistics (tickrate, time, call frequency, etc)
+alien.Report = function() {
+	//master switch that enables or disables reporting
+	var debug = true;
+
+	var ticks = [];
+	var averageTPS = 0;
+	var ticksToRecord = 50;
+	var currentRecordedTicks = 0;
+
+	//dpt = draws per tick
+	var updates = 0, draws = 0;
+	var dpt = 0;
+
+	//adds a tick to the average tps calculation.
+	// if the maximum amount of ticks is recorded, 
+	// the oldest record is removed and replaced with the newest
+	function calculateAverageTPS(tickTime) {
+		ticks.push(tickTime);
+		currentRecordedTicks += 1;
+
+		//if there are too many ticks, chop the oldest off
+		if (currentRecordedTicks > ticksToRecord) {
+			ticks = ticks.slice(1);
+			currentRecordedTicks -= 1;
+		}
+
+		//lambda reduce the array to a sum (NOT AVAILABLE IN <IE9)
+		var sum = ticks.reduce(function(a, b) { return a + b });
+		averageTPS = currentRecordedTicks * 1000 / sum;
+	}
+
+	return {
+		time: function(total) {
+			if (debug) {
+				document.getElementById('time').innerHTML = total;
+			}
+		},
+		tick: function(lastTickTime) {
+			if (debug) {
+				calculateAverageTPS(lastTickTime);
+				document.getElementById('ticktime').innerHTML = lastTickTime;
+				document.getElementById('tps').innerHTML = averageTPS;
+			}
+
+		},
+		draw: function() {
+			if (debug) {
+				draws += 1;
+				dpt += 1;
+				document.getElementById('draws').innerHTML = draws;
+			}
+
+		},
+		update: function() {
+			if (debug) {
+				updates += 1;
+				document.getElementById('updates').innerHTML = updates;
+				document.getElementById('dpt').innerHTML = dpt;
+				dpt = 0;
+			}
+
+		}
+	};
+
+}();
 
 //Timer object handles keeping track of gametime for updates, time-dependent gamelogic, etc
 alien.Timer = function() {
-	var fps = 30;
-	var lastFrame = Date.now();
-	var frameTime = 0;
-	var minFrameTime = 1000 / fps;
+	var tps = 30;
+	var lastTick = Date.now();
+	var tickTime = 0;
+	var minTickTime = 1000 / tps;
 	var time = 0;
 
 	//pause gametime properties
 	var paused = false, pauseTime = 0;
 
-	//call this only after fps has been changed
-	function recalculateTimings()
-	{
-		minFrameTime = 1000 / fps;
+	//call this only after tps has been changed
+	function recalculateTimings() {
+		minTickTime = 1000 / tps;
 	}
 
 	return {
@@ -52,20 +117,20 @@ alien.Timer = function() {
 			}
 			//Move the game time forward one step.  Returns true if this call is a tick, false otherwise
 			var now = Date.now();
-			var timeDelta = now - lastFrame;
-			if (timeDelta < minFrameTime) { 
+			var timeDelta = now - lastTick;
+			if (timeDelta < minTickTime) { 
 				//if we haven't reached the next step yet, bail out
 				return false; 
 			}
-			// if (timeDelta > 2 * maxFrameTime) {
-			// 	frameTime = maxFrameTime;
+			// if (timeDelta > 2 * maxTickTime) {
+			// 	tickTime = maxTickTime;
 			// } else {
-			// 	frameTime = timeDelta;
+			// 	tickTime = timeDelta;
 			// }
-			frameTime = timeDelta;
-			document.getElementById('frametime').innerHTML = frameTime;
-			time += frameTime;
-			lastFrame = now;
+			tickTime = timeDelta;
+			alien.Report.tick(tickTime);
+			time += tickTime;
+			lastTick = now;
 			return true;
 		},
 		reset: function() {
@@ -83,20 +148,20 @@ alien.Timer = function() {
 		resume: function() {
 			if (paused) {
 				paused = false;
-				lastFrame = Date.now();
+				lastTick = Date.now();
 			}
 
 		},
 		getTime: function() {
 			return time;
 		},
-		getFPS: function() {
-			return fps;
+		getTPS: function() {
+			return tps;
 		},
-		setFPS: function(new_fps) {
-			fps = new_fps;
+		setTPS: function(new_tps) {
+			tps = new_tps;
 			recalculateTimings();
-			// console.log('fps:' + fps);
+			// console.log('tps:' + tps);
 		}
 	};
 }();
@@ -105,20 +170,15 @@ alien.Timer = function() {
 alien.Game = function() {
 
 	var running = false;
-	var draws = 0, updates = 0;
-
 	//this is called on the first Game.begin() to signal that time should begin counting 
 	var initialized = false;
 
 	function draw() {
-		draws += 1;
-		document.getElementById('draws').innerHTML = draws;
+		alien.Report.draw();
 	};
 
 	function update() {
-		updates += 1;
-		document.getElementById('updates').innerHTML = updates;
-		
+		alien.Report.update();
 	};
 
 	function run() {
@@ -132,8 +192,8 @@ alien.Game = function() {
 		if (alien.Timer.tick()) {
 			update();
 		}
-		document.getElementById('time').innerHTML = Math.round(alien.Timer.getTime());
-		window.requestNextFrame(draw);
+		alien.Report.time(alien.Timer.getTime());
+		window.requestNextTick(draw);
 	};
 
 	return {

@@ -21,15 +21,15 @@ document.getElementById('run').onclick = function() {
 	}
 };
 
-document.getElementById('fps').onchange = function() {
-	var fps = this.value;
-	setFPSVal(fps);
+document.getElementById('tpsselect').onchange = function() {
+	var tps = this.value;
+	setTPSVal(tps);
 
 };
 
-function setFPSVal(fps) {
-	alien.Timer.setFPS(fps);
-	document.getElementById('fpsval').innerHTML = fps;
+function setTPSVal(tps) {
+	alien.Timer.setTPS(tps);
+	document.getElementById('tpsval').innerHTML = tps;
 }
 
-document.getElementById('fpsval').innerHTML = alien.Timer.getFPS();
+document.getElementById('tpsval').innerHTML = alien.Timer.getTPS();
