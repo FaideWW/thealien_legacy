@@ -30,16 +30,26 @@ var alien = {};
 
 //Timer object handles keeping track of gametime for updates, time-dependent gamelogic, etc
 alien.Timer = function() {
-	var fps = 60;
-	var minfps = 30;
+	var fps = 30;
 	var lastFrame = Date.now();
 	var frameTime = 0;
-	var maxFrameTime = 1000 / minfps;
 	var minFrameTime = 1000 / fps;
 	var time = 0;
 
+	//pause gametime properties
+	var paused = false, pauseTime = 0;
+
+	//call this only after fps has been changed
+	function recalculateTimings()
+	{
+		minFrameTime = 1000 / fps;
+	}
+
 	return {
 		tick: function() {
+			if (paused) {
+				alien.Timer.resume();
+			}
 			//Move the game time forward one step.  Returns true if this call is a tick, false otherwise
 			var now = Date.now();
 			var timeDelta = now - lastFrame;
@@ -47,17 +57,46 @@ alien.Timer = function() {
 				//if we haven't reached the next step yet, bail out
 				return false; 
 			}
-			if (timeDelta > 2 * maxFrameTime) {
-				frameTime = maxFrameTime;
-			} else {
-				frameTime = timeDelta;
-			}
+			// if (timeDelta > 2 * maxFrameTime) {
+			// 	frameTime = maxFrameTime;
+			// } else {
+			// 	frameTime = timeDelta;
+			// }
+			frameTime = timeDelta;
+			document.getElementById('frametime').innerHTML = frameTime;
 			time += frameTime;
 			lastFrame = now;
 			return true;
 		},
+		reset: function() {
+			time = 0;
+		},
+		isPaused: function() {
+			return paused;
+		},
+		pause: function() {
+			if (!paused) {
+				paused = true;
+				pauseTime = Date.now();
+			}
+		},
+		resume: function() {
+			if (paused) {
+				paused = false;
+				lastFrame = Date.now();
+			}
+
+		},
 		getTime: function() {
 			return time;
+		},
+		getFPS: function() {
+			return fps;
+		},
+		setFPS: function(new_fps) {
+			fps = new_fps;
+			recalculateTimings();
+			// console.log('fps:' + fps);
 		}
 	};
 }();
@@ -67,6 +106,9 @@ alien.Game = function() {
 
 	var running = false;
 	var draws = 0, updates = 0;
+
+	//this is called on the first Game.begin() to signal that time should begin counting 
+	var initialized = false;
 
 	function draw() {
 		draws += 1;
@@ -96,28 +138,26 @@ alien.Game = function() {
 
 	return {
 		begin: function() {
+			if (!initialized) {
+				alien.Timer.reset();
+				initialized = true;
+			}
+
+			if (alien.Timer.isPaused())
+			{
+				alien.Timer.resume();
+			}
+
 			running = true;
 			run();
 		},
 		stop: function() {
+			alien.Timer.pause();
 			running = false;
 		},
-		getFPS: function() {
-			return fps;
+		isRunning: function() {
+			return running;
 		}
 	};
 }();
 
-/* automatic game loop example */
-// alien.Game.begin();
-// setTimeout(alien.Game.stop, 1000);
-
-
-/* manual game loop example */
-document.getElementById('run').onmousedown = function() {
-	alien.Game.begin();
-};
-
-document.getElementById('run').onmouseup = function() {
-	alien.Game.stop();
-};
