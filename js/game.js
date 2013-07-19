@@ -8,10 +8,10 @@
 
 
 /***
- * Search for a requestAnimationTick hack to reduce cpu usage
- * If it doesn't exist, fallback to setInterval on the game's tps
+* Search for a requestAnimationTick hack to reduce cpu usage
+* If it doesn't exist, fallback to setInterval on the game's tps
 
- */
+*/
 window.requestNextTick = function() {
 	return (
 		window.requestAnimationTick ||
@@ -22,16 +22,16 @@ window.requestNextTick = function() {
 		function(callback) {
 			window.setTimeout(callback, 1000 / alien.Game.getTPS);
 		}
-	);
+		);
 }();
 
 //alien namespace
 var alien = {};
 
 /**
- * Analytics and logging for game statistics (tickrate, time, call frequency, etc)
- * @constructor
- */
+* Analytics and logging for game statistics (tickrate, time, call frequency, etc)
+* @constructor
+*/
 alien.Report = function() {
 	//master switch that enables or disables reporting
 	var debug = true;
@@ -44,6 +44,7 @@ alien.Report = function() {
 	//dpt = draws per tick
 	var updates = 0, draws = 0;
 	var dpt = 0;
+	var fps = 0;
 
 	//adds a tick to the average tps calculation.
 	// if the maximum amount of ticks is recorded, 
@@ -59,7 +60,7 @@ alien.Report = function() {
 		}
 
 		//lambda reduce the array to a sum (NOT AVAILABLE IN <IE9)
-		var sum = ticks.reduce(function(a, b) { return a + b });
+		var sum = ticks.reduce(function(a, b) { return a + b; });
 		averageTPS = currentRecordedTicks * 1000 / sum;
 	}
 
@@ -90,9 +91,23 @@ alien.Report = function() {
 				updates += 1;
 				document.getElementById('updates').innerHTML = updates;
 				document.getElementById('dpt').innerHTML = dpt;
+				if (averageTPS !== 0 && dpt !== 0) {
+					//lazy updating: only recalculates once per tick
+					//always averages around 200fps
+					fps = dpt * averageTPS;
+					document.getElementById('fps').innerHTML = fps;
+				}
 				dpt = 0;
 			}
-
+		},
+		log: function(message) {
+			document.getElementById('eventlog').value = (message + '\n') + document.getElementById('eventlog').value;
+		},
+		error: function(message) {
+			console.error('Error: ' + message);
+		},
+		warning: function(message) {
+			console.warn('Warning: ' + message);
 		}
 	};
 
@@ -122,15 +137,15 @@ alien.Timer = function() {
 			//Move the game time forward one step.  Returns true if this call is a tick, false otherwise
 			var now = Date.now();
 			var timeDelta = now - lastTick;
-			if (timeDelta < minTickTime) { 
+			if (timeDelta < minTickTime) {
 				//if we haven't reached the next step yet, bail out
-				return false; 
+				return false;
 			}
-			// if (timeDelta > 2 * maxTickTime) {
-			// 	tickTime = maxTickTime;
-			// } else {
-			// 	tickTime = timeDelta;
-			// }
+			//if (timeDelta > 2 * maxTickTime) {
+			//	tickTime = maxTickTime;
+			//} else {
+			//	tickTime = timeDelta;
+			//}
 			tickTime = timeDelta;
 			alien.Report.tick(tickTime);
 			time += tickTime;
@@ -170,6 +185,94 @@ alien.Timer = function() {
 	};
 }();
 
+alien.Renderer = function()
+{
+	var canvas = document.getElementById('alienCanvas');
+
+	return {
+		ctx: canvas.getContext('2d'),
+		canvas: canvas
+	};
+
+}();
+
+/**
+*	Event handler - captures raw js/browser events and passes them to the registered
+*  callbacks
+*/
+alien.Event = function() {
+
+	var events = {
+	'click': [],
+	'dblclick': [],
+	'mousedown': [],
+	'mouseup': [],
+	'mouseover': [],
+	'mouseout': [],
+	'mousemove': [],
+	'keydown': [],
+	'keyup': []
+	};
+
+	function generateEvent(e) {
+		//augment event with some extra parameters
+		e = e || {};
+		e.timestamp = Date.now();
+		return e;
+	}
+
+	function catchEvent(e) {
+		console.log(e);
+		alien.Report.log('event caught: ' + e);
+		for (var cb in events[e.type]) {
+			events[e.type][cb](e);
+		}
+	}
+
+	//bind events to the canvas
+	(function () {
+		for (var eventType in events) {
+			alien.Renderer.canvas.addEventListener(eventType, catchEvent);
+		}
+	})();
+
+	return {
+		registerEvent: function(eventType, callback, identifier) {
+			if (events.indexOf(eventType) === -1) {
+				//if the event does not exist
+				alien.Report.error("Invalid event type");
+				return false;
+			}
+
+			if (events[eventType][identifier] !== undefined) {
+				//if this binding exists
+				alien.Report.error(eventType + " event already registered with that identifier");
+				return false;
+			}
+			//bind it
+			events[eventType][identifier] = callback;
+			return true;
+		},
+
+		unregisterEvent: function(eventType, identifier) {
+			if (events.indexOf(eventType) === -1) {
+				//if the event does not exist
+				alien.Report.error("Invalid event type");
+				return false;
+			}
+
+			if (events[eventType].indexOf(identifier) === -1) {
+				//if the binding does not exist (just warn, not a fatal error)
+				alien.Report.warning("Event with that identifier does not exist");
+				return true;
+			}
+
+			delete events[eventType][identifier];
+			return true;
+		}
+	};
+}();
+
 //Game object manages game loop and game state
 alien.Game = function() {
 
@@ -179,18 +282,18 @@ alien.Game = function() {
 
 	function draw() {
 		alien.Report.draw();
-	};
+	}
 
 	function update() {
 		alien.Report.update();
-	};
+	}
 
 	function run() {
 		if (running) {
 			step();
 			setTimeout(run, 0);
 		}
-	};
+	}
 
 	function step() {
 		if (alien.Timer.tick()) {
@@ -198,7 +301,7 @@ alien.Game = function() {
 		}
 		alien.Report.time(alien.Timer.getTime());
 		window.requestNextTick(draw);
-	};
+	}
 
 	return {
 		begin: function() {
@@ -225,15 +328,11 @@ alien.Game = function() {
 	};
 }();
 
-alien.Renderer = function()
-{
-	var canvas = document.getElementById('alienCanvas');
+var result = alien.Event.registerEvent('mousedown', function(e) {
+	console.log('mousedown: ' + e.pageX + ' ' + e.pageY);
+});
 
-	return {
-		ctx: canvas.getContext('2d'),
-	};
-
-}();
+console.log('bind to mousedown: ' + result);
 
 console.log(alien.Renderer.ctx);
 
