@@ -238,7 +238,7 @@ alien.Event = function() {
 
 	return {
 		registerEvent: function(eventType, callback, identifier) {
-			if (events.indexOf(eventType) === -1) {
+			if (!(eventType in events)) {
 				//if the event does not exist
 				alien.Report.error("Invalid event type");
 				return false;
@@ -255,7 +255,7 @@ alien.Event = function() {
 		},
 
 		unregisterEvent: function(eventType, identifier) {
-			if (events.indexOf(eventType) === -1) {
+			if (!(eventType in events)) {
 				//if the event does not exist
 				alien.Report.error("Invalid event type");
 				return false;
