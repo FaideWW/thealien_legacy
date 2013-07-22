@@ -190,7 +190,9 @@ alien.Renderer = function()
 	var canvas = document.getElementById('alienCanvas');
 
 	return {
+		//the rendering context
 		ctx: canvas.getContext('2d'),
+		//the DOM object
 		canvas: canvas
 	};
 
@@ -203,15 +205,15 @@ alien.Renderer = function()
 alien.Event = function() {
 
 	var events = {
-	'click': [],
-	'dblclick': [],
-	'mousedown': [],
-	'mouseup': [],
-	'mouseover': [],
-	'mouseout': [],
-	'mousemove': [],
-	'keydown': [],
-	'keyup': []
+		'click': [],
+		'dblclick': [],
+		'mousedown': [],
+		'mouseup': [],
+		'mouseover': [],
+		'mouseout': [],
+		'mousemove': [],
+		'keydown': [],
+		'keyup': []
 	};
 
 	function generateEvent(e) {
@@ -222,10 +224,12 @@ alien.Event = function() {
 	}
 
 	function catchEvent(e) {
-		console.log(e);
-		alien.Report.log('event caught: ' + e);
-		for (var cb in events[e.type]) {
-			events[e.type][cb](e);
+		if (alien.Game.isRunning()) {
+			//console.log(e);
+			//alien.Report.log('event caught: ' + e.type);
+			for (var cb in events[e.type]) {
+				events[e.type][cb](e);
+			}
 		}
 	}
 
@@ -269,6 +273,152 @@ alien.Event = function() {
 
 			delete events[eventType][identifier];
 			return true;
+		}
+	};
+}();
+
+//Collision detection for game objects
+alien.Collision = function() {
+	//encapsulate a polygon in an axis-aligned bounding box
+	function getAABB(poly) {
+		var minx, miny, maxx, maxy;
+		for (var i = 0; i < poly.length; i+=1) {
+			var point = poly[i];
+			minx = minx || point.x;
+			maxx = maxx || point.x;
+			miny = miny || point.y;
+			maxy = maxy || point.y;
+
+			if (point.x < minx) minx = point.x;
+			if (point.x > maxx) maxx = point.x;
+			if (point.y < miny) miny = point.y;
+			if (point.y > maxy) maxy = point.y;
+		}
+
+		return {
+			min: {
+				x: minx,
+				y: miny
+			},
+			max: {
+				x: maxx,
+				y: maxy
+			}
+		};
+	}
+
+	//return a list of vectors from a polygon
+	function getVectors(poly, aabb) {
+		var vectors = [];
+		for (var i = 0; i < poly.length; i+=1) {
+			var origin = poly[i], dest;
+			if (i === poly.length-1) {
+				dest = poly[0];
+			} else {
+				dest = poly[i+1];
+			}
+
+			vectors.push({
+				origin: origin,
+				dest: dest
+			});
+		}
+		return vectors;
+	}
+
+	/* ---------------- vector operations (move these to a vector library) -------------------- */
+	//returns the cross product of a pair of vectors (v1 x v2)
+	function crossVectors(v1, v2) {
+		var v = {
+				x: v1.dest.x - v1.origin.x,
+				y: v1.dest.y - v1.origin.y
+			},
+			w = {
+				x: v2.dest.x - v2.origin.x,
+				y: v2.dest.y - v2.origin.y
+			};
+		return ((v.x * w.y) - (v.y * w.x));
+	}
+
+
+	}
+
+	//test if a pair of vectors intersect and the type of intersection
+	//returns 0 for no intersection, 1 for exactly one intersection, and -1 for a colinear intersection
+	function intersectVectors(v1, v2, e) {
+		//using vector cross products:
+		var p = {
+				x: v1.origin.x,
+				y: v1.origin.y
+			},
+			q = {
+				x: v2.origin.x,
+				y: v2.origin.y
+			},
+			r = {
+				x: v1.dest.x - p.x,
+				y: v1.dest.y - p.y
+			},
+			s = {
+				x: v2.dest.x - q.x,
+				y: v2.dest.y - q.y
+			};
+		
+	}
+
+	//find the number of sides of a polygon a ray intersects from a point in an arbitrary direction
+	//returns true if the number of intersections is odd (inside the poly), false otherwise
+	function castRay(point, poly, aabb) {
+		//if an aabb is available we can expedite things
+		aabb = aabb || getAABB(poly);
+		//epsilon accuracy tolerance: 1% of horizontal AABB size
+		var e = (aabb.max.x - aabb.min.x) / 100,
+		//build the vectors
+		vectors = getVectors(poly),
+		//build an eastbound ray from the west edge of the bounding box (minus epsilon) to the point in question
+		ray = {
+			origin: {
+				x: aabb.min.x - e,
+				y: point.y
+			},
+			dest: point
+		},
+		intersecting_sides = 0;
+		for (var i = 0; i < vectors.length; i+=1) {
+			if (intersectVectors(ray, vectors[i], e) === 1) {
+				//we're treating colinear as not an intersection for simplicity's sake
+				intersecting_sides += 1;
+			}
+		}
+
+		if ((intersecting_sides & 1) === 1) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	return {
+		pointInAABB: function(point, aabb) {
+			if ((point.x < aabb.min.x || point.x > aabb.max.x) ||
+				(point.y < aabb.min.y || point.y > aabb.max.y)) {
+				return false;
+			} else {
+				return true;
+			}
+		},
+
+		pointInPoly: function(point, poly) {
+			//short circuit with an AABB test first
+			var aabb = getAABB(poly);
+			if (!this.pointInAABB(point, aabb)) {
+				//the point is definitely not in the poly
+				return false;
+			}
+
+			return castRay(point, poly, aabb);
+
 		}
 	};
 }();
@@ -329,15 +479,45 @@ alien.Game = function() {
 }();
 
 var result = alien.Event.registerEvent('mousedown', function(e) {
-	console.log('mousedown: ' + e.pageX + ' ' + e.pageY);
+	console.log('mousedown: ' + e.layerX + ' ' + e.layerY);
 });
 
 console.log('bind to mousedown: ' + result);
 
 console.log(alien.Renderer.ctx);
 
-alien.Renderer.ctx.fillStyle = "rgb(200,0,0)";
-alien.Renderer.ctx.fillRect(10,10,55,50);
 
 alien.Renderer.ctx.fillStyle = "rgba(0,0,200, 0.5)";
 alien.Renderer.ctx.fillRect(30,30,55,50);
+
+var clickIntersectionTest = function(e) {
+	var point = {
+		x: e.layerX,
+		y: e.layerY
+	};
+	//hard coded rect for now
+	var poly = [
+		{
+			x: 30,
+			y: 30
+		},
+		{
+			x: 85,
+			y: 30
+		},
+		{
+			x: 85,
+			y: 80
+		},
+		{
+			x: 30,
+			y: 80
+		}
+	];
+
+	var intersection = alien.Collision.pointInPoly(point, poly);
+
+	alien.Report.log('clicked on square: ' + intersection);
+}
+
+alien.Event.registerEvent('click', clickIntersectionTest, 'clickIntersection');
