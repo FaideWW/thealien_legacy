@@ -26,7 +26,7 @@ window.requestNextTick = function() {
 }();
 
 //alien namespace
-var alien = {};
+var alien = alien || {};
 
 /**
 * Analytics and logging for game statistics (tickrate, time, call frequency, etc)
@@ -340,9 +340,6 @@ alien.Collision = function() {
 		return ((v.x * w.y) - (v.y * w.x));
 	}
 
-
-	}
-
 	//test if a pair of vectors intersect and the type of intersection
 	//returns 0 for no intersection, 1 for exactly one intersection, and -1 for a colinear intersection
 	function intersectVectors(v1, v2, e) {
@@ -363,7 +360,16 @@ alien.Collision = function() {
 				x: v2.dest.x - q.x,
 				y: v2.dest.y - q.y
 			};
-		
+
+			if (alien.Vector.crossmag(r, s) === 0) {
+				return 0;
+			}
+			
+		return {
+			t: ((alien.Vector.crossmag(alien.Vector.sub(q, p), s)) / alien.Vector.crossmag(r, s)),
+			u: ((alien.Vector.crossmag(alien.Vector.sub(q, p), r)) / alien.Vector.crossmag(r, s))
+		};
+
 	}
 
 	//find the number of sides of a polygon a ray intersects from a point in an arbitrary direction
@@ -385,8 +391,14 @@ alien.Collision = function() {
 		},
 		intersecting_sides = 0;
 		for (var i = 0; i < vectors.length; i+=1) {
-			if (intersectVectors(ray, vectors[i], e) === 1) {
-				//we're treating colinear as not an intersection for simplicity's sake
+			var intersection =  intersectVectors(ray, vectors[i], e);
+			if (intersection === 0) {
+				//parallel
+				continue;
+			}
+			if (intersection.t >= 0 && intersection.t <= 1 &&
+				intersection.u >= 0 && intersection.u <= 1) {
+				//intersection
 				intersecting_sides += 1;
 			}
 		}
@@ -478,46 +490,61 @@ alien.Game = function() {
 	};
 }();
 
-var result = alien.Event.registerEvent('mousedown', function(e) {
-	console.log('mousedown: ' + e.layerX + ' ' + e.layerY);
-});
+var c = alien.Renderer.ctx;
 
-console.log('bind to mousedown: ' + result);
+var octagon = [
+	{
+		x: 100,
+		y: 100
+	},
+	{
+		x: 125,
+		y: 125
+	},
+	{
+		x: 125,
+		y: 150
+	},
+	{
+		x: 100,
+		y: 175
+	},
+	{
+		x: 75,
+		y: 175
+	},
+	{
+		x: 50,
+		y: 150
+	},
+	{
+		x: 50,
+		y: 125
+	},
+	{
+		x: 75,
+		y: 100
+	}
+];
 
-console.log(alien.Renderer.ctx);
-
-
-alien.Renderer.ctx.fillStyle = "rgba(0,0,200, 0.5)";
-alien.Renderer.ctx.fillRect(30,30,55,50);
+c.fillStyle = "rgba(200,0,0,0.5)";
+c.beginPath();
+c.moveTo(octagon[0].x, octagon[0].y);
+for (var i = 1; i < octagon.length; i+=1) {
+	c.lineTo(octagon[i].x, octagon[i].y);
+}
+c.closePath();
+c.fill();
 
 var clickIntersectionTest = function(e) {
 	var point = {
 		x: e.layerX,
 		y: e.layerY
 	};
-	//hard coded rect for now
-	var poly = [
-		{
-			x: 30,
-			y: 30
-		},
-		{
-			x: 85,
-			y: 30
-		},
-		{
-			x: 85,
-			y: 80
-		},
-		{
-			x: 30,
-			y: 80
-		}
-	];
 
-	var intersection = alien.Collision.pointInPoly(point, poly);
+	var intersection = alien.Collision.pointInPoly(point, octagon);
 
-	alien.Report.log('clicked on square: ' + intersection);
+	alien.Report.log('clicked on shape: ' + intersection);
 }
 
 alien.Event.registerEvent('click', clickIntersectionTest, 'clickIntersection');
