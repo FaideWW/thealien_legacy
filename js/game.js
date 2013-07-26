@@ -527,7 +527,9 @@ var octagon = [
 	}
 ];
 
-c.fillStyle = "rgba(200,0,0,0.5)";
+var color = "rgba(200,0,0,0.5)";
+
+c.fillStyle = color;
 c.beginPath();
 c.moveTo(octagon[0].x, octagon[0].y);
 for (var i = 1; i < octagon.length; i+=1) {
