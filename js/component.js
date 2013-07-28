@@ -1,18 +1,16 @@
-alien = alien || {};
+var alien = alien || {};
 
 alien.Component = function(groups, factories, instances) {
 	var f = [],
-	i = [];
+		i = [],
+		factory_id = 1;
 	return {
 		factories: factories || function() {
 			return {
 				add: function(factory) {
-					if (factory.id in f) {
-						return false;
-					}
-					f[factory.id] = factory;
-					i[factory.id] = [];
-					return f[factory.id];
+					f[factory_id] = factory;
+					i[factory_id] = [];
+					return factory_id++;
 				},
 				get: function(factory_id) {
 					if (factory_id in f) {
@@ -32,13 +30,18 @@ alien.Component = function(groups, factories, instances) {
 			};
 		}(),
 		instances: instances || function () {
+			var global_instance_id = 0;
 			return {
-				create: function(type, properties) {
-					if (!(type in i)) {Nia Sophia 
+				create: function(properties, type) {
+					properties = properties || {};
+					type = type || properties.ctype || null;
+					if (!(type in i)) {
 						return false;
 					}
-					var component = f[type].create(properties);
-					return i[type].push(component);
+					properties["g_id"] = global_instance_id++;
+					var component = f[type](properties);
+					var index = i[type].push(component);
+					return i[type][index-1];
 				},
 				get: function(type, instance_id) {
 					if (type in i && instance_id in i[type]) {
@@ -74,3 +77,4 @@ alien.Component = function(groups, factories, instances) {
 		}(),
 	};
 }();
+

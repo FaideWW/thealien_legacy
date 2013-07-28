@@ -185,19 +185,6 @@ alien.Timer = function() {
 	};
 }();
 
-alien.Renderer = function()
-{
-	var canvas = document.getElementById('alienCanvas');
-
-	return {
-		//the rendering context
-		ctx: canvas.getContext('2d'),
-		//the DOM object
-		canvas: canvas
-	};
-
-}();
-
 /**
 *	Event handler - captures raw js/browser events and passes them to the registered
 *  callbacks
@@ -234,11 +221,11 @@ alien.Event = function() {
 	}
 
 	//bind events to the canvas
-	(function () {
-		for (var eventType in events) {
-			alien.Renderer.canvas.addEventListener(eventType, catchEvent);
-		}
-	})();
+	// (function () {
+	// 	for (var eventType in events) {
+	// 		alien.Render.canvas().addEventListener(eventType, catchEvent);
+	// 	}
+	// })();
 
 	return {
 		registerEvent: function(eventType, callback, identifier) {
@@ -490,7 +477,7 @@ alien.Game = function() {
 	};
 }();
 
-var c = alien.Renderer.ctx;
+var c = alien.Render.ctx;
 
 var octagon = [
 	{
@@ -527,16 +514,48 @@ var octagon = [
 	}
 ];
 
-var color = "rgba(200,0,0,0.5)";
 
-c.fillStyle = color;
-c.beginPath();
-c.moveTo(octagon[0].x, octagon[0].y);
-for (var i = 1; i < octagon.length; i+=1) {
-	c.lineTo(octagon[i].x, octagon[i].y);
-}
-c.closePath();
-c.fill();
+//bind component factories to the component manager
+var renderable = alien.Component.factories.add(RenderableFactory);
+var poly = alien.Component.factories.add(PolygonFactory);
+var pos = alien.Component.factories.add(PositionFactory);
+
+//create some properties for an entity
+var r1 = alien.Component.instances.create({
+	ctype: renderable,
+	rtype: 'square',
+	visible: false
+});
+
+var square = alien.Component.instances.create({
+	ctype: poly,
+	shape: 'rect',
+	width: 100,
+	height: 100,
+	color: "rgba(255,0,0,1)"
+});
+
+var p = alien.Component.instances.create({
+	ctype: pos,
+	x: 100,
+	y: 100
+});
+
+//create the entity and assign the components
+var obj1 = alien.Entity.create();
+obj1.components.add(r1);
+obj1.components.add(square);
+obj1.components.add(p);
+
+
+//initialize renderer
+var canvas = document.getElementById('alienCanvas');
+alien.Render.init(canvas, renderable, poly, pos);
+
+//add entity to renderer
+console.log(alien.Render.entities.add(obj1));
+
+alien.Render.update();
 
 var clickIntersectionTest = function(e) {
 	var point = {
@@ -550,3 +569,5 @@ var clickIntersectionTest = function(e) {
 }
 
 alien.Event.registerEvent('click', clickIntersectionTest, 'clickIntersection');
+
+
