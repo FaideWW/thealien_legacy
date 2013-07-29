@@ -185,242 +185,6 @@ alien.Timer = function() {
 	};
 }();
 
-/**
-*	Event handler - captures raw js/browser events and passes them to the registered
-*  callbacks
-*/
-alien.Event = function() {
-
-	var events = {
-		'click': [],
-		'dblclick': [],
-		'mousedown': [],
-		'mouseup': [],
-		'mouseover': [],
-		'mouseout': [],
-		'mousemove': [],
-		'keydown': [],
-		'keyup': []
-	};
-
-	function generateEvent(e) {
-		//augment event with some extra parameters
-		e = e || {};
-		e.timestamp = Date.now();
-		return e;
-	}
-
-	function catchEvent(e) {
-		if (alien.Game.isRunning()) {
-			//console.log(e);
-			//alien.Report.log('event caught: ' + e.type);
-			for (var cb in events[e.type]) {
-				events[e.type][cb](e);
-			}
-		}
-	}
-
-	//bind events to the canvas
-	// (function () {
-	// 	for (var eventType in events) {
-	// 		alien.Render.canvas().addEventListener(eventType, catchEvent);
-	// 	}
-	// })();
-
-	return {
-		registerEvent: function(eventType, callback, identifier) {
-			if (!(eventType in events)) {
-				//if the event does not exist
-				alien.Report.error("Invalid event type");
-				return false;
-			}
-
-			if (events[eventType][identifier] !== undefined) {
-				//if this binding exists
-				alien.Report.error(eventType + " event already registered with that identifier");
-				return false;
-			}
-			//bind it
-			events[eventType][identifier] = callback;
-			return true;
-		},
-
-		unregisterEvent: function(eventType, identifier) {
-			if (!(eventType in events)) {
-				//if the event does not exist
-				alien.Report.error("Invalid event type");
-				return false;
-			}
-
-			if (events[eventType].indexOf(identifier) === -1) {
-				//if the binding does not exist (just warn, not a fatal error)
-				alien.Report.warning("Event with that identifier does not exist");
-				return true;
-			}
-
-			delete events[eventType][identifier];
-			return true;
-		}
-	};
-}();
-
-//Collision detection for game objects
-alien.Collision = function() {
-	//encapsulate a polygon in an axis-aligned bounding box
-	function getAABB(poly) {
-		var minx, miny, maxx, maxy;
-		for (var i = 0; i < poly.length; i+=1) {
-			var point = poly[i];
-			minx = minx || point.x;
-			maxx = maxx || point.x;
-			miny = miny || point.y;
-			maxy = maxy || point.y;
-
-			if (point.x < minx) minx = point.x;
-			if (point.x > maxx) maxx = point.x;
-			if (point.y < miny) miny = point.y;
-			if (point.y > maxy) maxy = point.y;
-		}
-
-		return {
-			min: {
-				x: minx,
-				y: miny
-			},
-			max: {
-				x: maxx,
-				y: maxy
-			}
-		};
-	}
-
-	//return a list of vectors from a polygon
-	function getVectors(poly, aabb) {
-		var vectors = [];
-		for (var i = 0; i < poly.length; i+=1) {
-			var origin = poly[i], dest;
-			if (i === poly.length-1) {
-				dest = poly[0];
-			} else {
-				dest = poly[i+1];
-			}
-
-			vectors.push({
-				origin: origin,
-				dest: dest
-			});
-		}
-		return vectors;
-	}
-
-	/* ---------------- vector operations (move these to a vector library) -------------------- */
-	//returns the cross product of a pair of vectors (v1 x v2)
-	function crossVectors(v1, v2) {
-		var v = {
-				x: v1.dest.x - v1.origin.x,
-				y: v1.dest.y - v1.origin.y
-			},
-			w = {
-				x: v2.dest.x - v2.origin.x,
-				y: v2.dest.y - v2.origin.y
-			};
-		return ((v.x * w.y) - (v.y * w.x));
-	}
-
-	//test if a pair of vectors intersect and the type of intersection
-	//returns 0 for no intersection, 1 for exactly one intersection, and -1 for a colinear intersection
-	function intersectVectors(v1, v2, e) {
-		//using vector cross products:
-		var p = {
-				x: v1.origin.x,
-				y: v1.origin.y
-			},
-			q = {
-				x: v2.origin.x,
-				y: v2.origin.y
-			},
-			r = {
-				x: v1.dest.x - p.x,
-				y: v1.dest.y - p.y
-			},
-			s = {
-				x: v2.dest.x - q.x,
-				y: v2.dest.y - q.y
-			};
-
-			if (alien.Vector.crossmag(r, s) === 0) {
-				return 0;
-			}
-			
-		return {
-			t: ((alien.Vector.crossmag(alien.Vector.sub(q, p), s)) / alien.Vector.crossmag(r, s)),
-			u: ((alien.Vector.crossmag(alien.Vector.sub(q, p), r)) / alien.Vector.crossmag(r, s))
-		};
-
-	}
-
-	//find the number of sides of a polygon a ray intersects from a point in an arbitrary direction
-	//returns true if the number of intersections is odd (inside the poly), false otherwise
-	function castRay(point, poly, aabb) {
-		//if an aabb is available we can expedite things
-		aabb = aabb || getAABB(poly);
-		//epsilon accuracy tolerance: 1% of horizontal AABB size
-		var e = (aabb.max.x - aabb.min.x) / 100,
-		//build the vectors
-		vectors = getVectors(poly),
-		//build an eastbound ray from the west edge of the bounding box (minus epsilon) to the point in question
-		ray = {
-			origin: {
-				x: aabb.min.x - e,
-				y: point.y
-			},
-			dest: point
-		},
-		intersecting_sides = 0;
-		for (var i = 0; i < vectors.length; i+=1) {
-			var intersection =  intersectVectors(ray, vectors[i], e);
-			if (intersection === 0) {
-				//parallel
-				continue;
-			}
-			if (intersection.t >= 0 && intersection.t <= 1 &&
-				intersection.u >= 0 && intersection.u <= 1) {
-				//intersection
-				intersecting_sides += 1;
-			}
-		}
-
-		if ((intersecting_sides & 1) === 1) {
-			return true;
-		} else {
-			return false;
-		}
-
-	}
-
-	return {
-		pointInAABB: function(point, aabb) {
-			if ((point.x < aabb.min.x || point.x > aabb.max.x) ||
-				(point.y < aabb.min.y || point.y > aabb.max.y)) {
-				return false;
-			} else {
-				return true;
-			}
-		},
-
-		pointInPoly: function(point, poly) {
-			//short circuit with an AABB test first
-			var aabb = getAABB(poly);
-			if (!this.pointInAABB(point, aabb)) {
-				//the point is definitely not in the poly
-				return false;
-			}
-
-			return castRay(point, poly, aabb);
-
-		}
-	};
-}();
 
 //Game object manages game loop and game state
 alien.Game = function() {
@@ -449,7 +213,7 @@ alien.Game = function() {
 			update();
 		}
 		alien.Report.time(alien.Timer.getTime());
-		window.requestNextTick(draw);
+		window.requestNextTick(alien.Render.update);
 	}
 
 	return {
@@ -516,17 +280,13 @@ var octagon = [
 
 
 //bind component factories to the component manager
-var renderable = alien.Component.factories.add(RenderableFactory);
+var collider = alien.Component.factories.add(ColliderFactory);
+var listener = alien.Component.factories.add(ListenerFactory);
 var poly = alien.Component.factories.add(PolygonFactory);
 var pos = alien.Component.factories.add(PositionFactory);
+var renderable = alien.Component.factories.add(RenderableFactory);
 
 //create some properties for an entity
-var r1 = alien.Component.instances.create({
-	ctype: renderable,
-	rtype: 'square',
-	visible: false
-});
-
 var square = alien.Component.instances.create({
 	ctype: poly,
 	shape: 'rect',
@@ -535,39 +295,70 @@ var square = alien.Component.instances.create({
 	color: "rgba(255,0,0,1)"
 });
 
+var click_callback = function() {
+	console.log('click');
+}
+
+var l = alien.Component.instances.create({
+	ctype: listener,
+	events: {
+		click: [click_callback]
+	}
+});
+
+console.log(l);
+
+var r1 = alien.Component.instances.create({
+	ctype: renderable,
+	poly: square,
+	visible: false
+});
+
 var p = alien.Component.instances.create({
 	ctype: pos,
 	x: 100,
 	y: 100
 });
 
+var c = alien.Component.instances.create({
+	ctype: collider,
+	poly: square
+})
+
 //create the entity and assign the components
 var obj1 = alien.Entity.create();
 obj1.components.add(r1);
-obj1.components.add(square);
 obj1.components.add(p);
+obj1.components.add(c);
+obj1.components.add(l);
 
-
-//initialize renderer
+//initialize systems
 var canvas = document.getElementById('alienCanvas');
 alien.Render.init(canvas, renderable, poly, pos);
+alien.Collision.init(collider, pos);
+alien.Event.init(listener, collider, alien.Render.canvas());
+alien.Behavior.init({
+	collider: collider,
+	listener: listener,
+	polygon: poly,
+	position: pos,
+	renderable: renderable
+});
+
+alien.Behavior.add(obj1, DragDropBehavior);
+
+console.log('listener id');
+console.log(alien.Event.registerListener(obj1));
+
+//test collision mechanics
+console.log("collider (100,100): " + alien.Collision.pointCollide({x: 100, y: 100}, obj1));
+console.log("collider (149,149): " + alien.Collision.pointCollide({x: 149, y: 149}, obj1));
+console.log("collider (150,150): " + alien.Collision.pointCollide({x: 150, y: 150}, obj1));
+console.log("collider (200,200): " + alien.Collision.pointCollide({x: 200, y: 200}, obj1));
+
 
 //add entity to renderer
 console.log(alien.Render.entities.add(obj1));
 
 alien.Render.update();
-
-var clickIntersectionTest = function(e) {
-	var point = {
-		x: e.layerX,
-		y: e.layerY
-	};
-
-	var intersection = alien.Collision.pointInPoly(point, octagon);
-
-	alien.Report.log('clicked on shape: ' + intersection);
-}
-
-alien.Event.registerEvent('click', clickIntersectionTest, 'clickIntersection');
-
 

@@ -5,17 +5,14 @@ alien.Render = function() {
 	var components = {};
 	var entities = [];
 	function draw() {
-		console.log('drawing');
-		console.log(entities);
 		var c = components.c.getContext('2d');
 		for (entity in entities) {
 			var e = entities[entity].components.all();
-			console.log(e);
-			c.fillStyle = e[components.poly].color;
+			c.fillStyle = e[components.r].poly.color;
 			c.beginPath();
-			c.moveTo(e[components.pos].x + e[components.poly].poly[0].x, e[components.pos].y + e[components.poly].poly[0].y);
-			for (var i = 1; i < e[components.poly].poly.length; i+=1) {
-				c.lineTo(e[components.pos].x + e[components.poly].poly[i].x, e[components.pos].y + e[components.poly].poly[i].y);
+			c.moveTo(e[components.pos].x + e[components.r].poly.points[0].x, e[components.pos].y + e[components.r].poly.points[0].y);
+			for (var i = 1; i < e[components.r].poly.points.length; i+=1) {
+				c.lineTo(e[components.pos].x + e[components.r].poly.points[i].x, e[components.pos].y + e[components.r].poly.points[i].y);
 			}
 			c.closePath();
 			c.fill();
@@ -29,11 +26,9 @@ alien.Render = function() {
 						return false;
 					}
 					console.log(entity.components.has(components.r));
-					console.log(entity.components.has(components.poly));
 					console.log(entity.components.has(components.pos));
 
 					if (entity.components.has(components.r) &&
-						entity.components.has(components.poly) &&
 						entity.components.has(components.pos)) {
 						var index = entities.push(entity);
 						return index;
@@ -64,7 +59,6 @@ alien.Render = function() {
 			components = {
 				c: canvas,
 				r: renderable,
-				poly: polygon,
 				pos: position
 			};
 			return init;
@@ -80,6 +74,7 @@ alien.Render = function() {
 
 var PositionFactory = function(options) {
 	options = options || {};
+	options.componentname = "Position";
 	options.x = options.x || 50;
 	options.y = options.y || 50;
 	options.z = options.z || 0;
@@ -88,7 +83,8 @@ var PositionFactory = function(options) {
 
 var RenderableFactory = function(options) {
 	options = options || {};
-	options.rtype = options.rtype || null;
+	options.componentname = "Renderable";
+	options.poly = options.poly || null;
 	options.visible = options.visible || true;
 	options.z = options.z || 0;
 	return options;
@@ -96,14 +92,15 @@ var RenderableFactory = function(options) {
 
 var PolygonFactory = function(options) {
 	options = options || {};
-	options.poly = options.poly || [];
-	if (!options.poly.length) {
+	options.componentname = "Polygon";
+	options.points = options.points || [];
+	if (!options.points.length) {
 		if (options.shape === "rect") {
 			options.width = options.width || 50;
 			options.height = options.height || 50;
 
 			//build PolygonFactory properties
-			options.poly = [
+			options.points = [
 			{
 				x: -options.width / 2,
 				y: -options.height / 2
