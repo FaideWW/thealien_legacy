@@ -4,8 +4,10 @@ alien.Render = function() {
 	var init = false;
 	var components = {};
 	var entities = [];
+	var canvas_dims = {};
 	function draw() {
 		var c = components.c.getContext('2d');
+		c.clearRect(0, 0, canvas_dims.x, canvas_dims.y);
 		for (entity in entities) {
 			var e = entities[entity].components.all();
 			c.fillStyle = e[components.r].poly.color;
@@ -60,6 +62,10 @@ alien.Render = function() {
 				c: canvas,
 				r: renderable,
 				pos: position
+			};
+			canvas_dims = {
+				x: canvas.width,
+				y: canvas.height
 			};
 			return init;
 		},

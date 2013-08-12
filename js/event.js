@@ -16,7 +16,8 @@ alien.Event = function() {
 			'mouseout': [],
 			'mousemove': [],
 			'keydown': [],
-			'keyup': []
+			'keyup': [],
+			'update': []
 		},
 		mouseevents = [
 			'click',
@@ -25,7 +26,6 @@ alien.Event = function() {
 			'mouseup',
 			'mouseover',
 			'mouseout',
-			'mousemove'
 		],
 		entities = [];
 
@@ -47,7 +47,7 @@ alien.Event = function() {
 			for (var e_id in en) {
 				var listener = entities[e_id].components.get(components.l);
 				for (var cb in listener.events[e.type]) {
-					listener.events[e.type][cb]();
+					listener.events[e.type][cb](e);
 				}
 			}
 		}
@@ -141,6 +141,7 @@ alien.Event = function() {
 				l: listener,
 				c: collider
 			};
+
 			//bind events to the canvas
 			console.log(events);
 			for (var eventType in events) {
@@ -154,6 +155,6 @@ alien.Event = function() {
 var ListenerFactory = function(options) {
 	options = options || {};
 	options.componentname = "Listener";
-	options.events = options.events || {}; 
+	options.events = options.events || {};
 	return options;
 }

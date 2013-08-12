@@ -16,6 +16,15 @@ alien.Entity = function() {
 					all: function() {
 						return c;
 					},
+					clone: function() {
+						var new_components = [];
+						for (var component in c) {
+							console.log(c[component]);
+							new_c = alien.Component.instances.clone(c[component].ctype, c[component].t_id);
+							new_components.push(new_c);
+						}
+						return new_components;
+					},
 					get: function(component_id) {
 						return c[component_id];
 					},
@@ -51,6 +60,17 @@ alien.Entity = function() {
 	}
 
 	return {
+		clone: function(obj) {
+			if (obj === undefined) {
+				return false;
+			}
+			var new_obj = newObj();
+			var cs = obj.components.clone();
+			for (var c in cs) {
+				new_obj.components.add(cs[c]);
+			}
+			return new_obj;
+		},
 		create: function() {
 			return newObj();
 		},

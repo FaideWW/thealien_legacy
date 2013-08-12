@@ -7,10 +7,8 @@
 
 
 
-/***
-* Search for a requestAnimationTick hack to reduce cpu usage
-* If it doesn't exist, fallback to setInterval on the game's tps
-
+/**
+* Polyfill for requestAnimationTick
 */
 window.requestNextTick = function() {
 	return (
@@ -24,6 +22,24 @@ window.requestNextTick = function() {
 		}
 		);
 }();
+
+/**
+* Polyfill for CustomEvent
+*/
+
+(function () {
+  function CustomEvent ( event, params ) {
+    params = params || { bubbles: false, cancelable: false, detail: undefined };
+    var evt = document.createEvent( 'CustomEvent' );
+    evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+    return evt;
+   };
+
+  CustomEvent.prototype = window.CustomEvent.prototype;
+
+  window.CustomEvent = CustomEvent;
+})();
+
 
 //alien namespace
 var alien = alien || {};
@@ -192,13 +208,22 @@ alien.Game = function() {
 	var running = false;
 	//this is called on the first Game.begin() to signal that time should begin counting 
 	var initialized = false;
+	var lastTime;
 
 	function draw() {
 		alien.Report.draw();
 	}
 
-	function update() {
-		alien.Report.update();
+	function update(dt) {
+		alien.Report.update(dt);
+		var e = new CustomEvent("update", {
+			detail: {
+				timeDelta: dt
+			}
+		});
+		alien.Render.canvas().dispatchEvent(e);
+		alien.Behavior.update(dt);
+
 	}
 
 	function run() {
@@ -210,7 +235,10 @@ alien.Game = function() {
 
 	function step() {
 		if (alien.Timer.tick()) {
-			update();
+			lastTime = lastTime || 0;
+			var timeSince = alien.Timer.getTime() - lastTime;
+			update(timeSince);
+			lastTime = alien.Timer.getTime();
 		}
 		alien.Report.time(alien.Timer.getTime());
 		window.requestNextTick(alien.Render.update);
@@ -323,7 +351,7 @@ var p = alien.Component.instances.create({
 var c = alien.Component.instances.create({
 	ctype: collider,
 	poly: square
-})
+});
 
 //create the entity and assign the components
 var obj1 = alien.Entity.create();
@@ -345,20 +373,27 @@ alien.Behavior.init({
 	renderable: renderable
 });
 
-alien.Behavior.add(obj1, DragDropBehavior);
+//alien.Behavior.add(obj1, DragDropBehavior);
+alien.Behavior.add(obj1, OscillateBehavior.create(5000,50,90));
 
-console.log('listener id');
-console.log(alien.Event.registerListener(obj1));
+//clone object (does not clone behaviors, those will have to be manually cloned)
+obj2 = alien.Entity.clone(obj1);
 
-//test collision mechanics
-console.log("collider (100,100): " + alien.Collision.pointCollide({x: 100, y: 100}, obj1));
-console.log("collider (149,149): " + alien.Collision.pointCollide({x: 149, y: 149}, obj1));
-console.log("collider (150,150): " + alien.Collision.pointCollide({x: 150, y: 150}, obj1));
-console.log("collider (200,200): " + alien.Collision.pointCollide({x: 200, y: 200}, obj1));
+alien.Behavior.add(obj2, DragDropBehavior.create());
+
+obj2.components.get(pos).x = 100;
+obj2.components.get(pos).y = 300;
+
+obj2.components.get(renderable).poly.color = "rgba(0,0,255,1)";
+
+
+alien.Event.registerListener(obj2);
+alien.Event.registerListener(obj1);
 
 
 //add entity to renderer
-console.log(alien.Render.entities.add(obj1));
+alien.Render.entities.add(obj1);
+alien.Render.entities.add(obj2);
 
 alien.Render.update();
 

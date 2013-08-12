@@ -206,5 +206,6 @@ var ColliderFactory = function(options) {
 	options.componentname = "Collider";
 	options.collidable = options.collidable || false;
 	options.poly = options.poly || null;
+
 	return options;
 };
