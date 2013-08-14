@@ -402,10 +402,17 @@ console.log(obj2.components.get('position'));
 //var osc = OscillateBehavior.create(1000, 20, 90);
 //console.log(osc);
 
+var scene1 = alien.Scene.scenes.create({
+	wrap: false,
+	entities: [
+		obj1,
+		obj2,
+		obj3
+	]
+});
 
-//add entity to renderer
-alien.Render.entities.add(obj1);
-alien.Render.entities.add(obj2);
-alien.Render.entities.add(obj3);
+var scene2 = alien.Scene.scenes.clone(scene1);
+
+alien.Scene.load(scene1);
 
 alien.Render.update();

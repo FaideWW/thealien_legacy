@@ -3,50 +3,26 @@ var alien = alien || {};
 alien.Render = function() {
 	var init = false;
 	var canvas;
-	var entities = [];
 	var canvas_dims = {};
-	function draw() {
+	function draw(entities) {
+
 		var c = canvas.getContext('2d');
 		c.clearRect(0, 0, canvas_dims.x, canvas_dims.y);
-		for (entity in entities) {
+		for (var entity in entities) {
 			var e = entities[entity].components.all();
-			c.fillStyle = e['renderable'].poly.color;
-			c.beginPath();
-			c.moveTo(e['position'].x + e['renderable'].poly.points[0].x, e['position'].y + e['renderable'].poly.points[0].y);
-			for (var i = 1; i < e['renderable'].poly.points.length; i+=1) {
-				c.lineTo(e['position'].x + e['renderable'].poly.points[i].x, e['position'].y + e['renderable'].poly.points[i].y);
+			if (entities[entity].components.has('renderable') && entities[entity].components.has('position')) {
+				c.fillStyle = e['renderable'].poly.color;
+				c.beginPath();
+				c.moveTo(e['position'].x + e['renderable'].poly.points[0].x, e['position'].y + e['renderable'].poly.points[0].y);
+				for (var i = 1; i < e['renderable'].poly.points.length; i+=1) {
+					c.lineTo(e['position'].x + e['renderable'].poly.points[i].x, e['position'].y + e['renderable'].poly.points[i].y);
+				}
+				c.closePath();
+				c.fill();
 			}
-			c.closePath();
-			c.fill();
 		}
 	}
 	return {
-		entities: function() {
-			return {
-				add: function(entity) {
-					if (!init) {
-						return false;
-					}
-
-					if (entity.components.has('renderable') &&
-						entity.components.has('position')) {
-						var index = entities.push(entity);
-						return index;
-					} else {
-						return false;
-					}
-				},
-				remove: function(index) {
-					if (init && index in entities) {
-						//completely remove (for memory saving reasons)
-						entities.splice(index,1);
-						return true;
-					} else {
-						return false;
-					}
-				}
-			};
-		}(),
 		canvas: function() {
 			if (!init) {
 				return false;
@@ -67,9 +43,10 @@ alien.Render = function() {
 			if (!init) {
 				return false;
 			}
-			draw();
+			var entities = alien.Scene.current().entities;
+			draw(entities);
 		}
-	}
+	};
 }();
 
 var PositionFactory = function(options) {
@@ -79,7 +56,7 @@ var PositionFactory = function(options) {
 	options.y = options.y || 50;
 	options.z = options.z || 0;
 	return options;
-}
+};
 
 var RenderableFactory = function(options) {
 	options = options || {};
@@ -88,7 +65,7 @@ var RenderableFactory = function(options) {
 	options.visible = options.visible || true;
 	options.z = options.z || 0;
 	return options;
-}
+};
 
 var PolygonFactory = function(options) {
 	options = options || {};
@@ -122,4 +99,4 @@ var PolygonFactory = function(options) {
 	}
 	options.color = options.color || "rgba(0,0,0,1)";
 	return options;
-}
+};

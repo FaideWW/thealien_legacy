@@ -20,7 +20,7 @@ alien.Behavior = function() {
 			if (!(entity.gid in entities)) {
 				entities[entity.gid] = entity;
 				var behaviors = entity.behaviors.all();
-				for (behavior in behaviors) {
+				for (var behavior in behaviors) {
 					behaviors[behavior].bind(entity);
 				}
 			}
@@ -79,7 +79,6 @@ var DragDropBehavior = function() {
 					console.log(l.events);
 				} else {
 					return false;
-					
 				}
 			},
 			unbind: function(e) {
@@ -107,9 +106,8 @@ var OscillateBehavior = function(period, amplitude, angle) {
 			t += ratio;
 			t = t % 1;
 			var osc_t = (t * 4 * Math.PI) - (2 * Math.PI);
-	
+
 			var amp_delta = Math.sin(osc_t) * i;
-			console.log(amp_delta);
 			return {
 				x: Math.cos(rad) * amp_delta,
 				y: Math.sin(rad) * amp_delta
