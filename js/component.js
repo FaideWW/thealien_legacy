@@ -8,7 +8,7 @@ alien.Component = function(groups, factories, instances) {
 	return {
 		factories: factories || function() {
 			return {
-				add: function(factory) {
+				add: function(factory, name) {
 					f[factory_id] = factory;
 					i[factory_id] = [];
 					p[factory_id] = [];
@@ -113,7 +113,7 @@ alien.Component = function(groups, factories, instances) {
 					}
 				}
 			};
-		}(),
+		}()
 	};
 }();
 

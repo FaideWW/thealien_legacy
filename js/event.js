@@ -40,14 +40,18 @@ alien.Event = function() {
 			//check all mouse events
 			var en = [];
 			if (mouseevents.indexOf(e.type) > -1) {
+				console.log('mouse event');
 				en = filterEntitiesAtPoint({ x: e.layerX, y: e.layerY }, events[e.type]);
+				if (en.length > 0) {
+					console.log(en);
+				}
 			} else {
 				en = events[e.type];
 			}
 			for (var e_id in en) {
-				var listener = entities[e_id].components.get(components.l);
+				var listener = entities[en[e_id]].components.get('listener');
 				for (var cb in listener.events[e.type]) {
-					listener.events[e.type][cb](e);
+					listener.events[e.type][cb](e, entities[en[e_id]]);
 				}
 			}
 		}
@@ -58,9 +62,10 @@ alien.Event = function() {
 		var e_at_point = [];
 		for (var e_id in en) {
 			entity = entities[e_id];
-			if (entity.components.has(components.c)) {
+			if (entity.components.has('collider')) {
 				if (alien.Collision.pointCollide(point, entity)) {
-					e_at_point.push(entity);
+					console.log('entity ' + entity.gid + ' at mouse');
+					e_at_point.push(entity.gid);
 				}
 			}
 		}
@@ -68,6 +73,12 @@ alien.Event = function() {
 	}
 
 	return {
+		listeners: function() {
+			return events;
+		},
+		entities: function() {
+			return entities;
+		},
 		registerEvent: function(eventType, callback, identifier) {
 			if (!(eventType in events)) {
 				//if the event does not exist
@@ -104,15 +115,15 @@ alien.Event = function() {
 
 		registerListener: function(entity) {
 			if (init) {
-				if (entity.components.has(components.l)) {
+				if (entity.components.has('listener')) {
 					if (!(entity in entities)) {
-						entities.push(entity);
-						var listener = entity.components.get(components.l);
+						entities[entity.gid] = entity;
+						var listener = entity.components.get('listener');
 						//double index for fast searching
 						for (var e in listener.events) {
-							events[e].push(entities.length - 1);
+							events[e].push(entity.gid);
 						}
-						return entities.length - 1;
+						return entity.gid;
 					}
 				}
 			}
@@ -121,8 +132,8 @@ alien.Event = function() {
 
 		unregisterListener: function(entity) {
 			if (init) {
-				if (entity.components.has(components.l)) {
-					var l = entity.components.get(components.l);
+				if (entity.components.has('listener')) {
+					var l = entity.components.get('listener');
 					for (var e in l.events) {
 						if (l.l_id in events[e]) {
 							delete events[e][l];
@@ -135,7 +146,7 @@ alien.Event = function() {
 			}
 		},
 
-		init: function(listener, collider, canvas) {
+		init: function(canvas) {
 			init = true;
 			components = {
 				l: listener,
@@ -154,7 +165,7 @@ alien.Event = function() {
 
 var ListenerFactory = function(options) {
 	options = options || {};
-	options.componentname = "Listener";
+	options.componentname = "listener";
 	options.events = options.events || {};
 	return options;
 }

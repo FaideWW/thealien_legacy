@@ -10,15 +10,17 @@
 	<button id="run">Run</button>
 	<input type="range" id="tpsselect" min="1" max="50" step="1" value="30"><span id="tpsval"></span>
 
-	<p>Time elapsed (in ms): <span id="time">0</span></p>
-	<p>Last tick time (in ms): <span id="ticktime">0</span></p>
-	<p>Average TPS (last 50 ticks): <span id="tps">0</span></p>
-	<p>Update calls: <span id="updates">0</span></p>
-	<p>Draw calls: <span id="draws">0</span></p>
-	<p>Draws per tick: <span id="dpt">0</span></p>	
-	<p>Frames per second: <span id="fps">0</span></p>
-	<p>Event log</p>
-	<textarea name="eventlog" id="eventlog" cols="80" rows="10"></textarea>
+	<div style="display: none">
+		<p>Time elapsed (in ms): <span id="time">0</span></p>
+		<p>Last tick time (in ms): <span id="ticktime">0</span></p>
+		<p>Average TPS (last 50 ticks): <span id="tps">0</span></p>
+		<p>Update calls: <span id="updates">0</span></p>
+		<p>Draw calls: <span id="draws">0</span></p>
+		<p>Draws per tick: <span id="dpt">0</span></p>	
+		<p>Frames per second: <span id="fps">0</span></p>
+		<p>Event log</p>
+		<textarea name="eventlog" id="eventlog" cols="80" rows="10"></textarea>
+	</div>
 </div>
 
 	<canvas id="alienCanvas" width="900" height="500" style="border: 1px solid black; float: right"></canvas>

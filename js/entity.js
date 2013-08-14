@@ -6,34 +6,69 @@ alien.Entity = function() {
 	function newObj() {
 		objs.push({
 			gid: global_id,
+			behaviors: function() {
+				var b = [];
+				return {
+					add: function(behavior) {
+						b.push(behavior);
+						behavior.b_id = b.length-1;
+						return b[b.length-1];
+					},
+					all: function() {
+						return b;
+					},
+					clone: function() {
+						//TODO: implement
+					},
+					get: function(behavior_id) {
+						return b[behavior_id];
+					},
+					remove: function(behavior_id) {
+						if (behavior_id in b) {
+							b[behavior_id].unbind();
+							delete b[behavior_id];
+							return true;
+						} else {
+							return false;
+						}
+					},
+					removeAll: function() {
+						b = [];
+					}
+
+				};
+			}(),
 			components: function() {
-				var c = [];
+				var c = {};
 				return {
 					add: function(component) {
-						c[component.ctype] = component;
+						c[component.componentname] = component;
 						return c[component.ctype];
 					},
 					all: function() {
 						return c;
 					},
 					clone: function() {
-						var new_components = [];
+						var new_components = {};
 						for (var component in c) {
-							console.log(c[component]);
 							new_c = alien.Component.instances.clone(c[component].ctype, c[component].t_id);
-							new_components.push(new_c);
+							new_components[component] = new_c;
 						}
 						return new_components;
 					},
-					get: function(component_id) {
-						return c[component_id];
+					get: function(componentname) {
+						return c[componentname];
 					},
-					has: function(component_id) {
-						return (component_id in c);
+					has: function(componentname) {
+						if (componentname in c) {
+							return true;
+						} else {
+							return false;
+						}
 					},
 					remove: function(component_id) {
-						if (component_id in c) {
-							delete c[component_id];
+						if (c[component_id].componentname in c) {
+							delete c[c[component_id].componentname];
 							return true;
 						} else {
 							return false;

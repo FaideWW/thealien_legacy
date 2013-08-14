@@ -323,8 +323,9 @@ var square = alien.Component.instances.create({
 	color: "rgba(255,0,0,1)"
 });
 
-var click_callback = function() {
-	console.log('click');
+var click_callback = function(ev, ent) {
+	console.log('click ' + ent.gid);
+	console.log(ent);
 }
 
 var l = alien.Component.instances.create({
@@ -362,38 +363,49 @@ obj1.components.add(l);
 
 //initialize systems
 var canvas = document.getElementById('alienCanvas');
-alien.Render.init(canvas, renderable, poly, pos);
-alien.Collision.init(collider, pos);
-alien.Event.init(listener, collider, alien.Render.canvas());
-alien.Behavior.init({
-	collider: collider,
-	listener: listener,
-	polygon: poly,
-	position: pos,
-	renderable: renderable
-});
-
-//alien.Behavior.add(obj1, DragDropBehavior);
-alien.Behavior.add(obj1, OscillateBehavior.create(5000,50,90));
+alien.Render.init(canvas);
+alien.Event.init(alien.Render.canvas());
 
 //clone object (does not clone behaviors, those will have to be manually cloned)
 obj2 = alien.Entity.clone(obj1);
-
-alien.Behavior.add(obj2, DragDropBehavior.create());
-
-obj2.components.get(pos).x = 100;
-obj2.components.get(pos).y = 300;
-
-obj2.components.get(renderable).poly.color = "rgba(0,0,255,1)";
+obj3 = alien.Entity.clone(obj1);
 
 
-alien.Event.registerListener(obj2);
+obj2.components.get('position').y = 300;
+obj2.components.get('renderable').poly.color = "rgba(0,0,255,1)";
+
+obj3.components.get('position').x = 300;
+obj3.components.get('renderable').poly.color = "rgba(255,0,255,1)";
+
+
+obj1.behaviors.add(DragDropBehavior());
+alien.Behavior.watch(obj1);
+obj2.behaviors.add(DragDropBehavior());
+alien.Behavior.watch(obj2);
+obj3.behaviors.add(OscillateBehavior(5000, 20, 90));
+obj3.behaviors.add(DragDropBehavior());
+alien.Behavior.watch(obj3);
+
 alien.Event.registerListener(obj1);
+alien.Event.registerListener(obj2);
+alien.Event.registerListener(obj3);
+
+
+console.log(obj1.components.get('position'));
+console.log(obj2.components.get('position'));
+
+
+//console.log(alien.Behavior.get(obj1));
+//console.log(alien.Behavior.get(obj2));
+//console.log(alien.Behavior.get(obj3));
+
+//var osc = OscillateBehavior.create(1000, 20, 90);
+//console.log(osc);
 
 
 //add entity to renderer
 alien.Render.entities.add(obj1);
 alien.Render.entities.add(obj2);
+alien.Render.entities.add(obj3);
 
 alien.Render.update();
-

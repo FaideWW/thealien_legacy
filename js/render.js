@@ -2,19 +2,19 @@ var alien = alien || {};
 
 alien.Render = function() {
 	var init = false;
-	var components = {};
+	var canvas;
 	var entities = [];
 	var canvas_dims = {};
 	function draw() {
-		var c = components.c.getContext('2d');
+		var c = canvas.getContext('2d');
 		c.clearRect(0, 0, canvas_dims.x, canvas_dims.y);
 		for (entity in entities) {
 			var e = entities[entity].components.all();
-			c.fillStyle = e[components.r].poly.color;
+			c.fillStyle = e['renderable'].poly.color;
 			c.beginPath();
-			c.moveTo(e[components.pos].x + e[components.r].poly.points[0].x, e[components.pos].y + e[components.r].poly.points[0].y);
-			for (var i = 1; i < e[components.r].poly.points.length; i+=1) {
-				c.lineTo(e[components.pos].x + e[components.r].poly.points[i].x, e[components.pos].y + e[components.r].poly.points[i].y);
+			c.moveTo(e['position'].x + e['renderable'].poly.points[0].x, e['position'].y + e['renderable'].poly.points[0].y);
+			for (var i = 1; i < e['renderable'].poly.points.length; i+=1) {
+				c.lineTo(e['position'].x + e['renderable'].poly.points[i].x, e['position'].y + e['renderable'].poly.points[i].y);
 			}
 			c.closePath();
 			c.fill();
@@ -27,11 +27,9 @@ alien.Render = function() {
 					if (!init) {
 						return false;
 					}
-					console.log(entity.components.has(components.r));
-					console.log(entity.components.has(components.pos));
 
-					if (entity.components.has(components.r) &&
-						entity.components.has(components.pos)) {
+					if (entity.components.has('renderable') &&
+						entity.components.has('position')) {
 						var index = entities.push(entity);
 						return index;
 					} else {
@@ -53,16 +51,12 @@ alien.Render = function() {
 			if (!init) {
 				return false;
 			} else {
-				return components.c;
+				return canvas;
 			}
 		},
-		init: function(canvas, renderable, polygon, position) {
+		init: function(c) {
 			init = true;
-			components = {
-				c: canvas,
-				r: renderable,
-				pos: position
-			};
+			canvas = c;
 			canvas_dims = {
 				x: canvas.width,
 				y: canvas.height
@@ -80,7 +74,7 @@ alien.Render = function() {
 
 var PositionFactory = function(options) {
 	options = options || {};
-	options.componentname = "Position";
+	options.componentname = "position";
 	options.x = options.x || 50;
 	options.y = options.y || 50;
 	options.z = options.z || 0;
@@ -89,7 +83,7 @@ var PositionFactory = function(options) {
 
 var RenderableFactory = function(options) {
 	options = options || {};
-	options.componentname = "Renderable";
+	options.componentname = "renderable";
 	options.poly = options.poly || null;
 	options.visible = options.visible || true;
 	options.z = options.z || 0;
@@ -98,7 +92,7 @@ var RenderableFactory = function(options) {
 
 var PolygonFactory = function(options) {
 	options = options || {};
-	options.componentname = "Polygon";
+	options.componentname = "polygon";
 	options.points = options.points || [];
 	if (!options.points.length) {
 		if (options.shape === "rect") {

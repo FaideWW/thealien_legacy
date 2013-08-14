@@ -2,8 +2,6 @@ var alien = alien || {};
 
 //Collision detection for game objects
 alien.Collision = function() {
-	var init = false;
-	var components = {};
 
 	//encapsulate a polygon in an axis-aligned bounding box
 	function getAABB(poly) {
@@ -163,47 +161,38 @@ alien.Collision = function() {
 
 		//tests whether or not two colliders intersect
 		collide: function(entity1, entity2) {
-			if (init) {
-				if (entity1.components.has(components.c) && 
-					entity1.components.has(components.p) &&
-					entity2.components.has(components.c) &&
-					entity2.components.has(components.p)) {
-				}
+			
+			if (entity1.components.has('collider') && 
+				entity1.components.has('position') &&
+				entity2.components.has('collider') &&
+				entity2.components.has('position')) {
 			}
 			return false;
 		},
 		//tests whether or not a point is inside an entity's bounding box (equivalent to tests.pointInPoly)
 		pointCollide: function(point, entity) {
-			if (init) {
-				if (entity.components.has(components.c) && entity.components.has(components.p)) {
-					var p = entity.components.get(components.p),
-						vertices = entity.components.get(components.c).poly.points,
-						offset = [];
-					for (var vertex in vertices) {
-						offset[vertex] = {
-							x: vertices[vertex].x + p.x,
-							y: vertices[vertex].y + p.y
-						};
-					}
-					return this.tests.pointInPoly(point, offset);
+			
+			if (entity.components.has('collider') && entity.components.has('position')) {
+				var p = entity.components.get('position'),
+					vertices = entity.components.get('collider').poly.points,
+					offset = [];
+				for (var vertex in vertices) {
+					offset[vertex] = {
+						x: vertices[vertex].x + p.x,
+						y: vertices[vertex].y + p.y
+					};
 				}
+				return this.tests.pointInPoly(point, offset);
 			}
+			
 			return false;
 		},
-		init: function(collider, position) {
-			init = true;
-			components = {
-				c: collider,
-				p: position
-			};
-			return init;
-		}
 	};
 }();
 
 var ColliderFactory = function(options) {
 	options = options || {};
-	options.componentname = "Collider";
+	options.componentname = "collider";
 	options.collidable = options.collidable || false;
 	options.poly = options.poly || null;
 
