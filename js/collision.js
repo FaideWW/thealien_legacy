@@ -132,7 +132,11 @@ alien.Collision = function() {
 		} else {
 			return false;
 		}
+	}
 
+	function getAABBAxisOfCollision(aabb1, aabb2) {
+		//determine the shallowest overlap axis, which will be the axis of collision
+		
 	}
 
 	return {
@@ -156,6 +160,36 @@ alien.Collision = function() {
 
 				return castRay(point, poly, aabb);
 
+			},
+			withinBounds: function(entity, boundary) {
+				if (entity.components.has('collider') && entity.components.has('position')) {
+					//boundary is a boundingbox with position x,y and width w,h
+
+					var b = {
+						min: {
+							x: boundary.x - (boundary.w / 2),
+							y: boundary.y - (boundary.h / 2)
+						},
+						max: {
+							x: boundary.x + (boundary.w / 2),
+							y: boundary.y + (boundary.h / 2)
+						}
+					};
+					//quick and dirty test: check if each point is in the boundary poly
+					var c = entity.components.get('collider');
+					var p = entity.components.get('position');
+
+					for (var point in c.poly.points) {
+						var offset = {
+							x: c.poly.points[point].x + p.x,
+							y: c.poly.points[point].y + p.y 
+						};
+						if (!this.pointInAABB(offset, b)) {
+							return false;
+						}
+					}
+					return true;
+				}
 			}
 		},
 
@@ -187,6 +221,20 @@ alien.Collision = function() {
 			
 			return false;
 		},
+		update: function(dt) {
+			if (alien.Scene.current().wrap) {
+				//test all collidable entities against the walls
+				for (var i = 0; i < alien.Scene.current().entities.length; i++) {
+					var entity = alien.Scene.current().entities[i];
+					if (!this.tests.withinBounds(entity, alien.Render.canvasBounds())) {
+						//TODO: project onto the canvas walls
+						console.log('entity out of bounds: ' + entity.gid);
+						console.log(alien.Render.canvasBounds());
+						console.log(entity.components.get('position'));
+					}
+				}
+			}
+		}
 	};
 }();
 

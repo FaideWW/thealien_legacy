@@ -30,6 +30,14 @@ alien.Render = function() {
 				return canvas;
 			}
 		},
+		canvasBounds: function() {
+			return {
+				x: canvas_dims.x / 2,
+				y: canvas_dims.y / 2,
+				w: canvas_dims.x,
+				h: canvas_dims.y
+			};
+		},
 		init: function(c) {
 			init = true;
 			canvas = c;

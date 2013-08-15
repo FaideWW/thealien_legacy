@@ -223,6 +223,7 @@ alien.Game = function() {
 		});
 		alien.Render.canvas().dispatchEvent(e);
 		alien.Behavior.update(dt);
+		alien.Collision.update(dt);
 
 	}
 
@@ -403,7 +404,7 @@ console.log(obj2.components.get('position'));
 //console.log(osc);
 
 var scene1 = alien.Scene.scenes.create({
-	wrap: false,
+	wrap: true,
 	entities: [
 		obj1,
 		obj2,
