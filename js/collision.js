@@ -134,9 +134,110 @@ alien.Collision = function() {
 		}
 	}
 
-	function getAABBAxisOfCollision(aabb1, aabb2) {
-		//determine the shallowest overlap axis, which will be the axis of collision
-		
+	function projectToAxis(poly, axis) {
+		var projections = [];
+
+		var norm_axis = alien.Vector.normalize({
+			x: axis.dest.x - axis.origin.x,
+			y: axis.dest.y - axis.origin.y
+		});
+		console.log('normalized axis');
+		console.log(norm_axis);
+
+		var vectors = getVectors(poly);
+		console.log('poly');
+		console.log(vectors);
+
+
+		for (var i = 0; i < vectors.length; i++) {
+			var dot1 = {
+				x: vectors[i].dest.x,
+				y: vectors[i].dest.y
+			};
+			console.log('vector to project');
+			console.log(dot1);
+			projections.push(alien.Vector.dot(dot1, norm_axis) / (alien.Vector.mag(norm_axis)));
+		}
+		console.log('projections of all vectors in poly');
+		console.log(projections);
+		return {
+			min: Math.min.apply(Math, projections),
+			max: Math.max.apply(Math, projections)
+		};
+	}
+
+	function separatingAxisTest(poly1, poly2, vecs) {
+		v = vecs || getVectors(poly1);
+
+		var collision_axis,
+			collision_depth = -1;
+
+		for (var i = 0; i < v.length; i++) {
+			// project both polys onto the axis
+			var vec = v[i],
+				projection1 = projectToAxis(poly1, vec),
+				projection2 = projectToAxis(poly2, vec);
+
+			console.log('axis:');
+			console.log(vec);
+
+			var depth = ((projection1.max - projection1.min) + (projection2.max - projection2.min)) -
+						(Math.max(projection1.max, projection2.max) - Math.min(projection1.min, projection2.min));
+			console.log('projections on axis');
+			console.log(projection1);
+			console.log(projection2);
+			if (depth > 0) {
+				//shallowest depth is the collision axis
+				if (collision_depth < 0 ||
+					collision_depth > depth) {
+					collision_depth = depth;
+					collision_axis = v[i];
+				}
+			}else{
+				return false;
+			}
+		}
+		console.log('collide:' + collision_depth);
+		return collision_axis;
+	}
+
+	function AABBTest(poly1, poly2) {
+		var vecs = [
+			{
+				origin: {
+					x: 0,
+					y: 0
+				},
+				dest: {
+					x: 1,
+					y: 0
+				}
+			},
+			{
+				origin: {
+					x: 0,
+					y: 0
+				},
+				dest: {
+					x: 0,
+					y: 1
+				}
+			}
+		];
+		return separatingAxisTest(poly1, poly2, vecs);
+	}
+
+	function offset(poly, position) {
+		var offset_poly = [];
+		console.log(poly);
+		console.log(position);
+		for (var i = 0; i < poly.length; i++) {
+			offset_poly.push({
+				x: poly[i].x + position.x,
+				y: poly[i].y + position.y
+			});
+		}
+		return offset_poly; 
 	}
 
 	return {
@@ -182,7 +283,7 @@ alien.Collision = function() {
 					for (var point in c.poly.points) {
 						var offset = {
 							x: c.poly.points[point].x + p.x,
-							y: c.poly.points[point].y + p.y 
+							y: c.poly.points[point].y + p.y
 						};
 						if (!this.pointInAABB(offset, b)) {
 							return false;
@@ -195,17 +296,28 @@ alien.Collision = function() {
 
 		//tests whether or not two colliders intersect
 		collide: function(entity1, entity2) {
-			
-			if (entity1.components.has('collider') && 
+			if (entity1.components.has('collider') &&
 				entity1.components.has('position') &&
 				entity2.components.has('collider') &&
 				entity2.components.has('position')) {
+
+				console.log('colliding' + entity1.gid + ' - ' + entity2.gid);
+				var collider1 = offset(entity1.components.get('collider').poly.points, entity1.components.get('position')),
+					collider2 = offset(entity2.components.get('collider').poly.points, entity2.components.get('position'));
+
+				console.log(collider1);
+				console.log(collider2);
+
+				//default to separating axis
+				return separatingAxisTest(collider1, collider2);
+			} else {
+				console.log('nope');
+				return false;
 			}
-			return false;
 		},
 		//tests whether or not a point is inside an entity's bounding box (equivalent to tests.pointInPoly)
 		pointCollide: function(point, entity) {
-			
+
 			if (entity.components.has('collider') && entity.components.has('position')) {
 				var p = entity.components.get('position'),
 					vertices = entity.components.get('collider').poly.points,
@@ -218,7 +330,7 @@ alien.Collision = function() {
 				}
 				return this.tests.pointInPoly(point, offset);
 			}
-			
+
 			return false;
 		},
 		update: function(dt) {

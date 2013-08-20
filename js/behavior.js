@@ -3,6 +3,15 @@ var alien = alien || {};
 alien.Behavior = function() {
 	var entities = {};
 	return {
+		loadScene: function(scene) {
+			this.unloadScene();
+			for (var e in scene.entities) {
+				this.watch(scene.entities[e]);
+			}
+		},
+		unloadScene: function() {
+			entities = {};
+		},
 		unwatch: function(entity) {
 			if (entity.gid in entities) {
 				delete entities[entity.gid];

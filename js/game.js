@@ -380,40 +380,24 @@ obj3.components.get('renderable').poly.color = "rgba(255,0,255,1)";
 
 
 obj1.behaviors.add(DragDropBehavior());
-alien.Behavior.watch(obj1);
 obj2.behaviors.add(DragDropBehavior());
-alien.Behavior.watch(obj2);
 obj3.behaviors.add(OscillateBehavior(5000, 20, 90));
 obj3.behaviors.add(DragDropBehavior());
-alien.Behavior.watch(obj3);
-
-alien.Event.registerListener(obj1);
-alien.Event.registerListener(obj2);
-alien.Event.registerListener(obj3);
-
-
-console.log(obj1.components.get('position'));
-console.log(obj2.components.get('position'));
-
-
-//console.log(alien.Behavior.get(obj1));
-//console.log(alien.Behavior.get(obj2));
-//console.log(alien.Behavior.get(obj3));
-
-//var osc = OscillateBehavior.create(1000, 20, 90);
-//console.log(osc);
 
 var scene1 = alien.Scene.scenes.create({
 	wrap: true,
 	entities: [
 		obj1,
 		obj2,
-		obj3
+		//obj3
 	]
 });
 
 var scene2 = alien.Scene.scenes.clone(scene1);
 
 alien.Scene.load(scene1);
+alien.Behavior.loadScene(scene1);
+alien.Event.loadScene(scene1);
+
 
 alien.Render.update();

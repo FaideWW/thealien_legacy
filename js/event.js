@@ -79,6 +79,28 @@ alien.Event = function() {
 		entities: function() {
 			return entities;
 		},
+		loadScene: function(scene) {
+			this.unloadScene();
+			for (var e in scene.entities) {
+				this.registerListener(scene.entities[e]);
+			}
+		},
+		unloadScene: function() {
+			entities = [];
+			listeners = [];
+			events = {
+				'click': [],
+				'dblclick': [],
+				'mousedown': [],
+				'mouseup': [],
+				'mouseover': [],
+				'mouseout': [],
+				'mousemove': [],
+				'keydown': [],
+				'keyup': [],
+				'update': []
+			};
+		},
 		registerEvent: function(eventType, callback, identifier) {
 			if (!(eventType in events)) {
 				//if the event does not exist
