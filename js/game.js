@@ -221,10 +221,10 @@ alien.Game = function() {
 				timeDelta: dt
 			}
 		});
-		alien.Render.canvas().dispatchEvent(e);
 		alien.Behavior.update(dt);
 		alien.Collision.update(dt);
-
+		alien.Physics.update(dt);
+		alien.Render.canvas().dispatchEvent(e);
 	}
 
 	function run() {
@@ -236,7 +236,7 @@ alien.Game = function() {
 
 	function step() {
 		if (alien.Timer.tick()) {
-			lastTime = lastTime || 0;
+			lastTime = lastTime || alien.Timer.getTime();
 			var timeSince = alien.Timer.getTime() - lastTime;
 			update(timeSince);
 			lastTime = alien.Timer.getTime();
@@ -252,10 +252,10 @@ alien.Game = function() {
 				initialized = true;
 			}
 
-			if (alien.Timer.isPaused())
-			{
+			if (alien.Timer.isPaused()) {
 				alien.Timer.resume();
 			}
+
 
 			running = true;
 			run();
@@ -314,6 +314,7 @@ var listener = alien.Component.factories.add(ListenerFactory);
 var poly = alien.Component.factories.add(PolygonFactory);
 var pos = alien.Component.factories.add(PositionFactory);
 var renderable = alien.Component.factories.add(RenderableFactory);
+var vel = alien.Component.factories.add(VelocityFactory);
 
 //create some properties for an entity
 var square = alien.Component.instances.create({
@@ -327,7 +328,7 @@ var square = alien.Component.instances.create({
 var click_callback = function(ev, ent) {
 	console.log('click ' + ent.gid);
 	console.log(ent);
-}
+};
 
 var l = alien.Component.instances.create({
 	ctype: listener,
@@ -350,6 +351,12 @@ var p = alien.Component.instances.create({
 	y: 100
 });
 
+var v = alien.Component.instances.create({
+	ctype: vel,
+	x:100,
+	y:0
+});
+
 var c = alien.Component.instances.create({
 	ctype: collider,
 	poly: square
@@ -369,27 +376,21 @@ alien.Event.init(alien.Render.canvas());
 
 //clone object (does not clone behaviors, those will have to be manually cloned)
 obj2 = alien.Entity.clone(obj1);
-obj3 = alien.Entity.clone(obj1);
+obj1.components.add(v);
 
 
 obj2.components.get('position').y = 300;
 obj2.components.get('renderable').poly.color = "rgba(0,0,255,1)";
 
-obj3.components.get('position').x = 300;
-obj3.components.get('renderable').poly.color = "rgba(255,0,255,1)";
-
 
 obj1.behaviors.add(DragDropBehavior());
 obj2.behaviors.add(DragDropBehavior());
-obj3.behaviors.add(OscillateBehavior(5000, 20, 90));
-obj3.behaviors.add(DragDropBehavior());
 
 var scene1 = alien.Scene.scenes.create({
 	wrap: true,
 	entities: [
 		obj1,
-		obj2,
-		//obj3
+		obj2
 	]
 });
 
@@ -398,6 +399,7 @@ var scene2 = alien.Scene.scenes.clone(scene1);
 alien.Scene.load(scene1);
 alien.Behavior.loadScene(scene1);
 alien.Event.loadScene(scene1);
+alien.Physics.loadScene(scene1);
 
 
 alien.Render.update();

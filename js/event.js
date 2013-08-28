@@ -42,6 +42,8 @@ alien.Event = function() {
 			if (mouseevents.indexOf(e.type) > -1) {
 				console.log('mouse event');
 				en = filterEntitiesAtPoint({ x: e.layerX, y: e.layerY }, events[e.type]);
+				console.log('draw order');
+				console.log(en);
 				if (en.length > 0) {
 					console.log(en);
 				}
@@ -170,10 +172,6 @@ alien.Event = function() {
 
 		init: function(canvas) {
 			init = true;
-			components = {
-				l: listener,
-				c: collider
-			};
 
 			//bind events to the canvas
 			console.log(events);

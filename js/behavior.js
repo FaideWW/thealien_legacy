@@ -58,6 +58,17 @@ var DragDropBehavior = function() {
 					l.events.mousedown.push(function(ev) {
 						console.log('activating dragdrop on: ' + e.gid);
 						e.is_dragging = true;
+						if (e.components.has('velocity')) {
+							var v = e.components.get('velocity');
+							e.old_v = {
+								x: v.x,
+								y: v.y,
+								z: v.z
+							};
+							v.x = 0;
+							v.y = 0;
+							v.z = 0;
+						}
 						e.mouse_src = {
 							x: ev.layerX,
 							y: ev.layerY
@@ -71,6 +82,13 @@ var DragDropBehavior = function() {
 					l.events.mouseup.push(function(ev) {
 						console.log('dragging on: ' + e.gid);
 						e.is_dragging = false;
+						if (e.components.has('velocity')) {
+							var v = e.components.get('velocity');
+							v.x = e.old_v.x;
+							v.y = e.old_v.y;
+							v.z = e.old_v.z;
+							console.log(e.old_v);
+						}
 					});
 
 					l.events.mousemove = l.events.mousemove || [];
@@ -82,6 +100,7 @@ var DragDropBehavior = function() {
 							};
 							p.x = e.entity_src.x + rel_mouse.x;
 							p.y = e.entity_src.y + rel_mouse.y;
+							
 						}
 					});
 

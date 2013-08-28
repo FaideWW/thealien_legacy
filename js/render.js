@@ -57,15 +57,6 @@ alien.Render = function() {
 	};
 }();
 
-var PositionFactory = function(options) {
-	options = options || {};
-	options.componentname = "position";
-	options.x = options.x || 50;
-	options.y = options.y || 50;
-	options.z = options.z || 0;
-	return options;
-};
-
 var RenderableFactory = function(options) {
 	options = options || {};
 	options.componentname = "renderable";
