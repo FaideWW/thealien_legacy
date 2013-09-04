@@ -342,7 +342,13 @@ console.log(l);
 var r1 = alien.Component.instances.create({
 	ctype: renderable,
 	poly: square,
-	visible: false
+	visible: true
+});
+
+var r2 = alien.Component.instances.create({
+	ctype: renderable,
+	poly: square,
+	visible: true
 });
 
 var p = alien.Component.instances.create({
@@ -394,12 +400,36 @@ var scene1 = alien.Scene.scenes.create({
 	]
 });
 
-var scene2 = alien.Scene.scenes.clone(scene1);
+obj3 = alien.Entity.create();
+obj4 = alien.Entity.create();
 
-alien.Scene.load(scene1);
-alien.Behavior.loadScene(scene1);
-alien.Event.loadScene(scene1);
-alien.Physics.loadScene(scene1);
+var scene2 = alien.Scene.scenes.create({
+	wrap: false,
+	entities: [
+		obj3, 
+		obj4
+	]
+});
+
+obj3.components.add(alien.Component.instances.create({
+	ctype: pos,
+	x: 400,
+	y: 200
+}));
+
+obj4.components.add(alien.Component.instances.create({
+	ctype: pos,
+	x: 200,
+	y: 400
+}));
+
+obj3.components.add(r1);
+obj4.components.add(r2);
+
+alien.Scene.load(scene2);
+alien.Behavior.loadScene(scene2);
+alien.Event.loadScene(scene2);
+alien.Physics.loadScene(scene2);
 
 
 alien.Render.update();
