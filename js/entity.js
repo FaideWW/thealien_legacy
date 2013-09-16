@@ -1,5 +1,7 @@
 var alien = alien || {};
 
+
+
 alien.Entity = function() {
 	var global_id = 0;
 	var objs = [];
