@@ -426,10 +426,10 @@ obj4.components.add(alien.Component.instances.create({
 obj3.components.add(r1);
 obj4.components.add(r2);
 
-alien.Scene.load(scene2);
-alien.Behavior.loadScene(scene2);
-alien.Event.loadScene(scene2);
-alien.Physics.loadScene(scene2);
+alien.Scene.load(scene1);
+alien.Behavior.loadScene(scene1);
+alien.Event.loadScene(scene1);
+alien.Physics.loadScene(scene1);
 
 
 alien.Render.update();

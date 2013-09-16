@@ -188,17 +188,3 @@ var OscillateBehavior = function(period, amplitude, angle) {
 	})(period, amplitude, angle);
 };
 
-var ConnectableBehavior = function() {
-	return (function() {
-		return {
-			bind: function(node) {
-				n = node;
-				if (n._isConnectable) {
-					return;
-				}
-				n._isConnectable = true;
-				
-			}
-		};
-	})();
-}
