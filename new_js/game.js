@@ -6,20 +6,20 @@ alien.Game = function(options) {
     this.running = false;
 };
 
-alien.Game.prototype.setScene(scene) {
+alien.Game.prototype.setScene= function(scene) {
     this.scene = scene;
-}
+};
 
-alien.Game.prototype.run() {
+alien.Game.prototype.run = function() {
     if (running) {
         step();
     }
-}
+};
 
-alien.Game.prototype.step() {
+alien.Game.prototype.step = function() {
 
-}
+};
 
-alien.Game.prototype.stop() {
+alien.Game.prototype.stop = function() {
 
-}
+};
