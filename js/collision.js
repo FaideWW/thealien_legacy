@@ -66,7 +66,7 @@ alien.Collision = function() {
 
 	//test if a pair of vectors intersect and the type of intersection
 	//returns 0 for no intersection, 1 for exactly one intersection, and -1 for a colinear intersection
-	function intersectVectors(v1, v2, e) {
+	function intersectVectors(v1, v2) {
 		//using vector cross products:
 		var p = {
 				x: v1.origin.x,

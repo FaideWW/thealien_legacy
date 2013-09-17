@@ -33,7 +33,3 @@ alien.Entity.prototype.trigger = function(event, data) {
         }
     }
 };
-
-alien.Entity.prototype.update = function(dt) {
-    this.trigger('update', dt);
-};

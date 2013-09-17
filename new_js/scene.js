@@ -49,6 +49,8 @@ alien.Scene.prototype.removeEntity = function(entity) {
     }
 };
 
-alien.SceneManager = function() {
-
-}();
+alien.Scene.prototype.update = function(dt) {
+    for (var k = 0; k < this.entities.length; k++) {
+        this.entities[k].trigger('update', dt);
+    }
+};
