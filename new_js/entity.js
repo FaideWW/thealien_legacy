@@ -26,6 +26,12 @@ alien.Entity.prototype.on = function(event, callback) {
     this.listeners[event].push(callback);
 };
 
+alien.Entity.prototype.isListeningFor(event) {
+    if (this.listeners.hasOwnProperty(event)) {
+        return this.listeners[event].length > 0;
+    }
+}
+
 alien.Entity.prototype.trigger = function(event, data) {
     if (this.listeners[event]) {
         for (var k = 0; k < this.listeners[event].length; k++) {

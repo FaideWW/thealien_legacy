@@ -9,6 +9,7 @@ alien.Scene = function(properties) {
             t[k] = properties[k];
         }
     }
+
     return t;
 };
 
@@ -20,9 +21,39 @@ alien.Scene.prototype.extend = function(extension) {
     }
 };
 
-alien.Scene.prototype.addEntity = function(entity) {
+alien.Scene.prototype.sort = function(entities) {
+    if (entities.length < 2) {
+        return entities;
+    }
+    var l = entities.length,
+        pivot,
+        p,
+        lower = [],
+        higher = [];
+}
+
+    for (var k = 0; k < entities.length; k++) {
+        if (k === p) {
+            continue;
+        }
+
+        if (entities[k].position.z <= pivot.position.z) {
+            lower.push(entities[k]);
+        } else {
+            higher.push(entities[k]);
+        }
+
+        return this.sort(lower).concat([pivot], this.sort(higher));
+    }
+}
+
+alien.Scene.prototype.addEntity = function(entity, position) {
+    position = position || alien.Math.Vector();
+    entity.extend(position);
     this.entities.push(entity);
-    return (this.entities.length - 1);
+    var index = this.entities.length - 1;
+    this.entities = this.sort(this.entities);
+    return index;
 };
 
 //this is a deceptively expensive operation (O(n)) for large scenes, 

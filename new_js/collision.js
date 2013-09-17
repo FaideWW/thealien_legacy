@@ -1,6 +1,6 @@
 var alien = alien || {};
 
-alien.Collision = function() {
+alien.CollisionManager = function() {
     function getAABB(poly) {
         var minx, miny, maxx, maxy;
         for (var k = 0; k < poly.length; k+=1) {
@@ -141,10 +141,7 @@ alien.Collision = function() {
             },
             pointInPoly: function(point, poly) {
                 var aabb = getAABB(poly);
-                if (!this.pointInAABB(point, aabb)) {
-                    return false;
-                }
-                return castRay(point, poly, aabb);
+                return (this.pointInAABB(point, aabb)) ? castRay(point, poly, aabb) : false;
             }
         },
         collide: function(e1, e2)  {
