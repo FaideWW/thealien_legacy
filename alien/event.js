@@ -43,12 +43,28 @@ alien.EventManager = function() {
             }
     };
 
+    function pointInPoly(point, poly) {
+        var xs = [],
+            ys = [];
+        for (var i = 0; i < poly.length; i += 1) {
+            xs.push(poly[i].x);
+            ys.push(poly[i].y);
+        }
+        var minx = alien.Math.min(xs),
+            miny = alien.Math.min(ys),
+            maxx = alien.Math.max(xs),
+            maxy = alien.Math.max(ys);
+
+        return (point.x > minx && point.x < maxx &&
+                point.y > miny && point.y < maxy);
+    }
+
     return {
         click: function(event, scene) {
             scene = scene || {};
             var entities = scene.entities || [];
-            for (var i = 0; i < entities.length; i++) {
-                if (entities[i].isListeningFor('click')) {
+            for (var i = 0; i < entities.length; i += 1) {
+                if (entities[i].isListeningFor('click') && pointInPoly({ x: event.layerX - entities[i].position.x, y: event.layerY - entities[i].position.y }, entities[i].polygon.points)) {
                     entities[i].trigger('click', {
                         event: event
                     });
@@ -59,7 +75,7 @@ alien.EventManager = function() {
             scene = scene || {};
             var entities = scene.entities || [];
             for (var i = 0; i < entities.length; i++) {
-                if (entities[i].isListeningFor('dblclick')) {
+                if (entities[i].isListeningFor('dblclick') &&  pointInPoly({ x: event.layerX - entities[i].position.x, y: event.layerY - entities[i].position.y }, entities[i].polygon.points)) {
                     entities[i].trigger('dblclick', {
                         event: event
                     });
@@ -70,7 +86,7 @@ alien.EventManager = function() {
             scene = scene || {};
             var entities = scene.entities || [];
             for (var i = 0; i < entities.length; i++) {
-                if (entities[i].isListeningFor('mousedown')) {
+                if (entities[i].isListeningFor('mousedown') &&  pointInPoly({ x: event.layerX - entities[i].position.x, y: event.layerY - entities[i].position.y }, entities[i].polygon.points)) {
                     entities[i].trigger('mousedown', {
                         event: event
                     });
@@ -92,7 +108,7 @@ alien.EventManager = function() {
             scene = scene || {};
             var entities = scene.entities || [];
             for (var i = 0; i < entities.length; i++) {
-                if (entities[i].isListeningFor('mouseover')) {
+                if (entities[i].isListeningFor('mouseover') &&  pointInPoly({ x: event.layerX - entities[i].position.x, y: event.layerY - entities[i].position.y }, entities[i].polygon.points)) {
                     entities[i].trigger('mouseover', {
                         event: event
                     });
@@ -115,7 +131,7 @@ alien.EventManager = function() {
             scene = scene || {};
             var entities = scene.entities || [];
             for (var i = 0; i < entities.length; i++) {
-                if (entities[i].isListeningFor('mouseout')) {
+                if (entities[i].isListeningFor('mouseout') &&  pointInPoly({ x: event.layerX - entities[i].position.x, y: event.layerY - entities[i].position.y }, entities[i].polygon.points)) {
                     entities[i].trigger('mouseout', {
                         event: event
                     });

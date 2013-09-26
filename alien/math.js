@@ -65,7 +65,27 @@ alien.Math = (function() {
 
             return Vector;
 
-        }())
+        }()),
+        
+        min: function(vals) {
+            var m = null;
+            for (var i = 0; i < vals.length; i += 1) {
+                if (m === null || vals[i] < m) {
+                    m = vals[i];
+                }
+            }
+            return m;
+        },
+
+        max: function(vals) {
+            var m = null;
+            for (var i = 0; i < vals.length; i += 1) {
+                if (m === null || vals[i] > m) {
+                    m = vals[i];
+                }
+            }
+            return m;
+        },
     };
 
     return Math;
