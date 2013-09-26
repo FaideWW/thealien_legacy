@@ -99,6 +99,18 @@ alien.EventManager = function() {
                 }
             }
         },
+        mousemove: function(event, scene) {
+            scene = scene || {};
+            var entities = scene.entities || [],
+                i;
+            for (i = 0; i < entities.length; i++) {
+                if (entities[i].isListeningFor('mousemove')) {
+                    entities[i].trigger('mousemove', {
+                        event: event
+                    });
+                }
+            }
+        },
         mouseout: function(event, scene) {
             scene = scene || {};
             var entities = scene.entities || [];

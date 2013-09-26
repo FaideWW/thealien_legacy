@@ -29,29 +29,64 @@ var e1 = new alien.Entity({
 		'color': "rgba(255,0,0,1)",
 		'points': [
 			{
-				x: 0,
-				y: 0
+				x: -50,
+				y: -50
 			},
 			{
-				x: 100,
-				y: 0
+				x: 50,
+				y: -50
 			},
 			{
-				x: 100,
-				y: 100
+				x: 50,
+				y: 50
 			},
 			{
-				x: 0,
-				y: 100
+				x: -50,
+				y: 50
 			}
 		]
 	}
-}).on('click', function(e) {
-	console.log('click');
 });
+
+e1.extend({
+	draggable: {
+		isDraggable: true,
+		isBeingDragged: false,
+		srcX: 0,
+		srcY: 0
+	}
+}).on('mousedown', function(e, data) {
+	if (e.draggable.isDraggable && !e.draggable.isBeingDragged) {
+		e.draggable.isBeingDragged = true;
+		e.draggable.srcX = data.event.layerX;
+		e.draggable.srcY = data.event.layerY;
+	}
+}).on('mousemove', function(e, data) {
+	//debugger;
+	if (e.draggable.isBeingDragged) {
+		e.position.x += data.event.layerX - e.draggable.srcX;
+		e.position.y += data.event.layerY - e.draggable.srcY;
+		e.draggable.srcX = data.event.layerX;
+		e.draggable.srcY = data.event.layerY;
+		alien.RenderSystem.draw(_.canvas, _.scene);
+	}
+}).on('mouseup', function(e, data) {
+	if (e.draggable.isBeingDragged) {
+		e.draggable.isBeingDragged = false;
+	}
+});
+
+var e2 = new alien.Entity(e1);
+e2.polygon.color = "rgba(0,0,255,1)";
+e2.position = {
+	x: 200,
+	y: 200
+};
+
 var s1 = new alien.Scene({
-		entities: [e1]
+		entities: [e1, e2]
 });
+
 
 _.setScene(s1);
 _.registerEventListeners(_.canvas, _.scene);
