@@ -3,6 +3,46 @@ var alien = alien || {};
 
 
 alien.EventManager = function() {
+
+    alien.Entity.prototype.on = function (event, callback) {
+        this.listeners[event] = this.listeners[event] || [];
+        this.listeners[event].push(callback);
+
+        return this;
+    };
+
+    alien.Entity.prototype.isListeningFor = function (event) {
+        if (this.listeners.hasOwnProperty(event)) {
+            return this.listeners[event].length > 0;
+        }
+
+        return this;
+    };
+
+    alien.Entity.prototype.trigger = function (event, data) {
+        if (this.listeners[event]) {
+            var i;
+            for (i = 0; i < this.listeners[event].length; i += 1) {
+                this.listeners[event][i](this, data);
+            }
+        }
+        
+        return this;
+    };
+
+    alien.Entity.prototype.listeners = {};
+
+    alien.Game.prototype.registerEventListeners = function(canvas, scene) {
+        var e;
+            for (e in alien.EventManager) {
+                if (alien.EventManager.hasOwnProperty(e)) {
+                    this.canvas.addEventListener(e, function(ev) {
+                        alien.EventManager[ev.type](ev, scene);
+                    });
+                }
+            }
+    };
+
     return {
         click: function(event, scene) {
             scene = scene || {};
@@ -93,4 +133,5 @@ alien.EventManager = function() {
             }
         }
     };
+
 }();

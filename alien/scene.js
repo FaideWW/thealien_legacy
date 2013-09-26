@@ -1,6 +1,6 @@
 var alien = alien || {};
 
-alien.Scene = (function() {
+alien.Scene = (function(alien) {
     'use strict';
 
     function Scene(properties) {
@@ -52,9 +52,7 @@ alien.Scene = (function() {
             }
         };
 
-        Scene.prototype.addEntity = function(entity, position) {
-            position = position || alien.Math.Vector();
-            entity.extend(position);
+        Scene.prototype.addEntity = function(entity) {
             this.entities.push(entity);
             var index = this.entities.length - 1;
             this.entities = this.sort(this.entities);
@@ -95,6 +93,14 @@ alien.Scene = (function() {
         return t;
     }
 
+    //extend Entity prototype for requisite properties
+    alien.Entity.prototype.position = new alien.Math.Vector();
+
+    alien.Game.prototype.setScene= function(scene) {
+        this.scene = scene;
+        return this.scene;
+    };
+
     return Scene;
 
-}());
+}(alien));

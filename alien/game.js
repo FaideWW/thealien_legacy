@@ -18,22 +18,6 @@ alien.Game = (function() {
         this.running = false;
     }
 
-    Game.prototype.registerEventListeners = function(canvas, scene) {
-        var e;
-            for (e in alien.EventManager) {
-                if (alien.EventManager.hasOwnProperty(e)) {
-                    this.canvas.addEventListener(e, function(ev) {
-                        alien.EventManager[ev.type](ev, scene);
-                    });
-                }
-            }
-    };
-
-    Game.prototype.setScene= function(scene) {
-        this.scene = scene;
-        return this.scene;
-    };
-
     Game.prototype.run = function() {
         if (running) {
             step();
