@@ -94,7 +94,7 @@ alien.Scene = (function(alien) {
     }
 
     //extend Entity prototype for requisite properties
-    alien.Entity.prototype.position = new alien.Math.Vector();
+    alien.Entity.prototype.position = alien.Entity.prototype.position || new alien.Math.Vector();
 
     alien.Game.prototype.setScene= function(scene) {
         this.scene = scene;

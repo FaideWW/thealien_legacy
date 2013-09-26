@@ -46,8 +46,7 @@ var e1 = new alien.Entity({
 			}
 		]
 	}
-}).on('draw', drawPolygon)
-	.on('click', function(e) {
+}).on('click', function(e) {
 	console.log('click');
 });
 var s1 = new alien.Scene({
