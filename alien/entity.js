@@ -17,7 +17,7 @@ alien.Entity = (function () {
         }
         //if listeners have been cloned over, keep them
         //otherwise start a new list
-        this.listeners = this.listeners || [];
+        this.listeners = this.listeners || {};
     }
 
     Entity.prototype.extend = function (extension) {
@@ -27,17 +27,22 @@ alien.Entity = (function () {
                 this[k] = extension[k];
             }
         }
+        return this;
     };
 
     Entity.prototype.on = function (event, callback) {
         this.listeners[event] = this.listeners[event] || [];
         this.listeners[event].push(callback);
+
+        return this;
     };
 
     Entity.prototype.isListeningFor = function (event) {
         if (this.listeners.hasOwnProperty(event)) {
             return this.listeners[event].length > 0;
         }
+
+        return this;
     };
 
     Entity.prototype.trigger = function (event, data) {
@@ -47,6 +52,8 @@ alien.Entity = (function () {
                 this.listeners[event][i](this, data);
             }
         }
+        
+        return this;
     };
 
     return Entity;

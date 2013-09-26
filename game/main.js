@@ -46,11 +46,14 @@ var e1 = new alien.Entity({
 			}
 		]
 	}
-}),
-	s1 = new alien.Scene({
+}).on('draw', drawPolygon)
+	.on('click', function(e) {
+	console.log('click');
+});
+var s1 = new alien.Scene({
 		entities: [e1]
 });
-e1.on('draw', drawPolygon);
 
 _.setScene(s1);
+_.registerEventListeners(_.canvas, _.scene);
 alien.RenderSystem.draw(_.canvas, _.scene);

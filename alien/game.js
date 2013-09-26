@@ -14,20 +14,20 @@ alien.Game = (function() {
             console.error('No canvas element defined in options.');
         }
         this.canvas = options['canvas'];
-        if (alien.hasOwnProperty('EventManager')) {
-            var e;
-            for (e in alien.EventManager) {
-                if (alien.EventManager.hasOwnProperty(e)) {
-                    this.canvas.addEventListener(e, function(ev) {
-                        
-                        alien.EventManager[e](ev, this.scene);
-                    });
-                }
-            }
-        }
         this.timer = 0;
         this.running = false;
     }
+
+    Game.prototype.registerEventListeners = function(canvas, scene) {
+        var e;
+            for (e in alien.EventManager) {
+                if (alien.EventManager.hasOwnProperty(e)) {
+                    this.canvas.addEventListener(e, function(ev) {
+                        alien.EventManager[ev.type](ev, scene);
+                    });
+                }
+            }
+    };
 
     Game.prototype.setScene= function(scene) {
         this.scene = scene;

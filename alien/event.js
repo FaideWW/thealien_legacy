@@ -5,11 +5,10 @@ var alien = alien || {};
 alien.EventManager = function() {
     return {
         click: function(event, scene) {
-            console.log('hai');
             scene = scene || {};
             var entities = scene.entities || [];
             for (var i = 0; i < entities.length; i++) {
-                if (entities[i].isListeneingFor('click')) {
+                if (entities[i].isListeningFor('click')) {
                     entities[i].trigger('click', {
                         event: event
                     });
