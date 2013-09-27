@@ -18,18 +18,22 @@ alien.Math = (function() {
                 this.z = args.z || 0;
             }
 
-            Vector.prototype.add = function(v1, v2) {
-                return {
-                    x: v1.x + v2.x,
-                    y: v1.y + v2.y
-                };
+            Vector.prototype.clone = function() {
+                return new Vector(this);
+            }
+
+            Vector.prototype.add = function(v2) {
+                return new alien.Math.Vector({
+                    x: this.x + v2.x,
+                    y: this.y + v2.y
+                });
             };
 
-            Vector.prototype.sub = function(v1, v2) {
-                return {
-                    x: v1.x - v2.x,
-                    y: v1.y - v2.y
-                };
+            Vector.prototype.sub = function(v2) {
+                return new alien.Math.Vector({
+                    x: this.x - v2.x,
+                    y: this.y - v2.y
+                });
             };
 
             Vector.prototype.mag = function(v1) {
@@ -38,24 +42,24 @@ alien.Math = (function() {
 
             Vector.prototype.nml = function(v1) {
                 var m = this.mag(v1);
-                return {
+                return new alien.Math.Vector({
                     x: v1.x / m,
                     y: v1.y / m
-                };
+                });
             };
 
-            Vector.prototype.dot = function(v1, v2) {
-                return (v1.x * v2.x) + (v1.y * v2.y);
+            Vector.prototype.dot = function(v2) {
+                return (this.x * v2.x) + (this.y * v2.y);
             };
 
-            Vector.prototype.cmg = function(v1, v2) {
-                return (v1.x * v2.y) - (v1.y * v2.x);
+            Vector.prototype.cmg = function(v2) {
+                return (this.x * v2.y) - (this.y * v2.x);
             };
 
-            Vector.prototype.int = function(v1, v2, o1, o2) {
-                var r = this.sub(v1, o1),
-                s = this.sub(v2, o2),
-                c = this.cmg(r, s);
+            Vector.prototype.int = function(v2, o1, o2) {
+                var r = this.sub(o1),
+                s = v2.sub(o2),
+                c = r.cmg(s);
 
                 return (c === 0) ? 0 : {
                     t: (this.cmg(this.sub(o2, o1), s) / c),

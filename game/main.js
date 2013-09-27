@@ -23,27 +23,28 @@ var drawPolygon = function(e, props) {
 var e1 = new alien.Entity({
 	'position': new alien.Math.Vector({
 		x: 100,
-		y: 100
+		y: 100,
+		z: 0.5
 	}),
 	'polygon': {
 		'color': "rgba(255,0,0,1)",
 		'points': [
-			{
+			new alien.Math.Vector({
 				x: -50,
 				y: -50
-			},
-			{
+			}),
+			new alien.Math.Vector({
 				x: 50,
 				y: -50
-			},
-			{
+			}),
+			new alien.Math.Vector({
 				x: 50,
 				y: 50
-			},
-			{
+			}),
+			new alien.Math.Vector({
 				x: -50,
 				y: 50
-			}
+			})
 		]
 	}
 });
@@ -78,10 +79,11 @@ e1.extend({
 
 var e2 = new alien.Entity(e1);
 e2.polygon.color = "rgba(0,0,255,1)";
-e2.position = {
+e2.position = new alien.Math.Vector({
 	x: 200,
-	y: 200
-};
+	y: 200,
+	z: 0.6
+});
 
 var s1 = new alien.Scene({
 		entities: [e1, e2]

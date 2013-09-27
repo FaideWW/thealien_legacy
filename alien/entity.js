@@ -6,10 +6,17 @@ alien.Entity = (function () {
     function deepClone(obj) {
         var new_obj = {};
         obj = obj || {};
+        if (typeof obj === 'object' && 'clone' in obj) {
+            return obj.clone();
+        }
         for (var prop in obj) {
             if (obj.hasOwnProperty(prop)) {
                 if (typeof prop === 'object') {
-                    new_obj[prop] = deepClone(obj[prop]);
+                    if (prop.hasOwnProperty('clone')) {
+                        new_obj[prop] = obj[prop].clone();
+                    } else {
+                        new_obj[prop] = deepClone(obj[prop]);
+                    }
                 }else{
                     new_obj[prop] = obj[prop];
                 }

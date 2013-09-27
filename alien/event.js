@@ -31,6 +31,7 @@ alien.EventManager = function() {
     };
 
     alien.Entity.prototype.listeners = {};
+    alien.Entity.prototype.propagateMouseEvents = false;
 
     alien.Game.prototype.registerEventListeners = function(canvas, scene) {
         var e;
@@ -42,6 +43,7 @@ alien.EventManager = function() {
                 }
             }
     };
+
 
     function pointInPoly(point, poly) {
         var xs = [],
@@ -59,38 +61,48 @@ alien.EventManager = function() {
                 point.y > miny && point.y < maxy);
     }
 
+    function entitiesAtPoint(point, scene) {
+        var entities = scene.entities || [],
+            entities_at_point = [],
+            i;
+        for (i = entities.length - 1; i >= 0; i -= 1) {
+            //debugger;
+            if (pointInPoly(point.sub(entities[i].position), entities[i].polygon.points)) {
+                entities_at_point.push(entities[i]);
+                if (!entities[i].propagateMouseEvents) {
+                    break;
+                }
+            }
+        }
+        return entities_at_point;
+    }
+
     return {
         click: function(event, scene) {
             scene = scene || {};
-            var entities = scene.entities || [];
+            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene);
             for (var i = 0; i < entities.length; i += 1) {
-                if (entities[i].isListeningFor('click') && pointInPoly({ x: event.layerX - entities[i].position.x, y: event.layerY - entities[i].position.y }, entities[i].polygon.points)) {
-                    entities[i].trigger('click', {
-                        event: event
-                    });
-                }
+                entities[i].trigger('click', {
+                    event: event
+                });
             }
         },
         dblclick: function(event, scene) {
             scene = scene || {};
-            var entities = scene.entities || [];
+            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene);
             for (var i = 0; i < entities.length; i++) {
-                if (entities[i].isListeningFor('dblclick') &&  pointInPoly({ x: event.layerX - entities[i].position.x, y: event.layerY - entities[i].position.y }, entities[i].polygon.points)) {
-                    entities[i].trigger('dblclick', {
-                        event: event
-                    });
-                }
+                entities[i].trigger('dblclick', {
+                    event: event
+                });
             }
         },
         mousedown: function(event, scene) {
             scene = scene || {};
-            var entities = scene.entities || [];
+            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene);
             for (var i = 0; i < entities.length; i++) {
-                if (entities[i].isListeningFor('mousedown') &&  pointInPoly({ x: event.layerX - entities[i].position.x, y: event.layerY - entities[i].position.y }, entities[i].polygon.points)) {
-                    entities[i].trigger('mousedown', {
-                        event: event
-                    });
-                }
+                entities[i].trigger('mousedown', {
+                    event: event
+                });
             }
         },
         mouseup: function(event, scene) {
@@ -106,13 +118,11 @@ alien.EventManager = function() {
         },
         mouseover: function(event, scene) {
             scene = scene || {};
-            var entities = scene.entities || [];
+            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene);
             for (var i = 0; i < entities.length; i++) {
-                if (entities[i].isListeningFor('mouseover') &&  pointInPoly({ x: event.layerX - entities[i].position.x, y: event.layerY - entities[i].position.y }, entities[i].polygon.points)) {
-                    entities[i].trigger('mouseover', {
-                        event: event
-                    });
-                }
+                entities[i].trigger('mouseover', {
+                    event: event
+                });
             }
         },
         mousemove: function(event, scene) {
@@ -129,13 +139,11 @@ alien.EventManager = function() {
         },
         mouseout: function(event, scene) {
             scene = scene || {};
-            var entities = scene.entities || [];
+            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene);
             for (var i = 0; i < entities.length; i++) {
-                if (entities[i].isListeningFor('mouseout') &&  pointInPoly({ x: event.layerX - entities[i].position.x, y: event.layerY - entities[i].position.y }, entities[i].polygon.points)) {
-                    entities[i].trigger('mouseout', {
-                        event: event
-                    });
-                }
+                entities[i].trigger('mouseout', {
+                    event: event
+                });
             }
         },
         keyup: function(event, scene) {

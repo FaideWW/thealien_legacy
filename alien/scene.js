@@ -17,6 +17,11 @@ alien.Scene = (function(alien) {
                 t[k] = properties[k];
             }
         }
+        if (t.entities.length > 0) {
+            t.entities = this.sort(t.entities);
+        }
+        return t;
+    }
 
 
         Scene.prototype.extend = function(extension) {
@@ -32,8 +37,8 @@ alien.Scene = (function(alien) {
                 return entities;
             }
             var l = entities.length,
-            pivot,
-            p,
+            p = entities.length / 2,
+            pivot = entities[p],
             lower = [],
             higher = [];
 
@@ -48,8 +53,8 @@ alien.Scene = (function(alien) {
                     higher.push(entities[k]);
                 }
 
-                return this.sort(lower).concat([pivot], this.sort(higher));
             }
+            return this.sort(lower).concat([pivot], this.sort(higher));
         };
 
         Scene.prototype.addEntity = function(entity) {
@@ -89,9 +94,6 @@ alien.Scene = (function(alien) {
             }
         };
 
-
-        return t;
-    }
 
     //extend Entity prototype for requisite properties
     alien.Entity.prototype.position = alien.Entity.prototype.position || new alien.Math.Vector();
