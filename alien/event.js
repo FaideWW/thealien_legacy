@@ -30,9 +30,6 @@ alien.EventManager = function() {
         return this;
     };
 
-    alien.Entity.prototype.listeners = {};
-    alien.Entity.prototype.propagateMouseEvents = false;
-
     alien.Game.prototype.registerEventListeners = function(canvas, scene) {
         var e;
             for (e in alien.EventManager) {
@@ -43,6 +40,9 @@ alien.EventManager = function() {
                 }
             }
     };
+
+    alien.Entity.default_properties.listeners = {};
+    alien.Entity.default_properties.propagateMouseEvents = false;
 
 
     function pointInPoly(point, poly) {
@@ -66,7 +66,6 @@ alien.EventManager = function() {
             entities_at_point = [],
             i;
         for (i = entities.length - 1; i >= 0; i -= 1) {
-            //debugger;
             if (pointInPoly(point.sub(entities[i].position), entities[i].polygon.points)) {
                 entities_at_point.push(entities[i]);
                 if (!entities[i].propagateMouseEvents) {
@@ -98,6 +97,7 @@ alien.EventManager = function() {
         },
         mousedown: function(event, scene) {
             scene = scene || {};
+            //debugger;
             var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene);
             for (var i = 0; i < entities.length; i++) {
                 entities[i].trigger('mousedown', {

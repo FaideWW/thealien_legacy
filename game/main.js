@@ -20,7 +20,7 @@ var drawPolygon = function(e, props) {
 	}
 };
 
-var e1 = new alien.Entity({
+var red = new alien.Entity({
 	'position': new alien.Math.Vector({
 		x: 100,
 		y: 100,
@@ -48,8 +48,9 @@ var e1 = new alien.Entity({
 		]
 	}
 });
+var blue = new alien.Entity(red);
 
-e1.extend({
+red.extend({
 	draggable: {
 		isDraggable: true,
 		isBeingDragged: false,
@@ -77,16 +78,15 @@ e1.extend({
 	}
 });
 
-var e2 = new alien.Entity(e1);
-e2.polygon.color = "rgba(0,0,255,1)";
-e2.position = new alien.Math.Vector({
-	x: 200,
-	y: 200,
+blue.polygon.color = "rgba(0,0,255,1)";
+blue.position = new alien.Math.Vector({
+	x: 110,
+	y: 110,
 	z: 0.6
 });
 
 var s1 = new alien.Scene({
-		entities: [e1, e2]
+		entities: [red, blue]
 });
 
 

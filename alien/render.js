@@ -12,7 +12,7 @@ alien.RenderSystem = (function () {
             for (i = 0; i < scene.entities.length; i += 1) {
                 //if the entity has a position, grab it; otherwise set to origin
                 //trigger a draw event with the position and context
-                scene.entities[i].trigger('draw', {
+                scene.entities[i].draw({
                     context: c,
                     position: scene.entities[i].position
                 });
@@ -20,8 +20,8 @@ alien.RenderSystem = (function () {
         }
     };
 
-    alien.Entity.prototype.position = alien.Entity.prototype.position || new alien.Math.Vector();
-    alien.Entity.prototype.polygon = {
+    alien.Entity.default_properties.position = new alien.Math.Vector();
+    alien.Entity.default_properties.polygon = {
         color: "rgba(0,0,0,1)",
         points: [{
             x: 0,
@@ -29,21 +29,23 @@ alien.RenderSystem = (function () {
         }]
     };
 
-    alien.Entity.prototype.on('draw', function(e, props) {
-        if (e.hasOwnProperty('polygon')) {
+    alien.Entity.prototype.draw = function(props) {
+        if (this.hasOwnProperty('polygon')) {
             var c = props.context,
             p = props.position,
             i;
-            c.fillStyle = e.polygon.color;
+            c.fillStyle = this.polygon.color;
             c.beginPath();
-            c.moveTo(p.x + e.polygon.points[0].x, p.y + e.polygon.points[0].y);
-            for (i = 1; i < e.polygon.points.length; i += 1) {
-                c.lineTo(p.x + e.polygon.points[i].x, p.y + e.polygon.points[i].y);
+            c.moveTo(p.x + this.polygon.points[0].x, p.y + this.polygon.points[0].y);
+            for (i = 1; i < this.polygon.points.length; i += 1) {
+                c.lineTo(p.x + this.polygon.points[i].x, p.y + this.polygon.points[i].y);
             }
             c.closePath();
             c.fill();
+        }else{
+            this.trigger('draw', props);
         }
-    });
+    };
 
     return RenderSystem;
 

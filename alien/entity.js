@@ -1,13 +1,16 @@
 var alien = alien || {};
 
+
+
 alien.Entity = (function () {
     'use strict';
 
     function deepClone(obj) {
         var new_obj = {};
-        obj = obj || {};
         if (typeof obj === 'object' && 'clone' in obj) {
             return obj.clone();
+        }else if (typeof obj !== 'object') {
+            return obj;
         }
         for (var prop in obj) {
             if (obj.hasOwnProperty(prop)) {
@@ -25,6 +28,8 @@ alien.Entity = (function () {
         return new_obj;
     }
 
+    Entity.default_properties = {};
+
     function Entity(properties) {
         // enforces new
         if (!(this instanceof alien.Entity)) {
@@ -32,6 +37,11 @@ alien.Entity = (function () {
         }
         properties = properties || {};
         var k;
+        for (k in Entity.default_properties) {
+            if (Entity.default_properties.hasOwnProperty(k)) {
+                this[k] = deepClone(Entity.default_properties[k]);
+            }
+        }
         for (k in properties) {
             if (properties.hasOwnProperty(k)) {
                 this[k] = deepClone(properties[k]);
@@ -48,6 +58,7 @@ alien.Entity = (function () {
         }
         return this;
     };
+
 
     return Entity;
 
