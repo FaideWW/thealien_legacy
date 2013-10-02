@@ -14,6 +14,7 @@ alien.components.collidable = (function() {
                 if (!(this instanceof AABB)) {
                     return new AABB(args);
                 }
+                args = args || {};
                 this.half_width = deepClone(args.half_width) || 0;
                 this.half_height = deepClone(args.half_height) || 0;
                 this.origin = deepClone(args.origin) || new alien.Math.Vector();

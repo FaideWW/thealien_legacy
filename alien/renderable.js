@@ -14,6 +14,7 @@ alien.components.renderable = (function() {
                 if (!(this instanceof Polygon)) {
                     return new Polygon(args);
                 }
+                args = args || {};
                 this.color = args.color || "rgba(0,0,0,1)";
                 this.points = deepClone(args.points) || [
                 new alien.Math.Vector()
@@ -66,9 +67,10 @@ alien.components.renderable = (function() {
                 if (!(this instanceof Text)) {
                     return new Text(args);
                 }
+                args = args || {};
                 this.color = args.color || "rgba(0,0,0,1)";
                 this.font = args.font || "normal 18px sans-serif";
-                this.text = args.text || "No text";
+                this.text = args.text || "";
             }
         
             Text.prototype.draw = function(args) {

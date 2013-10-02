@@ -104,13 +104,23 @@ var text = new alien.Entity({
 		y: 200,
 		z: 1
 	}),
-	renderables: [new alien.components.renderable.Text({
-		text: "Hello world!"
+	renderables: [new alien.components.renderable.Text()],
+	behaviors: [new alien.components.behavior.Follow({
+		target: 'mouse',
+		callback: function(e) {
+			e.renderables[0].text = e.position.x + ", " + e.position.y; 
+		}
 	})]
 });
 
+
 var s1 = new alien.Scene({
-		entities: [red, blue, listener]
+		entities: [
+			red, 
+			blue, 
+			text, 
+			listener
+		]
 });
 
 

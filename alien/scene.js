@@ -17,6 +17,19 @@ alien.Scene = (function(alien) {
                 t[k] = properties[k];
             }
         }
+
+        //bind mouse entity
+        t.mouse = new alien.Entity({
+        });
+        t.mouse.on('mousemove', function(e, data) {
+            e.position = new alien.Math.Vector({
+                x: data.event.layerX,
+                y: data.event.layerY
+            });
+        });
+
+        t.entities.push(t.mouse);
+
         if (t.entities.length > 0) {
             t.entities = this.sort(t.entities);
         }
