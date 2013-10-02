@@ -95,6 +95,60 @@ alien.components.renderable = (function() {
         
             return Text;
         
+        }()),
+    
+        Line: (function() {
+            'use strict';
+        
+            function Line(args) {
+                // enforces new
+                if (!(this instanceof Line)) {
+                    return new Line(args);
+                }
+                args = args || {};
+                if (!args.hasOwnProperty('source') || !args.hasOwnProperty('dest')) {
+                    console.error('Line requires a source and destination');
+                    return null;
+                }
+
+                this.source = args.source;
+                this.dest = args.dest;
+                this.color = args.color || "rgba(0,0,0,1)";
+                this.linewidth = args.linewidth || 1;
+            }
+
+            Line.prototype.draw = function(args) {
+                var c = args.context;
+
+                var source_pos, dest_pos;
+
+                if (this.source instanceof alien.Entity) {
+                    source_pos = this.source.position;
+                } else {
+                    source_pos = this.source;
+                }
+                if (this.dest instanceof alien.Entity) {
+                    dest_pos = this.dest.position;
+                } else {
+                    dest_pos = this.dest;
+                }
+
+                c.fillStyle = this.color;
+                c.lineWidth = this.linewidth;
+                c.beginPath();
+                c.moveTo(source_pos.x, source_pos.y);
+                c.lineTo(dest_pos.x, dest_pos.y);
+        
+                c.stroke();
+
+            };
+        
+            Line.prototype.clone = function() {
+                return new Line(this);
+            };
+        
+            return Line;
+        
         }())
 
 };
