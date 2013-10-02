@@ -1,9 +1,10 @@
 var alien = alien || {};
+alien.systems = alien.systems || {};
 
-alien.CollisionManager = (function () {
+alien.systems.CollisionSystem = (function () {
     'use strict';
 
-    var CollisionManager = {
+    var CollisionSystem = {
         getAABB: function (poly) {
             var minx, miny, maxx, maxy, i, point;
             for (i = 0; i < poly.length; i += 1) {
@@ -167,22 +168,23 @@ alien.CollisionManager = (function () {
             }
             return false;
         },
-        update: function (dt, scene) {
-            var i,
-                j,
-                c;
-            for (i = 0; i < scene.entities.length - 1; i += 1) {
-                for (j = i + 1; j < scene.entities.length; j += 1) {
-                    c = this.tests.collide(scene.entities[i], scene.entities[j]);
-                    if (c) {
-                        scene.entities[i].trigger('collide', c);
-                        scene.entities[j].trigger('collide', c);
-                    }
-                }
-            }
-        }
+        // update: function (dt, g) {
+        //     var i,
+        //         j,
+        //         c,
+        //         scene = g.scene;
+        //     for (i = 0; i < scene.entities.length - 1; i += 1) {
+        //         for (j = i + 1; j < scene.entities.length; j += 1) {
+        //             c = this.tests.collide(scene.entities[i], scene.entities[j]);
+        //             if (c) {
+        //                 scene.entities[i].trigger('collide', c);
+        //                 scene.entities[j].trigger('collide', c);
+        //             }
+        //         }
+        //     }
+        // }
     };
 
-    return CollisionManager;
+    return CollisionSystem;
 
 }());

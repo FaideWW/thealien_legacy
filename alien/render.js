@@ -1,10 +1,15 @@
 var alien = alien || {};
+alien.systems = alien.systems || {};
 
-alien.RenderSystem = (function () {
+alien.systems.RenderSystem = (function () {
     'use strict';
+
+    var draw_frequency = 1000 / 60,
+        time_since_last_draw = 0;
 
     var RenderSystem = {
         draw: function (canvas, scene) {
+            console.group('Draw');
             var c = canvas.getContext('2d'),
             i;
             c.clearRect(0, 0, canvas.width, canvas.height);
@@ -16,6 +21,15 @@ alien.RenderSystem = (function () {
                     context: c,
                     position: scene.entities[i].position
                 });
+                console.dir(scene.entities[i]);
+            }
+            console.groupEnd();
+        },
+        update: function(dt, g) {
+            time_since_last_draw += dt;
+            if (time_since_last_draw >= draw_frequency) {
+                this.draw(g.canvas, g.scene);
+                time_since_last_draw = 0;
             }
         }
     };

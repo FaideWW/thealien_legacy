@@ -1,8 +1,8 @@
 var alien = alien || {};
+alien.systems = alien.systems || {};
 
 
-
-alien.EventManager = function() {
+alien.systems.EventSystem = function() {
 
     alien.Entity.prototype.on = function (event, callback) {
         this.listeners[event] = this.listeners[event] || [];
@@ -32,10 +32,10 @@ alien.EventManager = function() {
 
     alien.Game.prototype.registerEventListeners = function(canvas, scene) {
         var e;
-            for (e in alien.EventManager) {
-                if (alien.EventManager.hasOwnProperty(e)) {
+            for (e in alien.systems.EventSystem) {
+                if (alien.systems.EventSystem.hasOwnProperty(e)) {
                     this.canvas.addEventListener(e, function(ev) {
-                        alien.EventManager[ev.type](ev, scene);
+                        alien.systems.EventSystem[ev.type](ev, scene);
                     });
                 }
             }
@@ -158,6 +158,8 @@ alien.EventManager = function() {
             }
         },
         keydown: function(event, scene) {
+            console.log('keydown');
+            console.dir(event);
             scene = scene || {};
             var entities = scene.entities || [];
             for (var i = 0; i < entities.length; i++) {

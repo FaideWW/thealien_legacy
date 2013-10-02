@@ -64,13 +64,13 @@ red.extend({
 		e.draggable.srcY = data.event.layerY;
 	}
 }).on('mousemove', function(e, data) {
-	//debugger;
+	
 	if (e.draggable.isBeingDragged) {
+		console.log('dragging');
 		e.position.x += data.event.layerX - e.draggable.srcX;
 		e.position.y += data.event.layerY - e.draggable.srcY;
 		e.draggable.srcX = data.event.layerX;
 		e.draggable.srcY = data.event.layerY;
-		alien.RenderSystem.draw(_.canvas, _.scene);
 	}
 }).on('mouseup', function(e, data) {
 	if (e.draggable.isBeingDragged) {
@@ -92,4 +92,3 @@ var s1 = new alien.Scene({
 
 _.setScene(s1);
 _.registerEventListeners(_.canvas, _.scene);
-alien.RenderSystem.draw(_.canvas, _.scene);
