@@ -71,21 +71,35 @@ alien.Math = (function() {
 
         }()),
         
-        min: function(vals) {
+        min: function(vals, key) {
+            key = key || null;
             var m = null;
             for (var i = 0; i < vals.length; i += 1) {
-                if (m === null || vals[i] < m) {
-                    m = vals[i];
+                if (key === null) {
+                    if (m === null || vals[i] < m) {
+                        m = vals[i];
+                    }
+                } else {
+                    if (m === null || vals[i][key] < m) {
+                        m = vals[i][key];
+                    }
                 }
             }
             return m;
         },
 
-        max: function(vals) {
+        max: function(vals, key) {
+            key = key || null;
             var m = null;
             for (var i = 0; i < vals.length; i += 1) {
-                if (m === null || vals[i] > m) {
-                    m = vals[i];
+                if (key === null) {
+                    if (m === null || vals[i] > m) {
+                        m = vals[i];
+                    }
+                } else {
+                    if (m === null || vals[i][key] > m) {
+                        m = vals[i][key];
+                    }
                 }
             }
             return m;
