@@ -58,6 +58,43 @@ alien.components.renderable = (function() {
 
         }()),
 
+        Text: (function() {
+            'use strict';
+        
+            function Text(args) {
+                // enforces new
+                if (!(this instanceof Text)) {
+                    return new Text(args);
+                }
+                this.color = args.color || "rgba(0,0,0,1)";
+                this.font = args.font || "normal 18px sans-serif";
+                this.text = args.text || "No text";
+            }
+        
+            Text.prototype.draw = function(args) {
+                var p = args.position || new alien.Math.Vector(),
+                    c = args.context;
+                c.font = this.font;
+                c.fillStyle = this.color;
+                c.fillText(this.text, p.x, p.y);
+            }
+
+            Text.prototype.getBoundingBox = function() {
+                return new alien.components.collidable.AABB({
+                    half_width: 0,
+                    half_height: 0,
+                    origin: new alien.Math.Vector()
+                });
+            }
+
+            Text.prototype.clone = function() {
+                return new Text(this);
+            };
+        
+            return Text;
+        
+        }())
+
 };
 
 return renderable;

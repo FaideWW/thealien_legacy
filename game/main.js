@@ -97,6 +97,18 @@ listener.on('keydown', function(e, data) {
 		}
 	}
 });
+
+var text = new alien.Entity({
+	position: new alien.Math.Vector({
+		x: 200,
+		y: 200,
+		z: 1
+	}),
+	renderables: [new alien.components.renderable.Text({
+		text: "Hello world!"
+	})]
+});
+
 var s1 = new alien.Scene({
 		entities: [red, blue, listener]
 });
