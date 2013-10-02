@@ -4,6 +4,21 @@ alien.systems = alien.systems || {};
 
 alien.systems.EventSystem = function() {
 
+    var mouse_events = [
+        'click',
+        'dblclick',
+        'mousedown',
+        'mouseup',
+        'mousemove',
+        'mouseover',
+        'mouseout'
+    ],
+        key_events = [
+        'keydown',
+        'keyup',
+        'keypress'
+    ];
+
     alien.Entity.prototype.on = function (event, callback) {
         this.listeners[event] = this.listeners[event] || [];
         this.listeners[event].push(callback);
@@ -34,9 +49,15 @@ alien.systems.EventSystem = function() {
         var e;
             for (e in alien.systems.EventSystem) {
                 if (alien.systems.EventSystem.hasOwnProperty(e)) {
-                    this.canvas.addEventListener(e, function(ev) {
-                        alien.systems.EventSystem[ev.type](ev, scene);
-                    });
+                    if (mouse_events.indexOf(e) !== -1) {
+                        this.canvas.addEventListener(e, function(ev) {
+                            alien.systems.EventSystem[ev.type](ev, scene);
+                        });
+                    } else if (key_events.indexOf(e) !== -1) {
+                        document.addEventListener(e, function(ev) {
+                            alien.systems.EventSystem[ev.type](ev, scene);
+                        });
+                    }
                 }
             }
     };

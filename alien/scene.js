@@ -37,7 +37,7 @@ alien.Scene = (function(alien) {
                 return entities;
             }
             var l = entities.length,
-            p = entities.length / 2,
+            p = Math.floor(entities.length / 2),
             pivot = entities[p],
             lower = [],
             higher = [];

@@ -58,14 +58,14 @@ red.extend({
 		srcY: 0
 	}
 }).on('mousedown', function(e, data) {
-	if (e.draggable.isDraggable && !e.draggable.isBeingDragged) {
+	if (_.running && e.draggable.isDraggable && !e.draggable.isBeingDragged) {
 		e.draggable.isBeingDragged = true;
 		e.draggable.srcX = data.event.layerX;
 		e.draggable.srcY = data.event.layerY;
 	}
 }).on('mousemove', function(e, data) {
 	
-	if (e.draggable.isBeingDragged) {
+	if (_.running && e.draggable.isBeingDragged) {
 		console.log('dragging');
 		e.position.x += data.event.layerX - e.draggable.srcX;
 		e.position.y += data.event.layerY - e.draggable.srcY;
@@ -80,15 +80,33 @@ red.extend({
 
 blue.polygon.color = "rgba(0,0,255,1)";
 blue.position = new alien.Math.Vector({
-	x: 110,
-	y: 110,
+	x: 170,
+	y: 170,
 	z: 0.6
 });
 
-var s1 = new alien.Scene({
-		entities: [red, blue]
+var listener = new alien.Entity({
+	renderable: false
 });
+
+listener.on('keydown', function(e, data) {
+	console.log(data);
+	if (data.event.keyCode === 32) {
+		if (_.running) {
+			_.stop();
+		} else {
+ 			_.run();
+		}
+	}
+});
+var s1 = new alien.Scene({
+		entities: [red, blue, listener]
+});
+
+
+
 
 
 _.setScene(s1);
 _.registerEventListeners(_.canvas, _.scene);
+

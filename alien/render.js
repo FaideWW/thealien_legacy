@@ -17,6 +17,9 @@ alien.systems.RenderSystem = (function () {
             for (i = 0; i < scene.entities.length; i += 1) {
                 //if the entity has a position, grab it; otherwise set to origin
                 //trigger a draw event with the position and context
+                if (scene.entities[i].renderable === false) {
+                    continue;
+                }
                 scene.entities[i].draw({
                     context: c,
                     position: scene.entities[i].position
@@ -42,6 +45,7 @@ alien.systems.RenderSystem = (function () {
             y: 0
         }]
     };
+    alien.Entity.default_properties.renderable = true;
 
     alien.Entity.prototype.draw = function(props) {
         if (this.hasOwnProperty('polygon')) {
