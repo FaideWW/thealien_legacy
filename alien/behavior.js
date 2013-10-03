@@ -51,30 +51,29 @@ alien.components.behavior = (function() {
                 }
                 args = args || {};
                 this.init = false;
-                this.isBeingDragged = false;
-                this.srcX = 0;
-                this.srcY = 0;
             }
         
             Draggable.prototype.update = function(e, s, dt) {
                 if (!this.init) {
-                    debugger;
                     e.on('mousedown', function(e, data) {
-                        if (!this.isBeingDragged) {
-                            this.isBeingDragged = true;
-                            this.srcX = data.event.layerX;
-                            this.srcY = data.event.layerY;
+                        if (!e.isBeingDragged) {
+                            console.log('drag begin');
+                            e.isBeingDragged = true;
+                            e.srcX = data.event.layerX;
+                            e.srcY = data.event.layerY;
                         }
                     }).on('mousemove', function(e, data) {
-                        if (this.isBeingDragged) {
-                            e.position.x += data.event.layerX - this.srcX;
-                            e.position.y += data.event.layerY - this.srcY;
-                            this.srcX = data.event.layerX;
-                            this.srcY = data.event.layerY;
+                        if (e.isBeingDragged) {
+                            console.log('dragging');
+                            e.position.x += data.event.layerX - e.srcX;
+                            e.position.y += data.event.layerY - e.srcY;
+                            e.srcX = data.event.layerX;
+                            e.srcY = data.event.layerY;
                         }
                     }).on('mouseup', function(e, data) {
-                        if (this.isBeingDragged) {
-                            this.isBeingDragged = false;
+                        if (e.isBeingDragged) {
+                            console.log('drag end');
+                            e.isBeingDragged = false;
                         }
                     });
                     this.init = true;
