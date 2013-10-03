@@ -88,6 +88,59 @@ alien.components.behavior = (function() {
             return Draggable;
         
         }()),
+    
+        DrawLineBetween: (function() {
+            'use strict';
+        
+            function DrawLineBetween(args) {
+                // enforces new
+                if (!(this instanceof DrawLineBetween)) {
+                    return new DrawLineBetween(args);
+                }
+                args = args || {};
+                this.linewidth = args.linewidth || 2;
+                this.init = false;
+            }
+        
+            DrawLineBetween.prototype.update = function(e, s, dt) {
+                if (!this.init) {
+                    var lw = this.linewidth;
+                    e.DrawLineBetween = e.DrawLineBetween || {}; 
+                    e.on('click', function(e, ev) {
+                        e.DrawLineBetween.line = e.DrawLineBetween.line || [];
+                        e.DrawLineBetween.line.push(new alien.Entity({
+                            renderables: [new alien.components.renderable.Line({
+                                source: e,
+                                dest: s.mouse,
+                                linewidth: lw
+                            })]
+                        }));
+                        s.entities.push(e.DrawLineBetween.line[e.DrawLineBetween.line.length - 1])
+                        e.DrawLineBetween.isDrawingLine = true;
+                    });
+                    for (var entity in s.entities) {
+                        if (s.entities[entity] === e) {
+                            continue;
+                        }
+                        s.entities[entity].on('click', function(f, ev) {
+                            if (e.DrawLineBetween.isDrawingLine) {
+                                e.DrawLineBetween.line[e.DrawLineBetween.line.length - 1].renderables[0].dest = f;
+                            }
+                            e.DrawLineBetween.isDrawingLine = false;
+                        });
+                    }
+
+                }
+                this.init = true;
+            };
+
+            DrawLineBetween.prototype.clone = function() {
+                return new DrawLineBetween(this);
+            }
+        
+            return DrawLineBetween;
+        
+        }()),
     };
 
     return behavior;

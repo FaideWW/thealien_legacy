@@ -38,6 +38,11 @@ alien.Entity = (function () {
         return this;
     };
 
+    Entity.prototype.set = function(property, value) {
+        this[property] = value;
+        return this;
+    };
+
 
     return Entity;
 

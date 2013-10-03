@@ -30,28 +30,26 @@ var red = new alien.Entity({
 				y: 50
 			})
 		]
-	})],
-	'behaviors': [new alien.components.behavior.Draggable()]
+	})]
 });
-var blue = new alien.Entity(red);
 
-blue.parent = red;
+
+var blue = new alien.Entity(red);
+blue.behaviors = [
+	new alien.components.behavior.DrawLineBetween(),
+	new alien.components.behavior.Draggable()
+];
+blue.set('parent', red).set('position', new alien.Math.Vector({ x: 150, y: 150,	z: 0.6 }));
 blue.renderables[0].color = "rgba(0,0,255,1)";
-blue.position = new alien.Math.Vector({
-	x: 150,
-	y: 150,
-	z: 0.6
-});
 
 var listener = new alien.Entity();
-
 listener.on('keydown', function(e, data) {
 	console.log(data);
 	if (data.event.keyCode === 32) {
 		if (_.running) {
 			_.stop();
 		} else {
- 			_.run();
+			_.run();
 		}
 	}
 });
@@ -66,7 +64,7 @@ var text = new alien.Entity({
 	behaviors: [new alien.components.behavior.Follow({
 		target: 'mouse',
 		callback: function(e) {
-			e.renderables[0].text = e.getPosition().x + ", " + e.getPosition().y; 
+			e.renderables[0].text = e.getPosition().x + ", " + e.getPosition().y;
 		}
 	})]
 });
@@ -85,9 +83,9 @@ var line = new alien.Entity({
 
 var s1 = new alien.Scene({
 		entities: [
-			red, 
-			blue, 
-			text, 
+			red,
+			blue,
+			text,
 			listener
 		]
 });
