@@ -64,9 +64,17 @@ alien.systems.EventSystem = function() {
 
     alien.Entity.default_properties.listeners = {};
     alien.Entity.default_properties.propagateMouseEvents = false;
-    alien.Entity.default_properties.globalListener = false;
+    alien.Entity.default_properties.globallyListeningFor = {
+        'click': false,
+        'dblclick': false,
+        'mousedown': false,
+        'mouseup': false,
+        'mousemove': false,
+        'mouseover': false,
+        'mouseout': false
+    };
 
-    function entitiesAtPoint(point, scene) {
+    function entitiesAtPoint(point, scene, e_type) {
         var entities = scene.entities || [],
             entities_at_point = [],
             i,
@@ -83,7 +91,7 @@ alien.systems.EventSystem = function() {
                 }
             }
             for (var k = 0; k < box.length; k++) {
-                if (entities[i].globalListener || box[k].pointIn(point.sub(entities[i].getPosition()))) {
+                if (entities[i].globallyListeningFor[e_type] || box[k].pointIn(point.sub(entities[i].getPosition()))) {
                     isAtPoint = true;
                     break;
                 }
@@ -101,7 +109,7 @@ alien.systems.EventSystem = function() {
     return {
         click: function(event, scene) {
             scene = scene || {};
-            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene);
+            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene, 'click');
             for (var i = 0; i < entities.length; i += 1) {
                 entities[i].trigger('click', {
                     event: event
@@ -110,7 +118,7 @@ alien.systems.EventSystem = function() {
         },
         dblclick: function(event, scene) {
             scene = scene || {};
-            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene);
+            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene, 'dblclick');
             for (var i = 0; i < entities.length; i++) {
                 entities[i].trigger('dblclick', {
                     event: event
@@ -120,7 +128,7 @@ alien.systems.EventSystem = function() {
         mousedown: function(event, scene) {
             scene = scene || {};
             //debugger;
-            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene);
+            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene, 'mousedown');
             for (var i = 0; i < entities.length; i++) {
                 entities[i].trigger('mousedown', {
                     event: event
@@ -140,7 +148,7 @@ alien.systems.EventSystem = function() {
         },
         mouseover: function(event, scene) {
             scene = scene || {};
-            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene);
+            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene, 'mouseover');
             for (var i = 0; i < entities.length; i++) {
                 entities[i].trigger('mouseover', {
                     event: event
@@ -161,7 +169,7 @@ alien.systems.EventSystem = function() {
         },
         mouseout: function(event, scene) {
             scene = scene || {};
-            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene);
+            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene, 'mouseout');
             for (var i = 0; i < entities.length; i++) {
                 entities[i].trigger('mouseout', {
                     event: event

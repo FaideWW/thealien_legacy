@@ -118,7 +118,7 @@ alien.components.behavior = (function() {
                             }));
                             e.DrawLineBetween.line[e.DrawLineBetween.line.length-1].sceneIndex = s.entities.push(e.DrawLineBetween.line[e.DrawLineBetween.line.length - 1]) - 1;
                             e.DrawLineBetween.isDrawingLine = true;
-                            e.globalListener = true;
+                            e.globallyListeningFor['click'] = true;
                         } else {
                             console.log('cancel line');
                             if (e.DrawLineBetween.line[e.DrawLineBetween.line.length - 1].renderables[0].dest === s.mouse) {
@@ -127,7 +127,7 @@ alien.components.behavior = (function() {
                                 e.DrawLineBetween.line.splice(e.DrawLineBetween.line.length - 1, 1);
                             }
                             e.DrawLineBetween.isDrawingLine = false;
-                            e.globalListener = false;
+                            e.globallyListeningFor['click'] = false;
                         }
                     });
                     for (var entity in s.entities) {
