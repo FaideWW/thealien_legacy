@@ -82,7 +82,7 @@ alien.systems.EventSystem = function() {
                 }
             }
             for (var k = 0; k < box.length; k++) {
-                if (box[k].pointIn(point.sub(entities[i].position))) {
+                if (box[k].pointIn(point.sub(entities[i].getPosition()))) {
                     isAtPoint = true;
                     break;
                 }

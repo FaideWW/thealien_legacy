@@ -87,7 +87,7 @@ alien.systems.EventSystem = function() {
             entities_at_point = [],
             i;
         for (i = entities.length - 1; i >= 0; i -= 1) {
-            if (pointInPoly(point.sub(entities[i].position), entities[i].polygon.points)) {
+            if (pointInPoly(point.sub(entities[i].getPosition()), entities[i].polygon.points)) {
                 entities_at_point.push(entities[i]);
                 if (!entities[i].propagateMouseEvents) {
                     break;

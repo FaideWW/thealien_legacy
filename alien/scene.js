@@ -60,7 +60,7 @@ alien.Scene = (function(alien) {
                     continue;
                 }
 
-                if (entities[k].position.z <= pivot.position.z) {
+                if (entities[k].getPosition().z <= pivot.getPosition().z) {
                     lower.push(entities[k]);
                 } else {
                     higher.push(entities[k]);
@@ -110,11 +110,18 @@ alien.Scene = (function(alien) {
 
     //extend Entity prototype for requisite properties
     alien.Entity.prototype.position = alien.Entity.prototype.position || new alien.Math.Vector();
+    alien.Entity.prototype.parent = alien.Entity.prototype.parent || null;
+
+    alien.Entity.prototype.getPosition = function() {
+        return (this.parent === null) ? this.position : this.parent.position.add(this.position);
+    }
+
 
     alien.Game.prototype.setScene= function(scene) {
         this.scene = scene;
         return this.scene;
     };
+
 
     return Scene;
 

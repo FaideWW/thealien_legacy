@@ -17,7 +17,7 @@ alien.systems.RenderSystem = (function () {
                 //if the entity has a position, grab it; otherwise set to origin
                 //trigger a draw event with the position and context
                 scene.entities[i].draw({
-                    position: scene.entities[i].position,
+                    position: scene.entities[i].getPosition(),
                     context: c
                 });
             }

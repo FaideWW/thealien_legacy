@@ -27,8 +27,8 @@ alien.components.behavior = (function() {
                 if (this.target === 'mouse') {
                     this.target = s.mouse;
                 }
-                if (JSON.stringify(e.position) !== JSON.stringify(this.target.position)) {
-                    e.position = this.target.position;
+                if (JSON.stringify(e.getPosition()) !== JSON.stringify(this.target.getPosition())) {
+                    e.position = this.target.getPosition();
                     this.callback(e);
                 }
             }
@@ -58,6 +58,7 @@ alien.components.behavior = (function() {
                     e.on('mousedown', function(e, data) {
                         if (!e.isBeingDragged) {
                             console.log('drag begin');
+                            console.log(e);
                             e.isBeingDragged = true;
                             e.srcX = data.event.layerX;
                             e.srcY = data.event.layerY;

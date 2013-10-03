@@ -35,38 +35,11 @@ var red = new alien.Entity({
 });
 var blue = new alien.Entity(red);
 
-// red.extend({
-// 	draggable: {
-// 		isDraggable: true,
-// 		isBeingDragged: false,
-// 		srcX: 0,
-// 		srcY: 0
-// 	}
-// }).on('mousedown', function(e, data) {
-// 	if (_.running && e.draggable.isDraggable && !e.draggable.isBeingDragged) {
-// 		e.draggable.isBeingDragged = true;
-// 		e.draggable.srcX = data.event.layerX;
-// 		e.draggable.srcY = data.event.layerY;
-// 	}
-// }).on('mousemove', function(e, data) {
-	
-// 	if (_.running && e.draggable.isBeingDragged) {
-// 		console.log('dragging');
-// 		e.position.x += data.event.layerX - e.draggable.srcX;
-// 		e.position.y += data.event.layerY - e.draggable.srcY;
-// 		e.draggable.srcX = data.event.layerX;
-// 		e.draggable.srcY = data.event.layerY;
-// 	}
-// }).on('mouseup', function(e, data) {
-// 	if (e.draggable.isBeingDragged) {
-// 		e.draggable.isBeingDragged = false;
-// 	}
-// });
-
+blue.parent = red;
 blue.renderables[0].color = "rgba(0,0,255,1)";
 blue.position = new alien.Math.Vector({
-	x: 170,
-	y: 170,
+	x: 150,
+	y: 150,
 	z: 0.6
 });
 
@@ -93,7 +66,7 @@ var text = new alien.Entity({
 	behaviors: [new alien.components.behavior.Follow({
 		target: 'mouse',
 		callback: function(e) {
-			e.renderables[0].text = e.position.x + ", " + e.position.y; 
+			e.renderables[0].text = e.getPosition().x + ", " + e.getPosition().y; 
 		}
 	})]
 });
@@ -115,7 +88,6 @@ var s1 = new alien.Scene({
 			red, 
 			blue, 
 			text, 
-			line,
 			listener
 		]
 });

@@ -17,7 +17,7 @@ alien.components.renderable = (function() {
                 args = args || {};
                 this.color = args.color || "rgba(0,0,0,1)";
                 this.points = deepClone(args.points) || [
-                new alien.Math.Vector()
+                    new alien.Math.Vector()
                 ];
             }
 
@@ -131,12 +131,12 @@ alien.components.renderable = (function() {
                 }
 
                 if (this.source instanceof alien.Entity) {
-                    source_pos = this.source.position;
+                    source_pos = this.source.getPosition();
                 } else {
                     source_pos = this.source;
                 }
                 if (this.dest instanceof alien.Entity) {
-                    dest_pos = this.dest.position;
+                    dest_pos = this.dest.getPosition();
                 } else {
                     dest_pos = this.dest;
                 }
