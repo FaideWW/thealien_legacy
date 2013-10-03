@@ -4,22 +4,6 @@ var _ = new alien.Game({
 	'canvas': canvas
 });
 
-var drawPolygon = function(e, props) {
-	if (e.hasOwnProperty('polygon')) {
-		var c = props.context,
-			p = props.position,
-			i;
-		c.fillStyle = e.polygon.color;
-		c.beginPath();
-		c.moveTo(p.x + e.polygon.points[0].x, p.y + e.polygon.points[0].y);
-		for (i = 1; i < e.polygon.points.length; i += 1) {
-			c.lineTo(p.x + e.polygon.points[i].x, p.y + e.polygon.points[i].y);
-		}
-		c.closePath();
-		c.fill();
-	}
-};
-
 var red = new alien.Entity({
 	'position': new alien.Math.Vector({
 		x: 100,
@@ -46,37 +30,38 @@ var red = new alien.Entity({
 				y: 50
 			})
 		]
-	})]
+	})],
+	'behaviors': [new alien.components.behavior.Draggable()]
 });
 var blue = new alien.Entity(red);
 
-red.extend({
-	draggable: {
-		isDraggable: true,
-		isBeingDragged: false,
-		srcX: 0,
-		srcY: 0
-	}
-}).on('mousedown', function(e, data) {
-	if (_.running && e.draggable.isDraggable && !e.draggable.isBeingDragged) {
-		e.draggable.isBeingDragged = true;
-		e.draggable.srcX = data.event.layerX;
-		e.draggable.srcY = data.event.layerY;
-	}
-}).on('mousemove', function(e, data) {
+// red.extend({
+// 	draggable: {
+// 		isDraggable: true,
+// 		isBeingDragged: false,
+// 		srcX: 0,
+// 		srcY: 0
+// 	}
+// }).on('mousedown', function(e, data) {
+// 	if (_.running && e.draggable.isDraggable && !e.draggable.isBeingDragged) {
+// 		e.draggable.isBeingDragged = true;
+// 		e.draggable.srcX = data.event.layerX;
+// 		e.draggable.srcY = data.event.layerY;
+// 	}
+// }).on('mousemove', function(e, data) {
 	
-	if (_.running && e.draggable.isBeingDragged) {
-		console.log('dragging');
-		e.position.x += data.event.layerX - e.draggable.srcX;
-		e.position.y += data.event.layerY - e.draggable.srcY;
-		e.draggable.srcX = data.event.layerX;
-		e.draggable.srcY = data.event.layerY;
-	}
-}).on('mouseup', function(e, data) {
-	if (e.draggable.isBeingDragged) {
-		e.draggable.isBeingDragged = false;
-	}
-});
+// 	if (_.running && e.draggable.isBeingDragged) {
+// 		console.log('dragging');
+// 		e.position.x += data.event.layerX - e.draggable.srcX;
+// 		e.position.y += data.event.layerY - e.draggable.srcY;
+// 		e.draggable.srcX = data.event.layerX;
+// 		e.draggable.srcY = data.event.layerY;
+// 	}
+// }).on('mouseup', function(e, data) {
+// 	if (e.draggable.isBeingDragged) {
+// 		e.draggable.isBeingDragged = false;
+// 	}
+// });
 
 blue.renderables[0].color = "rgba(0,0,255,1)";
 blue.position = new alien.Math.Vector({
@@ -113,12 +98,24 @@ var text = new alien.Entity({
 	})]
 });
 
+var line = new alien.Entity({
+	position: new alien.Math.Vector({
+		z: 0.9
+	}),
+	renderables: [new alien.components.renderable.Line({
+		source: red,
+		dest: 'mouse',
+		linewidth: 5
+	})]
+});
+
 
 var s1 = new alien.Scene({
 		entities: [
 			red, 
 			blue, 
 			text, 
+			line,
 			listener
 		]
 });

@@ -39,9 +39,84 @@ alien.components.behavior = (function() {
         
             return Follow;
         
-        }())
+        }()),
+
+        Draggable: (function() {
+            'use strict';
+        
+            function Draggable(args) {
+                // enforces new
+                if (!(this instanceof Draggable)) {
+                    return new Draggable(args);
+                }
+                args = args || {};
+                this.init = false;
+                this.isBeingDragged = false;
+                this.srcX = 0;
+                this.srcY = 0;
+            }
+        
+            Draggable.prototype.update = function(e, s, dt) {
+                if (!this.init) {
+                    debugger;
+                    e.on('mousedown', function(e, data) {
+                        if (!this.isBeingDragged) {
+                            this.isBeingDragged = true;
+                            this.srcX = data.event.layerX;
+                            this.srcY = data.event.layerY;
+                        }
+                    }).on('mousemove', function(e, data) {
+                        if (this.isBeingDragged) {
+                            e.position.x += data.event.layerX - this.srcX;
+                            e.position.y += data.event.layerY - this.srcY;
+                            this.srcX = data.event.layerX;
+                            this.srcY = data.event.layerY;
+                        }
+                    }).on('mouseup', function(e, data) {
+                        if (this.isBeingDragged) {
+                            this.isBeingDragged = false;
+                        }
+                    });
+                    this.init = true;
+                }
+            }
+
+            Draggable.prototype.clone = function() {
+                return new Draggable(this);
+            }
+        
+            return Draggable;
+        
+        }()),
     };
 
     return behavior;
 
 }());
+
+// draggable: {
+//         isDraggable: true,
+//         isBeingDragged: false,
+//         srcX: 0,
+//         srcY: 0
+//     }
+// }).on('mousedown', function(e, data) {
+//     if (_.running && e.draggable.isDraggable && !e.draggable.isBeingDragged) {
+//         e.draggable.isBeingDragged = true;
+//         e.draggable.srcX = data.event.layerX;
+//         e.draggable.srcY = data.event.layerY;
+//     }
+// }).on('mousemove', function(e, data) {
+    
+//     if (_.running && e.draggable.isBeingDragged) {
+//         console.log('dragging');
+//         e.position.x += data.event.layerX - e.draggable.srcX;
+//         e.position.y += data.event.layerY - e.draggable.srcY;
+//         e.draggable.srcX = data.event.layerX;
+//         e.draggable.srcY = data.event.layerY;
+//     }
+// }).on('mouseup', function(e, data) {
+//     if (e.draggable.isBeingDragged) {
+//         e.draggable.isBeingDragged = false;
+//     }
+// });

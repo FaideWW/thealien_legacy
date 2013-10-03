@@ -82,6 +82,7 @@ alien.components.renderable = (function() {
             }
 
             Text.prototype.getBoundingBox = function() {
+                //TODO: implement
                 return new alien.components.collidable.AABB({
                     half_width: 0,
                     half_height: 0,
@@ -121,6 +122,13 @@ alien.components.renderable = (function() {
                 var c = args.context;
 
                 var source_pos, dest_pos;
+                
+                if (this.source === 'mouse') {
+                    this.source = _.scene.mouse;
+                }
+                if (this.dest === 'mouse') {
+                    this.dest = _.scene.mouse;
+                }
 
                 if (this.source instanceof alien.Entity) {
                     source_pos = this.source.position;
@@ -142,6 +150,15 @@ alien.components.renderable = (function() {
                 c.stroke();
 
             };
+
+            Line.prototype.getBoundingBox = function() {
+                //TODO: implement
+                return new alien.components.collidable.AABB({
+                    half_width: 0,
+                    half_height: 0,
+                    origin: new alien.Math.Vector()
+                });
+            }
         
             Line.prototype.clone = function() {
                 return new Line(this);
