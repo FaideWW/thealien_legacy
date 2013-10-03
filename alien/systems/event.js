@@ -64,6 +64,7 @@ alien.systems.EventSystem = function() {
 
     alien.Entity.default_properties.listeners = {};
     alien.Entity.default_properties.propagateMouseEvents = false;
+    alien.Entity.default_properties.globalListener = false;
 
     function entitiesAtPoint(point, scene) {
         var entities = scene.entities || [],
@@ -82,7 +83,7 @@ alien.systems.EventSystem = function() {
                 }
             }
             for (var k = 0; k < box.length; k++) {
-                if (box[k].pointIn(point.sub(entities[i].getPosition()))) {
+                if (entities[i].globalListener || box[k].pointIn(point.sub(entities[i].getPosition()))) {
                     isAtPoint = true;
                     break;
                 }

@@ -107,16 +107,28 @@ alien.components.behavior = (function() {
                     var lw = this.linewidth;
                     e.DrawLineBetween = e.DrawLineBetween || {}; 
                     e.on('click', function(e, ev) {
-                        e.DrawLineBetween.line = e.DrawLineBetween.line || [];
-                        e.DrawLineBetween.line.push(new alien.Entity({
-                            renderables: [new alien.components.renderable.Line({
-                                source: e,
-                                dest: s.mouse,
-                                linewidth: lw
-                            })]
-                        }));
-                        s.entities.push(e.DrawLineBetween.line[e.DrawLineBetween.line.length - 1])
-                        e.DrawLineBetween.isDrawingLine = true;
+                        if (!e.DrawLineBetween.isDrawingLine) {
+                            e.DrawLineBetween.line = e.DrawLineBetween.line || [];
+                            e.DrawLineBetween.line.push(new alien.Entity({
+                                renderables: [new alien.components.renderable.Line({
+                                    source: e,
+                                    dest: s.mouse,
+                                    linewidth: lw
+                                })]
+                            }));
+                            e.DrawLineBetween.line[e.DrawLineBetween.line.length-1].sceneIndex = s.entities.push(e.DrawLineBetween.line[e.DrawLineBetween.line.length - 1]) - 1;
+                            e.DrawLineBetween.isDrawingLine = true;
+                            e.globalListener = true;
+                        } else {
+                            console.log('cancel line');
+                            if (e.DrawLineBetween.line[e.DrawLineBetween.line.length - 1].renderables[0].dest === s.mouse) {
+                                console.log('delete line');
+                                s.entities.splice(e.DrawLineBetween.line[e.DrawLineBetween.line.length - 1].sceneIndex, 1);
+                                e.DrawLineBetween.line.splice(e.DrawLineBetween.line.length - 1, 1);
+                            }
+                            e.DrawLineBetween.isDrawingLine = false;
+                            e.globalListener = false;
+                        }
                     });
                     for (var entity in s.entities) {
                         if (s.entities[entity] === e) {
