@@ -19,6 +19,10 @@ alien.systems.EventSystem = function() {
         'keypress'
     ];
 
+    var isDragEvent = false,
+        deltaDrag = new alien.Math.Vector(),
+        maxDelta = 5;
+
     alien.Entity.prototype.on = function (event, callback) {
         this.listeners[event] = this.listeners[event] || [];
         this.listeners[event].push(callback);
@@ -108,13 +112,16 @@ alien.systems.EventSystem = function() {
 
     return {
         click: function(event, scene) {
-            scene = scene || {};
-            var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene, 'click');
-            for (var i = 0; i < entities.length; i += 1) {
-                entities[i].trigger('click', {
-                    event: event
-                });
+            if (!isDragEvent) {
+                scene = scene || {};
+                var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene, 'click');
+                for (var i = 0; i < entities.length; i += 1) {
+                    entities[i].trigger('click', {
+                        event: event
+                    });
+                }
             }
+            isDragEvent = false;
         },
         dblclick: function(event, scene) {
             scene = scene || {};
@@ -127,12 +134,25 @@ alien.systems.EventSystem = function() {
         },
         mousedown: function(event, scene) {
             scene = scene || {};
-            //debugger;
             var entities = entitiesAtPoint(new alien.Math.Vector({ x: event.layerX, y: event.layerY }), scene, 'mousedown');
             for (var i = 0; i < entities.length; i++) {
                 entities[i].trigger('mousedown', {
                     event: event
                 });
+            }
+            deltaDrag.x = event.layerX;
+            deltaDrag.y = event.layerY;
+        },
+        mousemove: function(event, scene) {
+            scene = scene || {};
+            var entities = scene.entities || [],
+                i;
+            for (i = 0; i < entities.length; i++) {
+                if (entities[i].isListeningFor('mousemove')) {
+                    entities[i].trigger('mousemove', {
+                        event: event
+                    });
+                }
             }
         },
         mouseup: function(event, scene) {
@@ -145,6 +165,14 @@ alien.systems.EventSystem = function() {
                     });
                 }
             }
+            deltaDrag = deltaDrag.sub(new alien.Math.Vector({
+                x: event.layerX,
+                y: event.layerY
+            }));
+            if (deltaDrag.mag() > maxDelta) {
+                isDragEvent = true;
+            }
+            deltaDrag = new alien.Math.Vector();
         },
         mouseover: function(event, scene) {
             scene = scene || {};
@@ -153,18 +181,6 @@ alien.systems.EventSystem = function() {
                 entities[i].trigger('mouseover', {
                     event: event
                 });
-            }
-        },
-        mousemove: function(event, scene) {
-            scene = scene || {};
-            var entities = scene.entities || [],
-                i;
-            for (i = 0; i < entities.length; i++) {
-                if (entities[i].isListeningFor('mousemove')) {
-                    entities[i].trigger('mousemove', {
-                        event: event
-                    });
-                }
             }
         },
         mouseout: function(event, scene) {
@@ -188,8 +204,6 @@ alien.systems.EventSystem = function() {
             }
         },
         keydown: function(event, scene) {
-            console.log('keydown');
-            console.dir(event);
             scene = scene || {};
             var entities = scene.entities || [];
             for (var i = 0; i < entities.length; i++) {

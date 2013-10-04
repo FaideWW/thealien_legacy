@@ -1,6 +1,6 @@
 var alien = alien || {};
 
-alien.Math = (function() {
+alien.Math = (function(MATH) {
     'use strict';
 
     var Math = {
@@ -36,15 +36,15 @@ alien.Math = (function() {
                 });
             };
 
-            Vector.prototype.mag = function(v1) {
-                return Math.sqrt(Math.pow(v1.x, 2) + Math.pow(v1.y, 2));
+            Vector.prototype.mag = function() {
+                return MATH.sqrt(MATH.pow(this.x, 2) + MATH.pow(this.y, 2));
             };
 
-            Vector.prototype.nml = function(v1) {
-                var m = this.mag(v1);
+            Vector.prototype.nml = function() {
+                var m = this.mag();
                 return new alien.Math.Vector({
-                    x: v1.x / m,
-                    y: v1.y / m
+                    x: this.x / m,
+                    y: this.y / m
                 });
             };
 
@@ -108,4 +108,4 @@ alien.Math = (function() {
 
     return Math;
 
-}());
+}(Math));

@@ -57,15 +57,12 @@ alien.components.behavior = (function() {
                 if (!this.init) {
                     e.on('mousedown', function(e, data) {
                         if (!e.isBeingDragged) {
-                            console.log('drag begin');
-                            console.log(e);
                             e.isBeingDragged = true;
                             e.srcX = data.event.layerX;
                             e.srcY = data.event.layerY;
                         }
                     }).on('mousemove', function(e, data) {
                         if (e.isBeingDragged) {
-                            console.log('dragging');
                             e.position.x += data.event.layerX - e.srcX;
                             e.position.y += data.event.layerY - e.srcY;
                             e.srcX = data.event.layerX;
@@ -73,7 +70,6 @@ alien.components.behavior = (function() {
                         }
                     }).on('mouseup', function(e, data) {
                         if (e.isBeingDragged) {
-                            console.log('drag end');
                             e.isBeingDragged = false;
                         }
                     });
@@ -120,9 +116,7 @@ alien.components.behavior = (function() {
                             e.DrawLineBetween.isDrawingLine = true;
                             e.globallyListeningFor['click'] = true;
                         } else {
-                            console.log('cancel line');
                             if (e.DrawLineBetween.line[e.DrawLineBetween.line.length - 1].renderables[0].dest === s.mouse) {
-                                console.log('delete line');
                                 s.entities.splice(e.DrawLineBetween.line[e.DrawLineBetween.line.length - 1].sceneIndex, 1);
                                 e.DrawLineBetween.line.splice(e.DrawLineBetween.line.length - 1, 1);
                             }

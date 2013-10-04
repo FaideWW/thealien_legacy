@@ -44,7 +44,6 @@ blue.renderables[0].color = "rgba(0,0,255,1)";
 
 var listener = new alien.Entity();
 listener.on('keydown', function(e, data) {
-	console.log(data);
 	if (data.event.keyCode === 32) {
 		if (_.running) {
 			_.stop();
