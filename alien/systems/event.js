@@ -95,7 +95,7 @@ alien.systems.EventSystem = function() {
                 }
             }
             for (var k = 0; k < box.length; k++) {
-                if (entities[i].globallyListeningFor[e_type] || box[k].pointIn(point.sub(entities[i].getPosition()))) {
+                if (box[k].pointIn(point.sub(entities[i].getPosition()))) {
                     isAtPoint = true;
                     break;
                 }
@@ -104,6 +104,13 @@ alien.systems.EventSystem = function() {
                 entities_at_point.push(entities[i]);
                 if (!entities[i].propagateMouseEvents) {
                     break;
+                }
+            }
+        }
+        if (entities_at_point.length < 1) {
+            for (var k = 0; k < entities.length; k++) {
+                if (entities[k].globallyListeningFor[e_type]) {
+                    entities_at_point.push(entities[k]);
                 }
             }
         }

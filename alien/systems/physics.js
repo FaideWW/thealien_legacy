@@ -22,7 +22,19 @@ alien.systems.PhysicsSystem = (function() {
 
 				time_since_last_update = 0;
 			}
-		}
+		},
+		testCollision: function(e1, e2) {
+			var collides = false;
+
+			for (var i = 0; i < e1.collidables.length; i++) {
+				for (var j = 0; j < e2.collidables.length; j++) {
+					if (alien.systems.CollisionSystem.collide(e1[i], e2[j]) !== false) {
+						collides = true;
+						e1.collideWith(e2);
+					} 
+				}
+			}
+		} 
 	}
 
 	alien.Entity.default_properties.velocity = new alien.Math.Vector();
@@ -31,6 +43,9 @@ alien.systems.PhysicsSystem = (function() {
 	alien.Entity.default_properties.on_ground = false;
 	alien.Entity.default_properties.friction = 0;
 
+	alien.Entity.prototype.collideWith = function(e) {
+
+	}
 
 	alien.Entity.prototype.physicsUpdate = function(dt) {
 		this.position = this.position.add(this.velocity.mul(dt / 1000));
