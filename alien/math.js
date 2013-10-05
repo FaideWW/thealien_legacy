@@ -36,6 +36,13 @@ alien.Math = (function(MATH) {
                 });
             };
 
+            Vector.prototype.mul = function(s) {
+                return new alien.Math.Vector({
+                    x: this.x * s,
+                    y: this.y * s
+                });
+            }
+
             Vector.prototype.mag = function() {
                 return MATH.sqrt(MATH.pow(this.x, 2) + MATH.pow(this.y, 2));
             };

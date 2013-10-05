@@ -42,6 +42,7 @@ alien.Game = (function() {
             //debugger;
             var d = new Date().getTime(),
                 s;
+            alien.systems = alien.systems || {};
             for (s in alien.systems) {
                 if (alien.systems[s].update) {
                     alien.systems[s].update(d - last_tick, t);

@@ -30,7 +30,8 @@ var red = new alien.Entity({
 				y: 50
 			})
 		]
-	})]
+	})],
+	'behaviors': [new alien.components.behavior.Draggable()]
 });
 
 
@@ -39,7 +40,7 @@ blue.behaviors = [
 	new alien.components.behavior.DrawLineBetween(),
 	new alien.components.behavior.Draggable()
 ];
-blue.set('parent', red).set('position', new alien.Math.Vector({ x: 150, y: 150,	z: 0.6 }));
+blue.set('position', new alien.Math.Vector({ x: 150, y: 150,	z: 0.6 }));
 blue.renderables[0].color = "rgba(0,0,255,1)";
 
 var listener = new alien.Entity();

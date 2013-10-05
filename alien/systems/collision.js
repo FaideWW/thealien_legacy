@@ -157,6 +157,7 @@ alien.systems.CollisionSystem = (function () {
             }
         },
         collide: function (e1, e2) {
+
             if (e1.hasOwnProperty('collider') && e2.hasOwnProperty('collider')) {
                 var p1 = e1.position || alien.Math.Vector(),
                     p2 = e2.position || alien.Math.Vector(),
@@ -168,21 +169,6 @@ alien.systems.CollisionSystem = (function () {
             }
             return false;
         },
-        // update: function (dt, g) {
-        //     var i,
-        //         j,
-        //         c,
-        //         scene = g.scene;
-        //     for (i = 0; i < scene.entities.length - 1; i += 1) {
-        //         for (j = i + 1; j < scene.entities.length; j += 1) {
-        //             c = this.tests.collide(scene.entities[i], scene.entities[j]);
-        //             if (c) {
-        //                 scene.entities[i].trigger('collide', c);
-        //                 scene.entities[j].trigger('collide', c);
-        //             }
-        //         }
-        //     }
-        // }
     };
 
     alien.Entity.default_properties.collidables = [];
