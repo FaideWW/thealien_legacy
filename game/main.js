@@ -32,10 +32,10 @@ var red = new alien.Entity({
 		]
 	})],
 	'behaviors': [new alien.components.behavior.Draggable()],
-	'collidables': [new alien.components.collidable.AABB({
+	'collidable': new alien.components.collidable.AABB({
 		half_width: 50,
 		half_height: 50
-	})]
+	})
 });
 
 

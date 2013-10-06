@@ -63,6 +63,8 @@ alien.components.collidable = (function() {
             AABB.prototype.getAABB = function() {
                 return this;
             }
+
+            AABB.prototype.preferredTest = "AABBTest";
         
             return AABB;
         

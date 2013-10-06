@@ -6,7 +6,11 @@ alien.systems.CollisionSystem = (function () {
 
     var CollisionSystem = {
 
-        AABBTest: function(c1, c2) {
+        tests: {
+            AABBTest: 0
+        },
+
+        0: function(c1, c2) { //AABBTest
             //debugger;
             if ((c1.origin.x + c1.half_width) > (c2.origin.x - c2.half_width) && (c1.origin.x - c1.half_width) < c2.origin.x - c2.half_width) {
                 if ((c1.origin.y + c1.half_height) > (c2.origin.y - c2.half_height) && (c1.origin.y - c1.half_height) < (c2.origin.y - c2.half_height)) {
@@ -74,16 +78,13 @@ alien.systems.CollisionSystem = (function () {
         },
 
         collide: function (e1, e2) {
-            for (var i = 0; i < e1.collidables.length; i += 1) {
-                for (var j = 0; j < e2.collidables.length; j +=  1) {
-                    
-                }
-            } 
-            return false;
+            if (!(e1.hasOwnProperty('collidable') || e2.hasOwnProperty('collidable'))) {
+                return false;
+            }
+            return this[Math.max(this.tests[e1.collidable.preferredTest], this.tests[e2.collidable.preferredTest])](e1.collidable.offset(e1.position), e2.collidable.offset(e2.position));
+
         },
     };
-
-    alien.Entity.default_properties.collidables = [];
 
     return CollisionSystem;
 

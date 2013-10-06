@@ -80,33 +80,19 @@ alien.systems.EventSystem = function() {
 
     function entitiesAtPoint(point, scene, e_type) {
         var entities = scene.entities || [],
-            entities_at_point = [],
-            i,
-            box,
-            isAtPoint;
-        for (i = entities.length - 1; i >= 0; i -= 1) {
-            box = [];
-            isAtPoint = false;
-            if (entities[i].collidables.length > 0) {
-                box = entities[i].collidables;
-            } else {
-                for (var j = 0; j < entities[i].renderables.length; j += 1) {
-                    box.push(entities[i].renderables[j].getBoundingBox());
-                }
-            }
-            for (var k = 0; k < box.length; k++) {
-                if (box[k].pointIn(point.sub(entities[i].getPosition()))) {
-                    isAtPoint = true;
-                    break;
-                }
-            }
-            if (isAtPoint) {
-                entities_at_point.push(entities[i]);
-                if (!entities[i].propagateMouseEvents) {
-                    break;
+            entities_at_point = [];
+
+        for (var i = entities.length - 1; i >= 0; i -= 1) {
+            if (entities[i].hasOwnProperty('collidable')) {
+                if (entities[i].collidable.pointIn(point.sub(entities[i].position))) {
+                    entities_at_point.push(entities[i]);
+                    if (!entities[i].propagateMouseEvents) {
+                        break;
+                    }
                 }
             }
         }
+
         if (entities_at_point.length < 1) {
             for (var k = 0; k < entities.length; k++) {
                 if (entities[k].globallyListeningFor[e_type]) {
