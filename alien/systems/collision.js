@@ -78,8 +78,8 @@ alien.systems.CollisionSystem = (function () {
         },
 
         collide: function (e1, e2) {
-            if (!(e1.hasOwnProperty('collidable') || e2.hasOwnProperty('collidable'))) {
-                return false;
+            if (!(e1.hasOwnProperty('collidable') && e2.hasOwnProperty('collidable'))) {
+                return 0;
             }
             return this[Math.max(this.tests[e1.collidable.preferredTest], this.tests[e2.collidable.preferredTest])](e1.collidable.offset(e1.position), e2.collidable.offset(e2.position));
 

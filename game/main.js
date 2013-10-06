@@ -11,8 +11,8 @@ var red = new alien.Entity({
 		z: 0.5
 	}),
 	'renderables': [new alien.components.renderable.Polygon({
-		'color': "rgba(255,0,0,1)",
-		'points': [
+		color: "rgba(255,0,0,1)",
+		points: [
 			new alien.Math.Vector({
 				x: -50,
 				y: -50
@@ -73,22 +73,55 @@ var text = new alien.Entity({
 	})]
 });
 
-var line = new alien.Entity({
+var ground = new alien.Entity({
 	position: new alien.Math.Vector({
-		z: 0.9
+		x: 300,
+		y: 400
 	}),
-	renderables: [new alien.components.renderable.Line({
-		source: red,
-		dest: 'mouse',
-		linewidth: 5
-	})]
+	renderables: [new alien.components.renderable.Polygon({
+		color: "rgba(0,255,0,1)",
+		points: [
+			new alien.Math.Vector({
+				x:-300,
+				y: -50
+			}),
+			new alien.Math.Vector({
+				x:300,
+				y: -50
+			}),
+			new alien.Math.Vector({
+				x:300,
+				y: 50
+			}),
+			new alien.Math.Vector({
+				x:-300,
+				y: 50
+			}),
+		]
+	})],
+	collidable: new alien.components.collidable.AABB({
+		half_width: 300,
+		half_height: 50
+	}),
+	staticObject: true
 });
 
+red.on('collide', function(e, data) {
+	console.log('RED COLLISION');
+	console.log(data.collision);
+})
+blue.on('collide', function(e, data) {
+	if (data.entity.staticObject) {
+		e.on_ground = true;
+	}
+	e.position = e.position.sub(data.collision);
+})
 
 var s1 = new alien.Scene({
 		entities: [
 			red,
 			blue,
+			ground,
 			text,
 			listener
 		]
