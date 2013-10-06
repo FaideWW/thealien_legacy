@@ -20,7 +20,7 @@ alien.components.collidable = (function() {
                 this.origin = deepClone(args.origin) || new alien.Math.Vector();
             }
         
-            AABB.prototype.getPoints = function(args) {
+            AABB.prototype.getPoints = function() {
                 return [
                     new alien.Math.Vector({
                         x: -this.half_width + this.origin.x,
@@ -48,9 +48,21 @@ alien.components.collidable = (function() {
                         offset_point.y > (-this.half_height) && offset_point.y < this.half_height);
             };
 
+            AABB.prototype.offset = function(position) {
+                return new AABB({
+                    half_width: this.half_width,
+                    half_height: this.half_height,
+                    origin: position
+                });
+            }
+
             AABB.prototype.clone = function() {
                 return new AABB(this);
             };
+
+            AABB.prototype.getAABB = function() {
+                return this;
+            }
         
             return AABB;
         
