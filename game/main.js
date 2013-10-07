@@ -11,7 +11,7 @@ var red = new alien.Entity({
 		z: 0.5
 	}),
 	'renderables': [new alien.components.renderable.Polygon({
-		color: "rgba(255,0,0,1)",
+		color: "rgba(75,0,0,1)",
 		points: [
 			new alien.Math.Vector({
 				x: -50,
@@ -46,7 +46,7 @@ blue.behaviors = [
 ];
 
 blue.set('position', new alien.Math.Vector({ x: 150, y: 150,	z: 0.6 }));
-blue.renderables[0].color = "rgba(0,0,255,1)";
+blue.renderables[0].color = "rgba(0,0,75,1)";
 
 var listener = new alien.Entity();
 listener.on('keydown', function(e, data) {
@@ -80,7 +80,7 @@ var ground = new alien.Entity({
 		y: 710
 	}),
 	renderables: [new alien.components.renderable.Polygon({
-		color: "rgba(0,255,0,1)",
+		color: "rgba(0,75,0,1)",
 		points: [
 			new alien.Math.Vector({
 				x:-640,
