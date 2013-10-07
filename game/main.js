@@ -76,60 +76,68 @@ var text = new alien.Entity({
 
 var ground = new alien.Entity({
 	position: new alien.Math.Vector({
-		x: 300,
-		y: 400
+		x: 640,
+		y: 710
 	}),
 	renderables: [new alien.components.renderable.Polygon({
 		color: "rgba(0,255,0,1)",
 		points: [
 			new alien.Math.Vector({
-				x:-300,
-				y: -50
+				x:-640,
+				y: -10
 			}),
 			new alien.Math.Vector({
-				x:300,
-				y: -50
+				x:640,
+				y: -10
 			}),
 			new alien.Math.Vector({
-				x:300,
-				y: 50
+				x:640,
+				y: 10
 			}),
 			new alien.Math.Vector({
-				x:-300,
-				y: 50
+				x:-640,
+				y: 10
 			}),
 		]
 	})],
 	collidable: new alien.components.collidable.AABB({
-		half_width: 300,
-		half_height: 50
+		half_width: 640,
+		half_height: 10
 	}),
 	staticObject: true
 });
 
 blue.on('collide', function(e, data) {
-	if (data.entity.staticObject) {
+	if ((data.entity.staticObject || data.entity.on_ground) && data.collision.x === 0) {
 		e.on_ground = true;
 	}
 	e.position = e.position.sub(data.collision);
-})
+}).massless = false;
+red.on('collide', function(e, data) {
+	if ((data.entity.staticObject || data.entity.on_ground) && data.collision.x === 0) {
+		e.on_ground = true;
+	}
+	e.position = e.position.sub(data.collision);
+});
 
 var controller = new alien.components.Controller({
 	control_entity: blue,
 	keymap: {
 		'w': {
 			down: function(e, data) {
-				e.on_ground = false;
-				e.velocity.y = -1000;
+				if (e.on_ground) {
+					e.on_ground = false;
+					e.velocity.y = -3000;
+				}
 			},
 			up: function(e, data) {}
 		},
 		'a': {
 			down: function(e, data) {
-				e.velocity.x -= 500;
+				e.velocity.x -= 1500;
 			},
 			up: function(e, data) {
-				e.velocity.x += 500;
+				e.velocity.x += 1500;
 			}
 		},
 		's': {
@@ -140,10 +148,10 @@ var controller = new alien.components.Controller({
 		},
 		'd': {
 			down: function(e, data) {
-				e.velocity.x += 500;
+				e.velocity.x += 1500;
 			},
 			up: function(e, data) {
-				e.velocity.x -= 500;
+				e.velocity.x -= 1500;
 			}
 		}
 	}

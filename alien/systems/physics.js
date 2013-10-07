@@ -6,7 +6,7 @@ alien.systems.PhysicsSystem = (function() {
 	'use strict';
 
 	var gravity = new alien.Math.Vector({
-		y: 1 //1 px*s^(-2)
+		y: 9 //9 px*s^(-2)
 	}), 
 		update_freq = 1000 / 60,
 		time_since_last_update = 0;
