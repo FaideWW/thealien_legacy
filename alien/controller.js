@@ -104,6 +104,17 @@ alien.components.Controller = (function() {
 		'\'': 222
 	};
 
+	function expandKeymap(m) {
+		var fullmap = {};
+		for (var k in m) {
+			var keys = k.split(",");
+			for (var i = 0; i < keys.length; i++) {
+				fullmap[keys[i].trim()] = m[k];
+			}
+		}
+		return fullmap;
+	}
+
 	function Controller(args) {
         // enforces new
         if (!(this instanceof Controller)) {
@@ -115,7 +126,7 @@ alien.components.Controller = (function() {
         	return 0;
         }
         this.e = args.control_entity;
-        this.keymap = args.keymap || {};
+        this.keymap = expandKeymap(args.keymap || {});
         for (var m in this.keymap) {
         	this.keymap[m].pressed = false;
         }
@@ -133,7 +144,7 @@ alien.components.Controller = (function() {
     		}
     	}).on('keyup' , function(e, data) {
     		for (var key in m) {
-    			if (data.event.keyCode === key_codes[key]) {
+    			if (data.event.keyCode === key_codes[key] && m[key].pressed) {
     				m[key].up(e, data);
     				m[key].pressed = false;
     			}

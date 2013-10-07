@@ -119,7 +119,7 @@ red.staticObject = true;
 var controller = new alien.components.Controller({
 	control_entity: blue,
 	keymap: {
-		'w': {
+		'w,up': {
 			down: function(e, data) {
 				if (e.on_ground) {
 					e.on_ground = false;
@@ -128,7 +128,7 @@ var controller = new alien.components.Controller({
 			},
 			up: function(e, data) {}
 		},
-		'a': {
+		'a,left': {
 			down: function(e, data) {
 				e.velocity.x -= 1500;
 			},
@@ -136,13 +136,13 @@ var controller = new alien.components.Controller({
 				e.velocity.x += 1500;
 			}
 		},
-		's': {
+		's,down': {
 			down: function(e, data) {
 				console.log('down');
 			},
 			up: function(e, data) {}
 		},
-		'd': {
+		'd,right': {
 			down: function(e, data) {
 				e.velocity.x += 1500;
 			},

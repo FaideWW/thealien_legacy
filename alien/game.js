@@ -28,6 +28,7 @@ alien.Game = (function() {
         this.canvas = options['canvas'];
         this.timer = 0;
         this.running = false;
+        this.frametime = 1000 / (options.fps || 60);
     }
 
     Game.prototype.run = function() {
@@ -39,7 +40,6 @@ alien.Game = (function() {
 
     Game.prototype.step = function(t, last_tick) {
         if (t.running) {
-            //debugger;
             var d = new Date().getTime(),
                 s;
             alien.systems = alien.systems || {};
