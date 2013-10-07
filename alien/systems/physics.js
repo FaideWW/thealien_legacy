@@ -15,8 +15,18 @@ alien.systems.PhysicsSystem = (function() {
 		update: function(dt, g) {
 			time_since_last_update += dt;
 			if (time_since_last_update >= update_freq) {
-				//do collision checking
+
 				for (var i = 0; i < g.scene.entities.length; i += 1) {
+					if (g.scene.entities[i].on_ground) {
+						//check if still on ground
+
+						// debugger;
+						g.scene.entities[i].position.y += 1;
+						if (!this.testGroundCollision(g.scene.entities[i], g.scene)) {
+							g.scene.entities[i].on_ground = false;
+						}
+						g.scene.entities[i].position.y -= 1;
+					}
 					g.scene.entities[i].physicsUpdate(dt);
 				}
 
@@ -45,19 +55,31 @@ alien.systems.PhysicsSystem = (function() {
 		},
 		testCollision: function(e1, e2) {
 			return alien.systems.CollisionSystem.collide(e1, e2);
-		} 
+		},
+		testGroundCollision: function(e1, s) {
+			for (var i = 0; i < s.entities.length; i += 1) {
+				if (s.entities[i] === e1) {
+					continue;
+				}
+				var c = this.testCollision(e1, s.entities[i]);
+				if (c !== 0 && c.y > 0) {
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 
 	alien.Entity.default_properties.velocity = new alien.Math.Vector();
 	alien.Entity.default_properties.acceleration = new alien.Math.Vector();
 	alien.Entity.default_properties.massless = true;
 	alien.Entity.default_properties.on_ground = false;
-	alien.Entity.default_properties.friction = 0;
 	alien.Entity.default_properties.staticObject = false;
 
 	alien.Entity.prototype.physicsUpdate = function(dt) {
+
 		this.position = this.position.add(this.velocity.mul(dt / 1000));
-		this.velocity = this.velocity.add(this.acceleration.mul(dt / 1000)).mul(1 - this.friction);
+		this.velocity = this.velocity.add(this.acceleration.mul(dt / 1000));
 
 		if (this.on_ground) {
 			this.acceleration.y = 0;

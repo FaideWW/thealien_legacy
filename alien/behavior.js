@@ -57,6 +57,7 @@ alien.components.behavior = (function() {
                 if (!this.init) {
                     e.on('mousedown', function(e, data) {
                         if (!e.isBeingDragged) {
+                            e.massless = true;
                             e.isBeingDragged = true;
                             e.srcX = data.event.layerX;
                             e.srcY = data.event.layerY;
@@ -70,6 +71,7 @@ alien.components.behavior = (function() {
                         }
                     }).on('mouseup', function(e, data) {
                         if (e.isBeingDragged) {
+                            e.massless = false;
                             e.isBeingDragged = false;
                         }
                     });

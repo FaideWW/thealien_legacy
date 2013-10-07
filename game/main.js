@@ -113,12 +113,8 @@ blue.on('collide', function(e, data) {
 	}
 	e.position = e.position.sub(data.collision);
 }).massless = false;
-red.on('collide', function(e, data) {
-	if ((data.entity.staticObject || data.entity.on_ground) && data.collision.x === 0) {
-		e.on_ground = true;
-	}
-	e.position = e.position.sub(data.collision);
-});
+
+red.staticObject = true;
 
 var controller = new alien.components.Controller({
 	control_entity: blue,
