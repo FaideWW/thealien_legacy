@@ -44,6 +44,7 @@ blue.behaviors = [
 	new alien.components.behavior.DrawLineBetween(),
 	new alien.components.behavior.Draggable()
 ];
+
 blue.set('position', new alien.Math.Vector({ x: 150, y: 150,	z: 0.6 }));
 blue.renderables[0].color = "rgba(0,0,255,1)";
 
@@ -106,16 +107,49 @@ var ground = new alien.Entity({
 	staticObject: true
 });
 
-red.on('collide', function(e, data) {
-	console.log('RED COLLISION');
-	console.log(data.collision);
-})
 blue.on('collide', function(e, data) {
 	if (data.entity.staticObject) {
 		e.on_ground = true;
 	}
 	e.position = e.position.sub(data.collision);
 })
+
+var controller = new alien.components.Controller({
+	control_entity: blue,
+	keymap: {
+		'w': {
+			down: function(e, data) {
+				e.on_ground = false;
+				e.velocity.y = -1000;
+			},
+			up: function(e, data) {}
+		},
+		'a': {
+			down: function(e, data) {
+				e.velocity.x -= 500;
+			},
+			up: function(e, data) {
+				e.velocity.x += 500;
+			}
+		},
+		's': {
+			down: function(e, data) {
+				console.log('down');
+			},
+			up: function(e, data) {}
+		},
+		'd': {
+			down: function(e, data) {
+				e.velocity.x += 500;
+			},
+			up: function(e, data) {
+				e.velocity.x -= 500;
+			}
+		}
+	}
+});
+
+
 
 var s1 = new alien.Scene({
 		entities: [
