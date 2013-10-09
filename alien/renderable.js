@@ -17,14 +17,14 @@ alien.components.renderable = (function() {
                 args = args || {};
                 this.color = args.color || "rgba(0,0,0,1)";
                 this.points = deepClone(args.points) || [
-                    new alien.Math.Vector()
+                new alien.Math.Vector()
                 ];
             }
 
             Polygon.prototype.draw = function(args) {
                 var p = args.position || new alien.Math.Vector(),
-                    c = args.context,
-                    i;
+                c = args.context,
+                i;
                 c.fillStyle = this.color;
                 c.beginPath();
                 c.moveTo(p.x + this.points[0].x, p.y + this.points[0].y);
@@ -37,13 +37,13 @@ alien.components.renderable = (function() {
 
             Polygon.prototype.getBoundingBox = function() {
                 var maxx = alien.Math.max(this.points, 'x'),
-                    maxy = alien.Math.max(this.points, 'y'),
-                    hw = (maxx - alien.Math.min(this.points, 'x')) / 2,
-                    hh = (maxy - alien.Math.min(this.points, 'y')) / 2,
-                    origin = new alien.Math.Vector({
-                        x: maxx - hw,
-                        y: maxy - hh
-                    });
+                maxy = alien.Math.max(this.points, 'y'),
+                hw = (maxx - alien.Math.min(this.points, 'x')) / 2,
+                hh = (maxy - alien.Math.min(this.points, 'y')) / 2,
+                origin = new alien.Math.Vector({
+                    x: maxx - hw,
+                    y: maxy - hh
+                });
                 return new alien.components.collidable.AABB({
                     half_width: hw,
                     half_height: hh,
@@ -59,10 +59,10 @@ alien.components.renderable = (function() {
 
         }()),
 
-        Text: (function() {
-            'use strict';
-        
-            function Text(args) {
+Text: (function() {
+    'use strict';
+
+    function Text(args) {
                 // enforces new
                 if (!(this instanceof Text)) {
                     return new Text(args);
@@ -72,10 +72,10 @@ alien.components.renderable = (function() {
                 this.font = args.font || "normal 18px sans-serif";
                 this.text = args.text || "";
             }
-        
+
             Text.prototype.draw = function(args) {
                 var p = args.position || new alien.Math.Vector(),
-                    c = args.context;
+                c = args.context;
                 c.font = this.font;
                 c.fillStyle = this.color;
                 c.fillText(this.text, p.x, p.y);
@@ -93,15 +93,15 @@ alien.components.renderable = (function() {
             Text.prototype.clone = function() {
                 return new Text(this);
             };
-        
+
             return Text;
-        
+
         }()),
-    
-        Line: (function() {
-            'use strict';
-        
-            function Line(args) {
+
+Line: (function() {
+    'use strict';
+
+    function Line(args) {
                 // enforces new
                 if (!(this instanceof Line)) {
                     return new Line(args);
@@ -146,7 +146,7 @@ alien.components.renderable = (function() {
                 c.beginPath();
                 c.moveTo(source_pos.x, source_pos.y);
                 c.lineTo(dest_pos.x, dest_pos.y);
-        
+
                 c.stroke();
 
             };
@@ -159,17 +159,68 @@ alien.components.renderable = (function() {
                     origin: new alien.Math.Vector()
                 });
             }
-        
+
             Line.prototype.clone = function() {
                 return new Line(this);
             };
-        
+
             return Line;
-        
+
+        }()),
+
+        Sprite: (function() {
+            'use strict';
+
+            function Sprite(args) {
+                // enforces new
+                if (!(this instanceof Sprite)) {
+                    return new Sprite(args);
+                }
+                args = args || {};
+                if (!args.hasOwnProperty('src')) {
+                    console.error("Sprite requires a sprite");
+                    return null;
+                }
+                this.img = new Image();
+                this.img.loaded = false;
+                this.img.onload = function() { this.loaded = true; }
+                this.img.src = args.src;
+                this.src = args.src;
+                this.width = args.width || null;
+                this.height = args.height || null;
+            }
+
+            Sprite.prototype.draw = function(args) {
+                if (this.img.loaded) {
+                    var c = args.context,
+                    p = args.position,
+                    w = (this.width || this.img.width),
+                    h =(this.height || this.img.height),
+                    img_position = p.sub(new alien.Math.Vector({
+                        x: w / 2,
+                        y: h / 2
+                    }));
+                    c.drawImage(this.img, 
+                        img_position.x, 
+                        img_position.y,
+                        w,
+                        h);
+                }
+            }
+
+            Sprite.prototype.getBoundingBox = function() {
+                // method body
+            }
+
+            Sprite.prototype.clone = function() {
+                return new Sprite(this);
+            }
+
+            return Sprite;
+
         }())
+    };
 
-};
-
-return renderable;
+    return renderable;
 
 }());

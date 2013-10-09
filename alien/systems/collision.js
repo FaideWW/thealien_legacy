@@ -7,7 +7,8 @@ alien.systems.CollisionSystem = (function () {
     var CollisionSystem = {
 
         tests: {
-            AABBTest: 0
+            AABBTest: 0,
+            SeparatingAxisTheorem: 1
         },
 
         0: function(c1, c2) { //AABBTest
@@ -75,6 +76,10 @@ alien.systems.CollisionSystem = (function () {
             } else {
                 return 0;
             }
+        },
+
+        SeparatingAxisTheorem: function(c1, c2) {
+            return 0;
         },
 
         collide: function (e1, e2) {

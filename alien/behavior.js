@@ -156,30 +156,3 @@ alien.components.behavior = (function() {
     return behavior;
 
 }());
-
-// draggable: {
-//         isDraggable: true,
-//         isBeingDragged: false,
-//         srcX: 0,
-//         srcY: 0
-//     }
-// }).on('mousedown', function(e, data) {
-//     if (_.running && e.draggable.isDraggable && !e.draggable.isBeingDragged) {
-//         e.draggable.isBeingDragged = true;
-//         e.draggable.srcX = data.event.layerX;
-//         e.draggable.srcY = data.event.layerY;
-//     }
-// }).on('mousemove', function(e, data) {
-    
-//     if (_.running && e.draggable.isBeingDragged) {
-//         console.log('dragging');
-//         e.position.x += data.event.layerX - e.draggable.srcX;
-//         e.position.y += data.event.layerY - e.draggable.srcY;
-//         e.draggable.srcX = data.event.layerX;
-//         e.draggable.srcY = data.event.layerY;
-//     }
-// }).on('mouseup', function(e, data) {
-//     if (e.draggable.isBeingDragged) {
-//         e.draggable.isBeingDragged = false;
-//     }
-// });

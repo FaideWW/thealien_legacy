@@ -39,14 +39,24 @@ var red = new alien.Entity({
 });
 
 
-var blue = new alien.Entity(red);
+var blue = new alien.Entity({
+	'renderables': [new alien.components.renderable.Sprite({
+		src: 'game/assets/sprite.png'
+	})],
+	'collidable': new alien.components.collidable.AABB({
+		half_width: 16,
+		half_height: 16
+	})
+
+});
 blue.behaviors = [
 	new alien.components.behavior.DrawLineBetween(),
 	new alien.components.behavior.Draggable()
 ];
 
-blue.set('position', new alien.Math.Vector({ x: 150, y: 150,	z: 0.6 }));
-blue.renderables[0].color = "rgba(0,0,75,1)";
+
+
+blue.set('position', new alien.Math.Vector({ x: 150, y: 450,	z: 0.6 }));
 
 var listener = new alien.Entity();
 listener.on('keydown', function(e, data) {
@@ -84,25 +94,25 @@ var ground = new alien.Entity({
 		points: [
 			new alien.Math.Vector({
 				x:-640,
-				y: -10
+				y: -40
 			}),
 			new alien.Math.Vector({
 				x:640,
-				y: -10
+				y: -40
 			}),
 			new alien.Math.Vector({
 				x:640,
-				y: 10
+				y: 40
 			}),
 			new alien.Math.Vector({
 				x:-640,
-				y: 10
+				y: 40
 			}),
 		]
 	})],
 	collidable: new alien.components.collidable.AABB({
 		half_width: 640,
-		half_height: 10
+		half_height: 40
 	}),
 	staticObject: true
 });
@@ -153,7 +163,15 @@ var controller = new alien.components.Controller({
 	}
 });
 
-
+var sprite = new alien.Entity({
+	renderables: [new alien.components.renderable.Sprite({
+		src: 'game/assets/sprite.png'
+	})],
+	position: new alien.Math.Vector({
+		x: 400,
+		y: 100
+	})
+});
 
 var s1 = new alien.Scene({
 		entities: [

@@ -3,42 +3,34 @@
 <head>
 	<meta charset="UTF-8">
 	<title>The Alien</title>
+	<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div id="debug" style="float: left;">
-	<button id="step">Step (hold)</button>
-	<button id="run">Run</button>
-	<input type="range" id="tpsselect" min="1" max="50" step="1" value="30"><span id="tpsval"></span>
-
-	<div style="display: none">
-		<p>Time elapsed (in ms): <span id="time">0</span></p>
-		<p>Last tick time (in ms): <span id="ticktime">0</span></p>
-		<p>Average TPS (last 50 ticks): <span id="tps">0</span></p>
-		<p>Update calls: <span id="updates">0</span></p>
-		<p>Draw calls: <span id="draws">0</span></p>
-		<p>Draws per tick: <span id="dpt">0</span></p>	
-		<p>Frames per second: <span id="fps">0</span></p>
-		<p>Event log</p>
-		<textarea name="eventlog" id="eventlog" cols="80" rows="10"></textarea>
-	</div>
+<div class="canvas-container">
+	<canvas id="canvas" class="canvas" width="1280px" height="720px">
 </div>
+	
+</canvas>
 
-	<canvas id="alienCanvas" width="900" height="500" style="border: 1px solid black; float: right"></canvas>
+<script src="alien/global.js"></script>
+<script src="alien/game.js"></script>
+<script src="alien/entity.js"></script>
+<script src="alien/collidable.js"></script>
+<script src="alien/renderable.js"></script>
+<script src="alien/behavior.js"></script>
+<script src="alien/controller.js"></script>
 
-<script src="js/behavior.js"></script>
-<script src="js/collision.js"></script>
-<script src="js/component.js"></script>
-<script src="js/entity.js"></script>
-<script src="js/event.js"></script>
-<script src="js/physics.js"></script>
-<script src="js/render.js"></script>
-<script src="js/scene.js"></script>
+<script src="alien/math.js"></script>
+<script src="alien/systems/collision.js"></script>
+<script src="alien/systems/event.js"></script>
+<script src="alien/systems/render.js"></script>
+<script src="alien/systems/behavior.js"></script>
+<script src="alien/systems/physics.js"></script>
+<script src="alien/scene.js"></script>
 
 
-
-<script src="js/vector.js"></script>
-<script src="js/game.js"></script>
-<script src="js/controls.js"></script>
+<script src="game/main.js"></script>
+<script src="alien/window.js"></script>
 
 </body>
 </html>
