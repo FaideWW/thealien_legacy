@@ -126,10 +126,6 @@ var BSP = (function() {
             return list;
         };
 
-        BSPTree.prototype.addVector = function(vec) {
-
-        };
-
         BSPTree.prototype.isNull = function() {
             return this.axis ? false : true;
         };
@@ -137,6 +133,8 @@ var BSP = (function() {
     }());
 
     function classifyPoint(point, axis) {
+        point = point.sub(axis.source)
+        axis = axis.dest.sub(axis.source)
         var dot = point.dot(axis.nml());
         if (dot > 0) {
             return 1;
@@ -149,7 +147,6 @@ var BSP = (function() {
 
     function splitVector(vec, axis) {
         //returns { front, back }
-        debugger;
         var p = vec.source,
             q = axis.source,
             r = vec.dest.sub(p),
@@ -196,7 +193,7 @@ var BSP = (function() {
             //for now we just use the middle element
             
             var dv      = Math.floor(vectors.length / 2),
-                dv_axis = vectors[dv].dest.sub(vectors[dv].source),
+                dv_axis = vectors[dv],
                 f       = [],
                 b       = [],
                 ca      = [];
@@ -204,8 +201,8 @@ var BSP = (function() {
             //sort vectors 
             for (var v in vectors) {
                 if (vectors.hasOwnProperty(v)) {
-                    var s_side = classifyPoint(vectors[v].source.sub(vectors[dv].source), dv_axis),
-                        d_side = classifyPoint(vectors[v].dest.sub(vectors[dv].source), dv_axis);
+                    var s_side = classifyPoint(vectors[v].source, dv_axis),
+                        d_side = classifyPoint(vectors[v].dest, dv_axis);
                     if ((s_side > 0 && d_side < 0) || (s_side < 0 && d_side > 0)) {
                         //split the vector
                         var subvectors = splitVector(vectors[v], vectors[dv]);
@@ -262,6 +259,36 @@ var BSP = (function() {
                 this.print(tree.front, "front");
                 this.print(tree.back, "back");
             console.groupEnd();
+        },
+        search: function(polygon, node) {
+            //classify each point in the polygon based on the 
+            // node's axis
+            //if they are all equal, search(polygon, tree.child) 
+            // where child is the front or back depending on classification
+            //if they are not all equal, the poly intersects the axis
+            // so return the axis
+            //if we're at a leaf node, return it
+            
+            //base case
+            if (node.isLeaf) {
+                return node;
+            }
+
+            var last_class = 10;
+            for (var point in polygon) {
+                if (polygon.hasOwnProperty(point)) {
+                    var point_classification = classifyPoint(polygon[point], node.axis);
+                    if (last_class !== 10 && last_class !== point_classification) {
+                        return node;
+                    }
+                    last_class = point_classification;
+                }
+            }
+            if (last_class > 0) {
+                return this.search(polygon, node.front);
+            } else {
+                return this.search(polygon, node.back);
+            }
         }
     }
 
