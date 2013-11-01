@@ -47,13 +47,21 @@ alien.Math = (function(MATH) {
                 return MATH.sqrt(MATH.pow(this.x, 2) + MATH.pow(this.y, 2));
             };
 
-            Vector.prototype.nml = function() {
+            Vector.prototype.unt = function() {
                 var m = this.mag();
                 return new alien.Math.Vector({
                     x: this.x / m,
                     y: this.y / m
                 });
             };
+
+            Vector.prototype.nml = function() {
+                //rotate 90 degrees counterclockwise
+                return new alien.Math.Vector({
+                    x: -this.y,
+                    y: this.x
+                })
+            }
 
             Vector.prototype.dot = function(v2) {
                 return (this.x * v2.x) + (this.y * v2.y);
@@ -62,7 +70,7 @@ alien.Math = (function(MATH) {
             Vector.prototype.cmg = function(v2) {
                 return (this.x * v2.y) - (this.y * v2.x);
             };
-
+            
             Vector.prototype.int = function(v2, o1, o2) {
                 var r = this.sub(o1),
                 s = v2.sub(o2),
@@ -73,6 +81,10 @@ alien.Math = (function(MATH) {
                     u: (this.cmg(this.sub(o2, o1), r) / c)
                 };
             };
+
+            Vector.prototype.toString = function() {
+                return "{x: " + this.x + ", y: " + this.y + ", z: " + this.z + "}";
+            }
 
             return Vector;
 
