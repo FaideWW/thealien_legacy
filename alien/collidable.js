@@ -6,6 +6,19 @@ alien.components.collidable = (function() {
     'use strict';
 
     var collidable = {
+        /**
+         * AABB
+         * - half_width : Number - distance from the origin to the horizontal
+         *                         edge of the boundingbox
+         * - half_height : Number - distance from the origin to the vertical
+         *                          edge of the bounding box
+         * - origin : alien.Math.Vector - the offset from the Entity's position
+         *                                to the center of the bounding box
+         *
+         * Axis-aligned Bounding Box: a quadrilateral for which each face is
+         *  aligned to the axis of the coordinate plane: in the case of 
+         *  two-dimensional space, the X and Y axes.
+         */
         AABB: (function() {
             'use strict';
         

@@ -1,3 +1,23 @@
+/**
+ * alien.Game
+ * - canvas : HTMLElement - rendering canvas
+ * - timer : Number - time elapsed since the game has begun running
+ * - running : Boolean - whether or not the game is current running
+ * - frametime : Number - the time to elapse between timesteps
+ *
+ * This is the main engine object which contains the list of scenes,
+ * entities and module pointers.  The webpage initializes this object 
+ * and through it begins and pauses the game loop.
+ *
+ * The main game loop currently loops through all systems in 
+ *  alien.systems, and if they contain an update() method, calls it
+ *  providing the time since the last iteration of the loop, and itself
+ *
+ * 
+ *  
+ * 
+ */
+
 var alien = alien || {};
 
 window.requestNextTick = function() {

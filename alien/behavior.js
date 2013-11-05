@@ -6,6 +6,15 @@ alien.components.behavior = (function() {
     'use strict';
 
     var behavior = {
+        /**
+         * behavior.Follow
+         *  - target : alien.Entity
+         *  - callback : function
+         *  
+         * tracks the position of `target` and calls 
+         *  `callback` whenever the Entity and `target` are not
+         *  at the same position. 
+         */
         Follow: (function() {
             'use strict';
         
@@ -40,7 +49,13 @@ alien.components.behavior = (function() {
             return Follow;
         
         }()),
-
+        /**
+         * behavior.Draggable
+         *
+         * makes the Entity draggable; between a mousedown and mouseup
+         *  event, its position will mirror the change in position of 
+         *  the mouse cursor.
+         */
         Draggable: (function() {
             'use strict';
         
@@ -89,6 +104,19 @@ alien.components.behavior = (function() {
         
         }()),
     
+        /**
+         * DrawLineBetween
+         * - linewidth : Number - the width of the rendered line
+         *
+         * allows a line to be drawn from this Entity to any other Entity.
+         * 
+         * mousedown will generate a line drawn between the Entity and
+         * the mouse.
+         *
+         * mouseup will:
+         *     if the mouseup event is on the source Entity, delete the line
+         *     if the mouseup event is on another Entity, anchor the line there
+         */
         DrawLineBetween: (function() {
             'use strict';
         

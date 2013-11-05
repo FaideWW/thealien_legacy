@@ -1,3 +1,105 @@
+/**
+ * alien.systems.EventSystem
+ *
+ * properties
+ * ~ mouse_events : [String] - all listened-for mouse events as defined by
+ *                             the browser Event API
+ * ~ key_events : [String]   - all listened-for keyboard events as defined by
+ *                             the browser Event API
+ * ~ isDragEvent : Boolean   - a global flag that shuts down mouse event 
+ *                             propagation while a drag event is occuring
+ * ~ deltaDrag : alien.Math.Vector - records the (x,y) displacement between a 
+ *                                   mousedown and mouseup event.  Used for
+ *                                   determining whether or not an event is
+ *                                   a click, or a drag.
+ * ~ maxDelta : Number       - the threshold tolerance for distinguishing 
+ *                             between clicks and drags
+ * 
+ * methods
+ * ~ EventSystem.click ( event : Event, scene : alien.Scene )
+ *     - propagates a click event from the window to all entities at the
+ *       position of the cursor
+ * ~ EventSystem.dblclick ( event : Event, scene : alien.Scene )
+ *     - propagates a dblclick event from the window to all entities at the
+ *       position of the cursor
+ * ~ EventSystem.mousedown ( event : Event, scene : alien.Scene )
+ *     - propagates a mousedown event from the window to all entities at the 
+ *       position of the cursor
+ * ~ EventSystem.mouseup ( event : Event, scene : alien.Scene )
+ *     - propagates a mouseup event from the window to all entities at the 
+ *       position of the cursor
+ * ~ EventSystem.mousemove ( event : Event, scene : alien.Scene ) 
+ *     - propagates a mousemove event from the window to all entities over
+ *       which the cursor is currently moving
+ * ~ EventSystem.mouseover ( event : Event, scene : alien.Scene ) 
+ *     - propagates a mouseover event from the window to any entities
+ *       listening for a mouseover event.  (Note that this will only trigger
+ *       upon mousing over the canvas element on the webpage, so this is useful
+ *       for listening for when the canvas gains focus for auto-pausing)
+ * ~ EventSystem.mouseout ( event : Event, scene : alien.Scene )
+ *     - propagates a mouseout event from the window to the scene.  Sister 
+ *       event to EventSystem.mouseover.
+ * ~ EventSystem.keydown ( event : Event, scene : alien.Scene )
+ *     - propagates a keydown event from the window to any entities in the 
+ *       scene listening for a keydown event.
+ * ~ EventSystem.keyup ( event : Event, scene : alien.Scene )
+ *     - propagates a keyup event from the window to any entities in the 
+ *       scene listening for a keyup event
+ *
+ * EventSystem is the event interface between the window and game objects.
+ * Because objects drawn to a canvas context are not tied to the DOM, they cannot
+ * directly listen for events from the browser Event API.  EventSystem 
+ * listens for any events sent to the canvas, and appropriately broadcasts the 
+ * events to the entities in the scene.
+ *
+ * EventSystem attaches multiple functions to the alien.Entity prototype.
+ *
+ * on( event : String, callback : Function )
+ *  - listens for events of the type `event` (if not already doing so), and 
+ *    appends the callback to the list of functions to be called when
+ *    the entity receives that event
+ *
+ * isListeningFor ( event : String )
+ *  - returns whether or not an entity has any callbacks associated with `event`
+ *
+ * trigger ( event : String, data : Object )
+ *  - calls all functions associated with `event`, passing them the entity (this) 
+ *    and `data`
+ *
+ * By default, entities only listen for mouse events that occur at their position.
+ * Setting the flag Entity.globallyListeningFor[event] will force all events of type
+ * `event` to be sent to the entity, regardless of mouse position.
+ *
+ * Also by default, entities do not propagate mouse events further than themselves
+ * ('click-through').  Setting the flag Entity.propagateMouseEvents will enable this
+ * option.
+ *
+ * EventSystem attaches the following to Entity.default_prototypes:
+ *  - globallyListeningFor : { String : Boolean }
+ *  - propagateMouseEvents : Boolean
+ *  - listeners            : { String : Function }
+ *
+ * These are pretty self-explanatory.
+ *
+ * EventSystem attaches a function to alien.Game.prototype:
+ * - registerEventListeners ( canvas : HTMLElement )
+ * This function binds `alien` to the DOM event API, and pipes all events (as listed
+ *  in both mouse_events and key_events) to EventSystem.
+ *
+ * EventSystem also handles all custom events broadcast by the engine and its systems;
+ * 'collide' events (sent by alien.systems.PhysicsSystem) are an example of this.
+ * 
+ *
+ * Note: At the moment, EventSystem is different from other alien.systems objects, 
+ *  since it is not timestep-based.  Events are immediately passed through 
+ *  regardless of the current position in the game loop.  
+ *
+ * todo
+ * - implement an event queue and tie events to the timestep
+ * - key combinations as distinct events (may end up being a separate system 
+ *     entirely), this also includes modifier keys 
+ */
+
 var alien = alien || {};
 alien.systems = alien.systems || {};
 
@@ -34,8 +136,7 @@ alien.systems.EventSystem = function() {
         if (this.listeners.hasOwnProperty(event)) {
             return this.listeners[event].length > 0;
         }
-
-        return this;
+        return false;
     };
 
     alien.Entity.prototype.trigger = function (event, data) {
@@ -49,17 +150,17 @@ alien.systems.EventSystem = function() {
         return this;
     };
 
-    alien.Game.prototype.registerEventListeners = function(canvas, scene) {
+    alien.Game.prototype.registerEventListeners = function(canvas) {
         var e;
             for (e in alien.systems.EventSystem) {
                 if (alien.systems.EventSystem.hasOwnProperty(e)) {
                     if (mouse_events.indexOf(e) !== -1) {
                         this.canvas.addEventListener(e, function(ev) {
-                            alien.systems.EventSystem[ev.type](ev, scene);
+                            alien.systems.EventSystem[ev.type](ev, this.scene);
                         });
                     } else if (key_events.indexOf(e) !== -1) {
                         document.addEventListener(e, function(ev) {
-                            alien.systems.EventSystem[ev.type](ev, scene);
+                            alien.systems.EventSystem[ev.type](ev, this.scene);
                         });
                     }
                 }
@@ -208,5 +309,4 @@ alien.systems.EventSystem = function() {
             }
         }
     };
-
 }();

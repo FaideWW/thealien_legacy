@@ -1,3 +1,7 @@
+/**
+ * Miscellaneous functions/shims/polyfills that should be available to all objects 
+ */
+
 function deepClone(obj) {
     var new_obj = {};
     if (Object.prototype.toString.call(obj) === '[object Array]') {

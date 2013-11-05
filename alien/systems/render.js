@@ -1,3 +1,46 @@
+/**
+ * alien.systems.RenderSystem
+ *
+ * properties
+ * ~ draw_frequency : Number - period between draw updates, in ms
+ * ~ time_since_last_draw : Number - time elapsed since last draw call, in ms
+ * 
+ * methods
+ * ~ RenderSystem.draw ( canvas : HTMLElement, scene : alien.Scene )
+ *      - clears the rendering context and draws everything in scene.entities
+ *
+ * ~ RenderSystem.update( dt : Number, g : alien.Game )
+ *      - wrapper for RenderSystem.draw, for calling on the scheduled interval
+ *
+ * RenderSystem is the handler for drawing objects to the screen.  The renderer
+ *  uses the HTML5 canvas, as opposed to WebGL (which will either be considered
+ *  a future feature, or be implemented in the next version of alien).
+ *
+ * Most of the heavy lifting is done by the Entity's Renderable component; 
+ *  RenderSystem just calls the Entity's draw() method and provides it with 
+ *  the Entity's current position and the rendering context.  This way we can
+ *  allow for multiple Renderables in a single Entity, different Renderable
+ *  types (texture/sprite, polygon, particle), etc.  We delegate the 
+ *  responsibility of actually drawing to the context to the Renderable in order
+ *  to decrease modularity.
+ *
+ * RenderSystem attaches a draw() method to alien.Entity.prototype with the
+ *  following type signature:
+ *  alien.Entity.prototype.draw( props : Object )
+ *      - loops through this.renderables and calls the draw method of each
+ *        with props
+ *
+ * alien.Entity.default_properties is given the following:
+ *
+ * - position : alien.Math.Vector - the Entity's position in worldspace
+ * - renderables : [alien.components.renderable] 
+ *         - All renderable components attached to the Entity
+ *
+ * todo
+ * - transformation stack/tree (for complex renderable hierarchies)
+ * 
+ */
+
 var alien = alien || {};
 alien.systems = alien.systems || {};
 

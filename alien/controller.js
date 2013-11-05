@@ -1,3 +1,25 @@
+/**
+ * alien.components.Controller
+ * - control_entity : alien.Entity - the Entity which is passed to each
+ * 									 function when a key is pressed
+ * - keymap : Object 			   - a mapping of keycodes to callbacks
+ * 									 for a key when it is pressed, and when 
+ * 									 it is released.  See below for format
+ *
+ * 
+ * The interface between the key events and game logic.
+ *
+ * Attach this component to the player character's entity,
+ * and give it a key mapping in the following format:
+ *
+ * {
+ * 	keycode : {
+ * 		down: function() { // perform keydown logic ,
+ * 		up:   function() { // perform keyup logic }
+ * 	}
+ * }
+ */
+
 var alien = alien || {};
 
 alien.components.Controller = (function() {

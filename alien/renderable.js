@@ -6,7 +6,27 @@ alien.components.renderable = (function() {
     'use strict';
 
     var renderable = {
-        Polygon: (function() {
+        /**
+         * renderable.Polygon
+         * - color : String - the color to use when filling the polygon
+         * - points : [alien.Math.Vector] - the series of points
+         *                                  describing the polygon
+         *
+         * A closed 2D surface. 
+         *
+         * renderable.Polygon.draw ( args : Object )
+         *     - creates a closed path in the rendering context and fills
+         *       it with Polygon.color
+         *
+         * renderable.Polygon.getBoundingBox (  ) 
+         *     - returns the smallest collidable.AABB containing
+         *       the entire polygon
+         *
+         * todo
+         * - allow textures (may need to be a separate component)
+         * 
+         */
+         Polygon: (function() {
             'use strict';
 
             function Polygon(args) {
@@ -58,7 +78,21 @@ alien.components.renderable = (function() {
             return Polygon;
 
         }()),
-
+/**
+ * renderable.Text
+ * - color : String - color of the text
+ * - font : String - css-formatted string for the font and font-size
+ * - text : String - the text to display
+ *
+ * renderable.Text.draw ( args : Object ) 
+ *     - uses the rendering context's fillText to draw a string to the screen
+ *
+ * renderable.Text.getBoundingBox ( )
+ *     - same as renderable.Polygon.getBoundingBox
+ *
+ * todo
+ * - figure out getBoundingBox
+ */
 Text: (function() {
     'use strict';
 
@@ -98,6 +132,26 @@ Text: (function() {
 
         }()),
 
+/**
+ * renderable.Line
+ * - source : alien.Entity - first anchor for the Line
+ * - dest : alien.Entity | 'mouse' - second anchor for the Line
+ * - color : String - color of the line
+ * - linewidth : Number - the width of the line being drawn
+ *
+ * renderable.Line.prototype.draw ( args : Object )
+ *     - uses the rendering context's lineTo to draw a line from
+ *       Line.source.getPosition() to Line.dest.getPosition().
+ *       if the source or destination is 'mouse', substitute it for
+ *       the mouse entity in the scene.
+ *
+ * renderable.Line.getBoundingBox (  )
+ *     - same as renderable.Polygon.getBoundingBox
+ *
+ * todo
+ * - replacing 'mouse' is a little hacky, find a more elegant solution
+ * - implement getBoundingBox()
+ */
 Line: (function() {
     'use strict';
 
@@ -168,10 +222,26 @@ Line: (function() {
 
         }()),
 
-        Sprite: (function() {
-            'use strict';
+/**
+ * renderable.Sprite
+ * - src : String - the URL to the sprite
+ * - width : Number - the width of the sprite, in px
+ * - height : Number - the height of the sprite, in px
+ *
+ * renderable.Sprite.prototype.draw ( args : Object )
+ *     - uses the rendering context's drawImage to render 
+ *       the sprite
+ *
+ * renderable.Sprite.prototype.getBoundingBox (  )
+ *     - same as renderable.Polygon.prototype.getBoundingBox()
+ *
+ * todo
+ * - spritesheet/animation functionality
+ */
+Sprite: (function() {
+    'use strict';
 
-            function Sprite(args) {
+    function Sprite(args) {
                 // enforces new
                 if (!(this instanceof Sprite)) {
                     return new Sprite(args);
@@ -219,8 +289,8 @@ Line: (function() {
             return Sprite;
 
         }())
-    };
+};
 
-    return renderable;
+return renderable;
 
 }());

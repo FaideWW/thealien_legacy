@@ -36,6 +36,14 @@
  *                    - dynamic objects can be children of static or other dynamic
  *                      objects, but static objects can never be children of 
  *                      dynamic ones.
+ *       **addendum** - modifying an existing BSP tree is very expensive with
+ *                      O(n) costs _per_ object.  better to keep static objects
+ *                      in the tree and dynamic objects in another structure 
+ *                      more capable of handling moving objects, then test against them
+ *                    - heuristically we can assume that there is far more static geometry
+ *                      than dynamic, so a BSP tree is still a cost effective structure,
+ *                      since it is by far the fastest implementation that I know of
+ * 
  *
  * - timestep outline - physics update
  *                    - add dynamic objects into bsp tree
@@ -47,13 +55,17 @@
  *
  * 3D BSP Trees operate on triangles.  2D tress degrade gracefully to operate on
  * bounded vectors.  
+ * **addendum**       - not entirely accurate.  3d BSP trees have the additional
+ *                      benefit of being able to directly pipe to the renderer.  
+ *                      unless we upgrade to using a flat 3-space (i.e. z = 0 for all),
+ *                      we can't use BSP trees for rendering.  needs more research
  *
  * Vectors
  * -------
  * to classify a point in relation to an axis,  we examine the dot product of the direction
  *  from an arbitrary point on the axis to the original point, and the normal to the axis.
  *  if the dot product is > 0, the point is in front of the axis.  if it's < 0, the point is 
- *  behind the axis.  if it's === 0 (or within tolerance), it's coaxial.
+ *  behind the axis.  if it's === 0 (or within tolerance), it's colinear.
  *
  * if the signs of both endpoints of a vector are equal*, we're done.  just return the 
  *  corresponding space the vector is in (back or front).
@@ -91,12 +103,24 @@ var BSP = (function() {
                 return new BSPTree(args);
             }
             args = args || {};
-            this.axis = args.axis;
-            this.coaxial = args.coaxial;
-            this.front = args.front;
-            this.back = args.back;
-            this.isLeaf = args.isLeaf; 
-            this.isSolid = args.isSolid; // used for checking if a given leaf is non-traversible space
+            if (args.axis) {
+                this.axis = args.axis;
+            }
+            if (args.colinear) {
+                this.colinear = args.colinear;
+            }
+            if (args.front) {
+                this.front = args.front;
+            }
+            if (args.back) {
+                this.back = args.back;
+            }
+            if (args.isLeaf) {
+                this.isLeaf = args.isLeaf; 
+            }
+            if (args.isSolid) {
+                this.isSolid = args.isSolid; // used for checking if a given leaf is non-traversible space
+            }
         }
         return BSPTree;
 
@@ -113,8 +137,8 @@ var BSP = (function() {
                 }
             }
             list.append(this.axis);
-            if (this.coaxial) {
-                list.append(this.coaxial);
+            if (this.colinear) {
+                list.append(this.colinear);
             }
             if (this.back) {
                 if (Array.isArray(this.back) && this.front.length > 0) {
@@ -129,7 +153,6 @@ var BSP = (function() {
         BSPTree.prototype.isNull = function() {
             return this.axis ? false : true;
         };
-    
     }());
 
     function classifyPoint(point, axis) {
@@ -146,7 +169,8 @@ var BSP = (function() {
     }
 
     function splitVector(vec, axis) {
-        //returns { front, back }
+        //returns parametric coefficients for the 
+        // two sides of a vector split along an axis
         var p = vec.source,
             q = axis.source,
             r = vec.dest.sub(p),
@@ -167,6 +191,10 @@ var BSP = (function() {
     }
 
     var BSP = {
+        generate: function(scene) {
+            //generate a tree from a scene.  
+            // will only operate on objects with an isStatic flag 
+        },
         create: function(args) {
             return new BSPTree(args);
         },
@@ -212,7 +240,7 @@ var BSP = (function() {
                         //add the vector to the appropriate list
                         
                         if (s_side === 0 && d_side === 0) {
-                            //coaxial
+                            //colinear
                             ca.push(vectors[v]);
                         } else if (s_side > 0 || d_side > 0) {
                             //front
@@ -227,7 +255,7 @@ var BSP = (function() {
 
             return this.create({
                 axis: vectors[dv],
-                coaxial: ca,
+                colinear: ca,
                 front: this.build(f, false),
                 back: this.build(b, true),
                 isLeaf: false,
@@ -240,6 +268,7 @@ var BSP = (function() {
             if (tree === undefined) {
                 return;
             }
+            pre = pre || "root";
             if (Array.isArray(tree)) {
                 console.log(tree);
                 return;
@@ -250,12 +279,11 @@ var BSP = (function() {
             } else {
                 header = "leaf";
             }
-            pre = pre || "root";
             console.group(pre + " " + header);
                 if (header === "leaf") {
                     console.log("isSolid:" + tree.isSolid);
                 }
-                this.print(tree.coaxial, "coaxial");
+                this.print(tree.colinear, "colinear");
                 this.print(tree.front, "front");
                 this.print(tree.back, "back");
             console.groupEnd();
@@ -291,6 +319,8 @@ var BSP = (function() {
             }
         }
     }
+
+    alien.Entity.default_properties["isStatic"] = false;
 
     return BSP;
 

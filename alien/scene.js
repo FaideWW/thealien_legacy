@@ -1,3 +1,41 @@
+/**
+ * alien.Scene
+ * 
+ * The scene is the container for a unique group of entities and
+ *  positions representing a particular game level or state.
+ *
+ * When the scene is initialized, or entities are added, they are
+ * sorted by z-value for the rendering order.
+ *
+ * Scenes are similar in structure to Entities in that they operate
+ * as containers, and their functionality can be extended by modules.
+ *
+ * alien.Scene.prototype.sort ( entities : [alien.Entity] )
+ *     - sorts entities by their position.z using a stable quicksort
+ *
+ * alien.Scene.prototype.addEntity ( entity : alien.Entity ) 
+ *     - adds the entity to Scene.entities and sorts the list
+ *
+ * alien.Scene.prototype.find ( entity : alien.Entity ) 
+ *     - returns the current index of entity in Scene.entities
+ *
+ * alien.Scene.prototype.removeEntity ( entity : alien.Entity | Number )
+ *     - removes the designated Entity from Scene.entities
+ *
+ * alien.Scene.prototype.update ( dt : Number ) 
+ *     - propagates an update event to all Entities in Scene.entities
+ *
+ * Scene adds position and parent to the Entity.default_properties list.
+ *  It also adds getPosition to the Entity prototype, as well as attaching
+ *  setScene to alien.Game.prototype.
+ *
+ * todo
+ *  - properly index entities for faster search and removal
+ *  - possibly implement BSP trees for Entity storage, which
+ *    can then be used for both rendering and collision
+ * 
+ */
+
 var alien = alien || {};
 
 alien.Scene = (function(alien) {
@@ -109,15 +147,15 @@ alien.Scene = (function(alien) {
 
 
     //extend Entity prototype for requisite properties
-    alien.Entity.prototype.position = alien.Entity.prototype.position || new alien.Math.Vector();
-    alien.Entity.prototype.parent = alien.Entity.prototype.parent || null;
+    alien.Entity.default_properties.position = new alien.Math.Vector();
+    alien.Entity.default_properties.parent = null;
 
     alien.Entity.prototype.getPosition = function() {
         return (this.parent === null) ? this.position : this.parent.position.add(this.position);
     }
 
 
-    alien.Game.prototype.setScene= function(scene) {
+    alien.Game.prototype.setScene = function(scene) {
         this.scene = scene;
         return this.scene;
     };
