@@ -112,7 +112,13 @@ Text: (function() {
                 c = args.context;
                 c.font = this.font;
                 c.fillStyle = this.color;
-                c.fillText(this.text, p.x, p.y);
+                var t = '';
+                if (typeof this.text === 'function') {
+                    t = this.text();
+                } else {
+                    t = this.text;
+                }
+                c.fillText(t, p.x, p.y);
             }
 
             Text.prototype.getBoundingBox = function() {

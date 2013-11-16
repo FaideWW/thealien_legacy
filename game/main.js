@@ -56,7 +56,7 @@ blue.behaviors = [
 
 
 
-blue.set('position', new alien.Math.Vector({ x: 150, y: 450,	z: 0.6 }));
+blue.set('position', new alien.Math.Vector({ x: 150, y: 200,	z: 0.6 }));
 
 var listener = new alien.Entity();
 listener.on('keydown', function(e, data) {
@@ -87,7 +87,7 @@ var text = new alien.Entity({
 var ground = new alien.Entity({
 	position: new alien.Math.Vector({
 		x: 640,
-		y: 710
+		y: 440
 	}),
 	renderables: [new alien.components.renderable.Polygon({
 		color: "rgba(0,75,0,1)",
@@ -114,17 +114,17 @@ var ground = new alien.Entity({
 		half_width: 640,
 		half_height: 40
 	}),
-	staticObject: true
+	isStatic: true
 });
 
 blue.on('collide', function(e, data) {
-	if ((data.entity.staticObject || data.entity.on_ground) && data.collision.x === 0) {
+	if ((data.entity.isStatic || data.entity.on_ground) && data.collision.x === 0) {
 		e.on_ground = true;
 	}
 	e.position = e.position.sub(data.collision);
 }).massless = false;
 
-red.staticObject = true;
+red.isStatic = true;
 
 var controller = new alien.components.Controller({
 	control_entity: blue,
@@ -163,16 +163,6 @@ var controller = new alien.components.Controller({
 	}
 });
 
-var sprite = new alien.Entity({
-	renderables: [new alien.components.renderable.Sprite({
-		src: 'game/assets/sprite.png'
-	})],
-	position: new alien.Math.Vector({
-		x: 400,
-		y: 100
-	})
-});
-
 var s1 = new alien.Scene({
 		entities: [
 			red,
@@ -184,9 +174,5 @@ var s1 = new alien.Scene({
 });
 
 
-
-
-
 _.setScene(s1);
-_.registerEventListeners(_.canvas, _.scene);
-
+_.registerEventListeners(_.canvas);

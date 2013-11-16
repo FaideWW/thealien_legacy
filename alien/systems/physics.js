@@ -49,7 +49,7 @@
  * - massless : Boolean - whether or not the Entity is affected by gravity
  * - on_ground : Boolean - whether or not the Entity has an object directly 
  *                         beneath it preventing further positive y movement
- * - staticObject : Boolean - whether or not the Entity is part of the static level 
+ * - isStatic : Boolean - whether or not the Entity is part of the static level 
  *                            geometry
  *
  * todo
@@ -75,6 +75,7 @@ alien.systems.PhysicsSystem = (function() {
 
     var PhysicsSystem = {
         update: function(dt, g) {
+            alien.systems.CollisionSystem.numTests = 0; 
             time_since_last_update += dt;
             if (time_since_last_update >= update_freq) {
 
@@ -93,7 +94,7 @@ alien.systems.PhysicsSystem = (function() {
                 }
 
                 this.doCollision(g.scene);
-
+                //console.log('collisions: ' + alien.systems.CollisionSystem.numTests);
                 time_since_last_update = 0;
             }
         },
@@ -136,7 +137,6 @@ alien.systems.PhysicsSystem = (function() {
     alien.Entity.default_properties.acceleration = new alien.Math.Vector();
     alien.Entity.default_properties.massless = true;
     alien.Entity.default_properties.on_ground = false;
-    alien.Entity.default_properties.staticObject = false;
 
     alien.Entity.prototype.physicsUpdate = function(dt) {
 

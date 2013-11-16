@@ -41,6 +41,17 @@ var alien = alien || {};
 alien.Scene = (function(alien) {
     'use strict';
 
+    function createCollisionTree(entities) {
+        var polys = [];
+        for (var e in entities) {
+            if (entities[e].collidable === undefined || !entities[e].isStatic) {
+                continue;
+            }
+            polys.concat(entities[e].collidable.getVectors());
+        }
+        return alien.BSP.build(polys);
+    }
+
     function Scene(properties) {
         // enforces new
         if (!(this instanceof Scene)) {
@@ -50,6 +61,7 @@ alien.Scene = (function(alien) {
         properties = properties || {};
         var t = {};
         t.entities = [];
+        t.collision_tree = null;
         for (var k in properties) {
             if (properties.hasOwnProperty(k)) {
                 t[k] = properties[k];
@@ -61,8 +73,8 @@ alien.Scene = (function(alien) {
         });
         t.mouse.on('mousemove', function(e, data) {
             e.position = new alien.Math.Vector({
-                x: data.event.layerX,
-                y: data.event.layerY
+                x: data.event.offsetX,
+                y: data.event.offsetY
             });
         });
 
@@ -73,7 +85,6 @@ alien.Scene = (function(alien) {
         }
         return t;
     }
-
 
         Scene.prototype.extend = function(extension) {
             for (var k in extension) {
@@ -149,6 +160,7 @@ alien.Scene = (function(alien) {
     //extend Entity prototype for requisite properties
     alien.Entity.default_properties.position = new alien.Math.Vector();
     alien.Entity.default_properties.parent = null;
+    alien.Entity.default_properties.isStatic= false;
 
     alien.Entity.prototype.getPosition = function() {
         return (this.parent === null) ? this.position : this.parent.position.add(this.position);

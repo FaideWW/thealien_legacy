@@ -54,6 +54,49 @@ alien.components.collidable = (function() {
                 ];
             };
 
+            AABB.prototype.getVectors = function() {
+                return [
+                    { 
+                        source: new alien.Math.Vector({
+                            x: -this.half_width + this.origin.x,
+                            y: -this.half_height + this.origin.y
+                        }),
+                        dest:  new alien.Math.Vector({
+                            x: this.half_width + this.origin.x,
+                            y: -this.half_height + this.origin.y
+                        })
+                    }, {
+                        source: new alien.Math.Vector({
+                            x: this.half_width + this.origin.x,
+                            y: -this.half_height + this.origin.y
+                        }),
+                        dest: new alien.Math.Vector({
+                            x: this.half_width + this.origin.x,
+                            y: this.half_height + this.origin.y
+                        })
+                    }, {
+                        source: new alien.Math.Vector({
+                            x: this.half_width + this.origin.x,
+                            y: this.half_height + this.origin.y
+                        }),
+                        dest: new alien.Math.Vector({
+                            x: -this.half_width + this.origin.x,
+                            y: this.half_height + this.origin.y
+                        })
+                    }, {
+                        source: new alien.Math.Vector({
+                            x: -this.half_width + this.origin.x,
+                            y: this.half_height + this.origin.y
+                        }),
+                        dest: new alien.Math.Vector({
+                            x: -this.half_width + this.origin.x,
+                            y: -this.half_height + this.origin.y
+                        })
+                    }
+
+                ];
+            }
+
             AABB.prototype.pointIn = function(point) {
                 var offset_point = point.sub(this.origin);
                 

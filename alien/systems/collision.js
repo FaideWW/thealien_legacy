@@ -57,16 +57,18 @@ alien.systems.CollisionSystem = (function () {
 
         AABBTest: function(c1,c2) {
             return this[0](c1,c2);
-        }
+        },
 
         SeparatingAxisTheorem: function(c1,c2) {
             return this[1](c1,c2);
-        }
+        },
 
         tests: {
             AABBTest: 0,
             SeparatingAxisTheorem: 1
         },
+
+        numTests: 0,
 
         0: function(c1, c2) { //AABBTest
             //debugger;
@@ -135,7 +137,7 @@ alien.systems.CollisionSystem = (function () {
             }
         },
 
-        SeparatingAxisTheorem: function(c1, c2) {
+        1: function(c1, c2) {
             return 0;
         },
 
@@ -143,6 +145,8 @@ alien.systems.CollisionSystem = (function () {
             if (!(e1.hasOwnProperty('collidable') && e2.hasOwnProperty('collidable'))) {
                 return 0;
             }
+
+            this.numTests += 1;
             return this[Math.max(this.tests[e1.collidable.preferredTest], this.tests[e2.collidable.preferredTest])](e1.collidable.offset(e1.position), e2.collidable.offset(e2.position));
 
         },

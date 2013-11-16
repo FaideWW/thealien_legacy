@@ -76,15 +76,15 @@ alien.components.behavior = (function() {
                             e.temp.massless = e.massless;
                             e.massless = true;
                             e.isBeingDragged = true;
-                            e.srcX = data.event.layerX;
-                            e.srcY = data.event.layerY;
+                            e.srcX = data.event.offsetX;
+                            e.srcY = data.event.offsetY;
                         }
                     }).on('mousemove', function(e, data) {
                         if (e.isBeingDragged) {
-                            e.position.x += data.event.layerX - e.srcX;
-                            e.position.y += data.event.layerY - e.srcY;
-                            e.srcX = data.event.layerX;
-                            e.srcY = data.event.layerY;
+                            e.position.x += data.event.offsetX - e.srcX;
+                            e.position.y += data.event.offsetY - e.srcY;
+                            e.srcX = data.event.offsetX;
+                            e.srcY = data.event.offsetY;
                         }
                     }).on('mouseup', function(e, data) {
                         if (e.isBeingDragged) {

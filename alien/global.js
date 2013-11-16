@@ -11,6 +11,9 @@ function deepClone(obj) {
         }
         return new_arr;
     }
+    if (obj === null) {
+        return null;
+    }
     if (typeof obj === 'object' && 'clone' in obj) {
         return obj.clone();
     }else if (typeof obj !== 'object') {

@@ -1,3 +1,5 @@
+var alien = alien || {};
+
 /**
  * BSP tree implementation for entity storage in scenes
  *
@@ -90,7 +92,7 @@
  * 
  */
 
-var BSP = (function() {
+alien.BSP = (function() {
     'use strict';
 
 
@@ -320,7 +322,7 @@ var BSP = (function() {
         }
     }
 
-    alien.Entity.default_properties["isStatic"] = false;
+    alien.Entity.default_properties.isStatic = false;
 
     return BSP;
 
