@@ -166,6 +166,10 @@ alien.Scene = (function(alien) {
         return (this.parent === null) ? this.position : this.parent.position.add(this.position);
     }
 
+    alien.Entity.prototype.setPosition = function(p) {
+        this.position = p;
+    }
+
 
     alien.Game.prototype.setScene = function(scene) {
         this.scene = scene;

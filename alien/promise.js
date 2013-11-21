@@ -13,7 +13,15 @@ var alien = alien || {};
 alien.Promise = (function() {
     'use strict';
 
-    
+    function callOnce() {
+    	
+    }
+
+    var states = [
+    	["resolve","done",callOnce,"resolved"],
+    	["reject","fail",callOnce,"rejected"],
+    	["notify","progress",CallAll],
+    ];
 
     function Promise(args) {
         // enforces new
