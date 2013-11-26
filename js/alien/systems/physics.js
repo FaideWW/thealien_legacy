@@ -1,4 +1,4 @@
-define(["../math", "../systems/collision", "../entity"], function(AlienMath, CollisionSystem, Entity) {
+define(["../math", "../systems/collision", "../entity", "../game"], function(AlienMath, CollisionSystem, Entity, Game) {
     /**
      * alien.systems.PhysicsSystem
      *
@@ -149,6 +149,9 @@ define(["../math", "../systems/collision", "../entity"], function(AlienMath, Col
                 this.acceleration = this.acceleration.add(gravity.mul(1000 / dt));
             }
         };
+
+        Game.default_properties.systems.push(PhysicsSystem);
+        
 
         return PhysicsSystem;
 

@@ -309,5 +309,8 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
             }
         };
     }();
+
+    Game.default_properties.systems.push(EventSystem);
+        
     return EventSystem;
 });

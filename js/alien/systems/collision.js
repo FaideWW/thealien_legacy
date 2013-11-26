@@ -1,4 +1,4 @@
-define(["../math"], function(AlienMath) {
+define(["../math", "../game"], function(AlienMath, Game) {
     /**
      * alien.systems.CollisionSystem
      *
@@ -150,6 +150,8 @@ define(["../math"], function(AlienMath) {
             },
         };
 
+        Game.default_properties.systems.push(CollisionSystem);
+        
         return CollisionSystem;
 
     }());

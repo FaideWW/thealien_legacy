@@ -9,6 +9,8 @@ require(["alien/alien"], function(alien) {
 
 	var canvas = document.getElementById('canvas');
 
+	console.log(canvas);
+
 	var _ = new alien.Game({
 		'canvas': canvas
 	});
@@ -181,6 +183,7 @@ require(["alien/alien"], function(alien) {
 				listener
 			]
 	});
+
 
 
 	_.setScene(s1);

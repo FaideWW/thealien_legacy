@@ -1,4 +1,4 @@
-define(["../entity"], function(Entity) {
+define(["../entity", "../game"], function(Entity, Game) {
 
 
 	/**
@@ -66,7 +66,10 @@ define(["../entity"], function(Entity) {
 
 	    Entity.default_properties.behaviors = [];
 
+		Game.default_properties.systems.push(BehaviorSystem);
+		
 		return BehaviorSystem;
+
 
 	}());
 	return BehaviorSystem

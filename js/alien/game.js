@@ -1,4 +1,4 @@
-define(function() {
+define(["./global"], function(Global) {
     /**
      * alien.Game
      * - canvas : HTMLElement - rendering canvas
@@ -33,6 +33,11 @@ define(function() {
 
     var Game = (function() {
         'use strict';
+
+        Game.default_properties = {
+            systems: []
+        };
+
         function Game(options) {
             // enforces new
             if (!(this instanceof Game)) {
@@ -47,6 +52,13 @@ define(function() {
             this.timer = 0;
             this.running = false;
             this.frametime = 1000 / (options.fps || 60);
+            this.systems = [];
+            var i;
+            for (i in  Game.default_properties) {
+                if (Game.default_properties.hasOwnProperty(i)) {
+                    this[i] = Game.default_properties[i];
+                }
+            }
         }
 
         Game.prototype.run = function() {
@@ -60,10 +72,9 @@ define(function() {
             if (t.running) {
                 var d = new Date().getTime(),
                     s;
-                alien.systems = alien.systems || {};
-                for (s in alien.systems) {
-                    if (alien.systems[s].update) {
-                        alien.systems[s].update(d - last_tick, t);
+                for (s in t.systems) {
+                    if (t.systems[s].update) {
+                        t.systems[s].update(d - last_tick, t);
                     }
                 }
                 t.timeoutID = window.setTimeout(t.step, 0, t, d);

@@ -1,4 +1,4 @@
-define(["../math", "../entity"], function(AlienMath, Entity) {
+define(["../math", "../entity", "../game"], function(AlienMath, Entity, Game) {
     /**
      * systems.RenderSystem
      *
@@ -81,6 +81,9 @@ define(["../math", "../entity"], function(AlienMath, Entity) {
                 this.renderables[ren].draw(props);
             }
         };
+
+        Game.default_properties.systems.push(RenderSystem);
+        
 
         return RenderSystem;
 
