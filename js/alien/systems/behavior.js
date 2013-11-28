@@ -60,7 +60,7 @@ define(["../entity", "../game"], function(Entity, Game) {
 
 		Entity.prototype.behaviorUpdate = function(dt, scene) {
 			for (var i = 0; i < this.behaviors.length; i += 1) {
-				this.behaviors[i].update(this, scene, dt);
+				this.behaviors[i].update(this, dt, scene);
 			}
 		};
 

@@ -9,23 +9,86 @@ define(function() {
      * 
      */
 
-    var Promise = (function() {
-        'use strict';
+     var Promise = (function() {
+         'use strict';
+     
+         var Promise = {
+             _status: "pending",
+             resolutions: [],
+             failures: [],
+             notifies: [],
+             fulfill: function() {
+                if (this._status === "pending") {
+                    this._status = "resolved";
+                    var f;
+                    for (f in this.resolutions) {
+                        this.resolutions[f]();
+                    }
+                }
+             },
+             reject: function() {
+                if (this._status === "pending") {
+                    this._status = "failed";
+                    var f;
+                    for (f in this.failures) {
+                        this.failures[f]();
+                    }
+                }
+             },
+             notify: function(status) {
+                if (this._status === "pending") {
+                    var f;
+                    for (f in this.notifies) {
+                        this.notifies[f](status);
+                    }
+                }
+             },
+             when: function(resolveCB, failCB, progressCB) {
+                this.resolutions.push(resolveCB);
+                this.failures.push(failCB);
+                this.extend({
+                    "complete": function() {
+                        this.fulfill();
+                    },
+                    "interrupt": function() {
+                        this.reject();
+                    }
+                });
 
-        function Promise(args) {
-            // enforces new
-            if (!(this instanceof Promise)) {
-                return new Promise(args);
-            }
-            // constructor body
-        }
+                if (progressCB) {
+                    this.notifies.push(progressCB);
+                    this.extend({
+                        "update": function() {
+                            this.notify(this._progress);
+                        }
+                    })
+                }
 
-        Promise.prototype.methodName = function(args) {
-            // method body
-        };
-
-        return Promise;
+                return this;
+             },
+             done: function(resolveCB) {
+                this.resolutions.push(resolveCB);
+                this.extend({
+                    "!complete": function() {
+                        this.fulfill();
+                    }
+                });
+                return this;
+             },
+             fail: function(failCB) {
+                this.failures.push(failCB);
+                this.extend({
+                    "!interrupt": function() {
+                        this.reject();
+                    }
+                });
+                return this;
+             }
+         };
+     
+         return Promise;
 
     }());
+
     return Promise;
 });

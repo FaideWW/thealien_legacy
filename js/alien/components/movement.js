@@ -1,4 +1,4 @@
-define(["../math", "../global"], function(AlienMath, Global) {
+define(["../math", "../global", "../promise"], function(AlienMath, Global, Promise) {
     /**
      * alien.components.movement
      */
@@ -12,7 +12,6 @@ define(["../math", "../global"], function(AlienMath, Global) {
             CircleAround: (function() {
                 'use strict';
 
-            
                 function CircleAround(args) {
                     // enforces new
                     if (!(this instanceof CircleAround)) {
@@ -25,9 +24,14 @@ define(["../math", "../global"], function(AlienMath, Global) {
                     this.repeat = args.repeat || false;
                     this.lastPosition = new AlienMath.Vector();
                     this.currTime = 0;
+                    this._progress = 0;
 
                     this.running = false;
+
+                    this.extend(Promise);
+
                 }
+            
 
                 CircleAround.prototype.start = function(initial) {
                     if (!this.running) {
@@ -59,8 +63,8 @@ define(["../math", "../global"], function(AlienMath, Global) {
                     return this;
                 }
 
-                CircleAround.prototype.done = function() {
-                    console.log("done");
+                CircleAround.prototype.complete = function() {
+                    //debugger;
                     if (!this.repeat) {
                         this.stop();
                     }
@@ -68,10 +72,11 @@ define(["../math", "../global"], function(AlienMath, Global) {
 
                 CircleAround.prototype.step = function(e, dt) {
                     var totalTime = this.currTime + dt;
-                    if (totalTime > this.period) {
-                        this.done();
+                    if (totalTime >= this.period) {
+                        this.complete();
                     }
                     this.currTime = totalTime % this.period;
+                    this._progress = this.currTime / this.period;
                     var interpolation = (this.currTime / this.period) * pi2;
 
                     var newPosition = new AlienMath.Vector({
@@ -84,26 +89,18 @@ define(["../math", "../global"], function(AlienMath, Global) {
                         anchor_position = e.getPosition();
                     }
 
-                    e.setPosition(anchor.getPosition().add(newPosition.sub(this.lastPosition)));
+                    e.setPosition(anchor_position.add(newPosition.sub(this.lastPosition)));
 
                     this.lastPosition = newPosition;
 
                 };
 
-                /*
-                    Pass an object with named functions as such:
-                    {
-                        func_name: function() { //do something after current behavior },
-                        !func_name: function() { //overwrite current behavior }
-
-                    }
-                 */
                 CircleAround.prototype.extend = Global.extend;
-            
+
                 return CircleAround;
             
             }())
-        }
+        };
 
         return movement;
 

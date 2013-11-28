@@ -30,7 +30,7 @@ define(["../entity", "../components/renderable"], function(Entity, Renderable) {
                     this.callback = args.callback || function() {};
                 }
             
-                Follow.prototype.update = function(e, s, dt) {
+                Follow.prototype.update = function(e, dt, s) {
                     if (this.target === 'mouse') {
                         this.target = s.mouse;
                     }
@@ -66,7 +66,7 @@ define(["../entity", "../components/renderable"], function(Entity, Renderable) {
                     this.init = false;
                 }
             
-                Draggable.prototype.update = function(e, s, dt) {
+                Draggable.prototype.update = function(e, dt, s) {
                     if (!this.init) {
                         e.on('mousedown', function(e, data) {
                             if (!e.isBeingDragged) {
@@ -128,7 +128,7 @@ define(["../entity", "../components/renderable"], function(Entity, Renderable) {
                     this.init = false;
                 }
             
-                DrawLineBetween.prototype.update = function(e, s, dt) {
+                DrawLineBetween.prototype.update = function(e, dt, s) {
                     if (!this.init) {
                         var lw = this.linewidth;
                         e.DrawLineBetween = e.DrawLineBetween || {}; 

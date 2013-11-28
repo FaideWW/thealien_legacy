@@ -35,6 +35,7 @@ define(function() {
             }
             return new_obj;
         },
+
         /**
          * Global.extend
          *     augments an object with a module
@@ -68,7 +69,7 @@ define(function() {
             var property;
             for (property in module) {
                 if (module.hasOwnProperty(property)) {
-                    if (typeof(property) === "function") {
+                    if (typeof(module[property]) === "function") {
                         if (property[0] === "!") {
                             //override operator
                             this[(property.substring(1))] = module[property];
@@ -81,8 +82,9 @@ define(function() {
                                     }
                                     component[old_func_name] = component[func_name];
                                     component[func_name] = function() {
-                                        component[old_func_name].apply(component, arguments);
+                                        var ret = component[old_func_name].apply(component, arguments);
                                         module[func_name].apply(component, arguments);
+                                        return ret;
                                     }
                                 })(property, this);
                             } else {
