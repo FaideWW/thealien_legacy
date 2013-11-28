@@ -48,15 +48,7 @@ define(["./global"], function(Global) {
             }
         }
 
-        Entity.prototype.extend = function(module) {
-            module = module || {};
-            for (var property in module) {
-                if (module.hasOwnProperty(property)) {
-                    this[property] = Global.deepClone(module[property]);
-                }
-            }
-            return this;
-        };
+        Entity.prototype.extend = Global.extend;
 
         Entity.prototype.set = function(property, value) {
             this[property] = value;

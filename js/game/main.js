@@ -188,4 +188,9 @@ require(["alien/alien"], function(alien) {
 
 	_.setScene(s1);
 	_.registerEventListeners(_.canvas);
+
+
+
+	//expose alien to wndow
+	window.alien = alien;
 });

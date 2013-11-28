@@ -22,7 +22,7 @@ define(function() {
 
         Promise.prototype.methodName = function(args) {
             // method body
-        }
+        };
 
         return Promise;
 
