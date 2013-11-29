@@ -184,13 +184,51 @@ require(["alien/alien"], function(alien) {
 			]
 	});
 
+	var movement = new alien.Entity({
+		position: new alien.Math.Vector({
+			x: 200,
+			y: 200
+		}),
+		renderables: [new alien.components.renderable.Polygon({
+			color: "rgba(0,150,0,1)",
+			points:  [
+				new alien.Math.Vector({
+					x: -40,
+					y: -40
+				}),
+				new alien.Math.Vector({
+					x:  40,
+					y: -40
+				}),
+				new alien.Math.Vector({
+					x: 40,
+					y: 40
+				}),
+				new alien.Math.Vector({
+					x: -40,
+					y:  40
+				}),
+			]
+		})],
+		behaviors: [
+			new alien.components.movement.CircleAround()
+		]
+	});
+
+	var s2 = new alien.Scene({
+		entities: [
+			movement,
+			listener
+		]
+	});
 
 
-	_.setScene(s1);
+	_.setScene(s2);
 	_.registerEventListeners(_.canvas);
 
 
 
-	//expose alien to wndow
+	//expose alien and current game to window
 	window.alien = alien;
+	window.game = _;
 });

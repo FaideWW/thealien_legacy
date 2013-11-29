@@ -43,7 +43,7 @@ define(["./global"], function(Global) {
             }
             for (k in properties) {
                 if (properties.hasOwnProperty(k)) {
-                    this[k] = Global.deepClone(properties[k]);
+                    this[k] = properties[k];
                 }
             }
         }

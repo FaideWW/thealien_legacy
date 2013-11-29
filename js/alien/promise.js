@@ -14,6 +14,7 @@ define(function() {
      
          var Promise = {
              _status: "pending",
+             _progress: 0,
              resolutions: [],
              failures: [],
              notifies: [],
@@ -22,7 +23,9 @@ define(function() {
                     this._status = "resolved";
                     var f;
                     for (f in this.resolutions) {
+
                         this.resolutions[f]();
+                        this.resolutions.shift();
                     }
                 }
              },
@@ -32,6 +35,7 @@ define(function() {
                     var f;
                     for (f in this.failures) {
                         this.failures[f]();
+                        this.failures.shift();
                     }
                 }
              },
@@ -40,6 +44,7 @@ define(function() {
                     var f;
                     for (f in this.notifies) {
                         this.notifies[f](status);
+
                     }
                 }
              },
@@ -66,6 +71,10 @@ define(function() {
 
                 return this;
              },
+             setProgress: function(p) {
+                this._progress = p;
+                return this;
+             }
              done: function(resolveCB) {
                 this.resolutions.push(resolveCB);
                 this.extend({

@@ -8,6 +8,43 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
 
         var pi2 = Math.PI * 2;
 
+        var movement_module = {
+            start: function(initial) {
+                if (!this.running) {
+                    //TODO: separate interpolation code from step 
+                    //      so we can set inital positions from a 
+                    //      universal interval
+                    this.running = true;
+                }
+                return this;
+            },
+            pause: function() {
+                if (this.running) {
+                    this.running = false;
+                }
+                return this;
+            },
+            stop: function() {
+                if (this.running) {
+                    this.pause();
+                    this.currTime = 0;
+                    this.lastPosition = new AlienMath.Vector();
+                }
+                return this;
+            },
+            update: function(e, dt) {
+                if (this.running) {
+                    this.step(e, dt);
+                }
+                return this;
+            },
+            complete: function() {
+                if (!this.repeat) {
+                    this.stop();
+                }
+            }
+        };
+
         var movement = {
             CircleAround: (function() {
                 'use strict';
@@ -24,59 +61,18 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
                     this.repeat = args.repeat || false;
                     this.lastPosition = new AlienMath.Vector();
                     this.currTime = 0;
-                    this._progress = 0;
 
                     this.running = false;
 
-                    this.extend(Promise);
-
                 }
-            
-
-                CircleAround.prototype.start = function(initial) {
-                    if (!this.running) {
-                        this.running = true;
-                    }   
-                    return this;
-                };
-
-                CircleAround.prototype.pause = function() {
-                    if (this.running) {
-                        this.running = false;
-                    }
-                    return this;
-                };
-
-                CircleAround.prototype.stop = function() {
-                    if (this.running) {
-                        this.pause();
-                        this.currTime = 0;
-                        this.lastPosition = new AlienMath.Vector();
-                    }
-                    return this;
-                };
-
-                CircleAround.prototype.update = function(e, dt) {
-                    if (this.running) {
-                        this.step(e, dt);
-                    }
-                    return this;
-                }
-
-                CircleAround.prototype.complete = function() {
-                    //debugger;
-                    if (!this.repeat) {
-                        this.stop();
-                    }
-                };
 
                 CircleAround.prototype.step = function(e, dt) {
                     var totalTime = this.currTime + dt;
-                    if (totalTime >= this.period) {
+                    if (totalTime >= this.period && !this.repeat) {
                         this.complete();
                     }
                     this.currTime = totalTime % this.period;
-                    this._progress = this.currTime / this.period;
+                    this.setProgress(this.currTime / this.period);
                     var interpolation = (this.currTime / this.period) * pi2;
 
                     var newPosition = new AlienMath.Vector({
@@ -97,7 +93,34 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
 
                 CircleAround.prototype.extend = Global.extend;
 
+                CircleAround.prototype.extend(movement_module);
+                CircleAround.prototype.extend(Promise);
+
                 return CircleAround;
+            
+            }()),
+
+            AxisOscillate: (function() {
+                'use strict';
+            
+                function AxisOscillate(args) {
+                    // enforces new
+                    if (!(this instanceof AxisOscillate)) {
+                        return new AxisOscillate(args);
+                    }
+                    // constructor body
+                }
+            
+                AxisOscillate.prototype.step = function(e, dt) {
+                    // method body
+                };
+            
+                AxisOscillate.prototype.extend = Global.extend;
+
+                AxisOscillate.prototype.extend(movement_module);
+                AxisOscillate.prototype.extend(Promise);
+
+                return AxisOscillate;
             
             }())
         };
