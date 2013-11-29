@@ -74,7 +74,7 @@ define(function() {
              setProgress: function(p) {
                 this._progress = p;
                 return this;
-             }
+             },
              done: function(resolveCB) {
                 this.resolutions.push(resolveCB);
                 this.extend({

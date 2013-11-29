@@ -9,6 +9,12 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
         var pi2 = Math.PI * 2;
 
         var movement_module = {
+            anchor: "root",
+            period: 2000,
+            repeat: false,
+            currTime: 0,
+            running: false,
+            lastPosition: new AlienMath.Vector(),
             start: function(initial) {
                 if (!this.running) {
                     //TODO: separate interpolation code from step 
@@ -55,15 +61,12 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
                         return new CircleAround(args);
                     }
                     var args = args || {};
-                    this.anchor = args.anchor || "root";
+
                     this.radius = args.radius || 20;
-                    this.period = args.period || 2000;
-                    this.repeat = args.repeat || false;
-                    this.lastPosition = new AlienMath.Vector();
-                    this.currTime = 0;
 
-                    this.running = false;
-
+                    this.anchor = args.anchor || this.anchor;
+                    this.period = args.period || this.period;
+                    this.repeat = args.repeat || this.repeat;
                 }
 
                 CircleAround.prototype.step = function(e, dt) {
