@@ -184,6 +184,19 @@ require(["alien/alien"], function(alien) {
 			]
 	});
 
+	var circleScript = new alien.components.movement.CircleAround({
+		radius: 100,
+		repeat: true
+	}),
+		circle2 = new alien.components.movement.CircleAround({
+		radius: 20,
+		root: circleScript,
+		period: 500,
+		repeat: true
+	});
+	circle2.start();
+	circleScript.start();
+
 	var movement = new alien.Entity({
 		position: new alien.Math.Vector({
 			x: 200,
@@ -211,7 +224,8 @@ require(["alien/alien"], function(alien) {
 			]
 		})],
 		behaviors: [
-			new alien.components.movement.CircleAround()
+			circleScript,
+			circle2
 		]
 	});
 

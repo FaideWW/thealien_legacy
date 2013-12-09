@@ -33,8 +33,8 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
             stop: function() {
                 if (this.running) {
                     this.pause();
-                    this.currTime = 0;
-                    this.lastPosition = new AlienMath.Vector();
+                    //this.currTime = 0;
+                    //this.lastPosition = new AlienMath.Vector();
                 }
                 return this;
             },
@@ -48,6 +48,9 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
                 if (!this.repeat) {
                     this.stop();
                 }
+            },
+            getPosition: function() {
+                return lastPosition;
             }
         };
 
@@ -67,12 +70,14 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
                     this.anchor = args.anchor || this.anchor;
                     this.period = args.period || this.period;
                     this.repeat = args.repeat || this.repeat;
+                    
                 }
 
                 CircleAround.prototype.step = function(e, dt) {
                     var totalTime = this.currTime + dt;
                     if (totalTime >= this.period && !this.repeat) {
                         this.complete();
+                        return;
                     }
                     this.currTime = totalTime % this.period;
                     this.setProgress(this.currTime / this.period);
@@ -81,14 +86,19 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
                     var newPosition = new AlienMath.Vector({
                         x: Math.cos(interpolation),
                         y: Math.sin(interpolation)
-                    });
+                    }).mul(this.radius);
 
                     var anchor_position = this.anchor;
                     if (this.anchor === "root") {
                         anchor_position = e.getPosition();
+                    } else {
+                        anchor_position = this.anchor.getPosition();
                     }
 
+
                     e.setPosition(anchor_position.add(newPosition.sub(this.lastPosition)));
+                    
+                    console.log(e.getPosition());
 
                     this.lastPosition = newPosition;
 

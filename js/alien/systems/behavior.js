@@ -59,7 +59,7 @@ define(["../entity", "../game"], function(Entity, Game) {
 		};
 
 		Entity.prototype.behaviorUpdate = function(dt, scene) {
-			debugger;
+			//debugger;
 			for (var i = 0; i < this.behaviors.length; i += 1) {
 				this.behaviors[i].update(this, dt, scene);
 			}
