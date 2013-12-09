@@ -186,7 +186,8 @@ require(["alien/alien"], function(alien) {
 
 	var circleScript = new alien.components.movement.CircleAround({
 		radius: 100,
-		repeat: true
+		repeat: true,
+		anticlockwise: true
 	}),
 		circle2 = new alien.components.movement.CircleAround({
 		radius: 20,

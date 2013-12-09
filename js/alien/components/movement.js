@@ -70,6 +70,7 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
                     this.anchor = args.anchor || this.anchor;
                     this.period = args.period || this.period;
                     this.repeat = args.repeat || this.repeat;
+                    this.anticlockwise = args.anticlockwise || false;
                     
                 }
 
@@ -82,6 +83,9 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
                     this.currTime = totalTime % this.period;
                     this.setProgress(this.currTime / this.period);
                     var interpolation = (this.currTime / this.period) * pi2;
+                    if (this.anticlockwise) {
+                        interpolation = pi2 - interpolation;
+                    }
 
                     var newPosition = new AlienMath.Vector({
                         x: Math.cos(interpolation),
@@ -94,14 +98,8 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
                     } else {
                         anchor_position = this.anchor.getPosition();
                     }
-
-
                     e.setPosition(anchor_position.add(newPosition.sub(this.lastPosition)));
-                    
-                    console.log(e.getPosition());
-
                     this.lastPosition = newPosition;
-
                 };
 
                 CircleAround.prototype.extend = Global.extend;
