@@ -76,6 +76,51 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
                 return Polygon;
 
             }()),
+            Circle: (function() {
+                'use strict';
+            
+                function Circle(args) {
+                    // enforces new
+                    if (!(this instanceof Circle)) {
+                        return new Circle(args);
+                    }
+                    args = args || {};
+                    this.color = args.color || "rgba(255,0,255,1)";
+                    this.radius = args.radius || 50;
+                    this.filled = args.filled || false;
+                }
+
+                Circle.prototype.draw = function(args) {
+                    var p = args.position || new AlienMath.Vector(),
+                        c = args.context;
+
+                    c.fillStyle = this.color;
+                    c.moveTo(p.x, p.y);
+                    c.beginPath();
+                    c.arc(p.x, p.y, this.radius, 0, (Math.PI * 2), false);
+                    if (this.filled) {
+                        c.fill();
+                    } else {
+                        c.stroke();
+                    }
+                    c.closePath();
+                };
+
+                Circle.prototype.getBoundingBox = function() {
+                    return new Collidable.AABB({
+                        half_width: this.radius,
+                        half_height: this.radius,
+                        origin: new AlienMath.Vector()
+                    });
+                }
+            
+                Circle.prototype.clone = function(args) {
+                    return new Circle(this);
+                };
+            
+                return Circle;
+            
+            }()),
     /**
      * renderable.Text
      * - color : String - color of the text

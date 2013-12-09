@@ -202,35 +202,50 @@ require(["alien/alien"], function(alien) {
 			x: 200,
 			y: 200
 		}),
-		renderables: [new alien.components.renderable.Polygon({
-			color: "rgba(0,150,0,1)",
-			points:  [
-				new alien.Math.Vector({
-					x: -40,
-					y: -40
-				}),
-				new alien.Math.Vector({
-					x:  40,
-					y: -40
-				}),
-				new alien.Math.Vector({
-					x: 40,
-					y: 40
-				}),
-				new alien.Math.Vector({
-					x: -40,
-					y:  40
-				}),
-			]
-		})],
+		renderables: [
+			new alien.components.renderable.Polygon({
+				color: "rgba(0,150,0,1)",
+				points:  [
+					new alien.Math.Vector({
+						x: -10,
+						y: -10
+					}),
+					new alien.Math.Vector({
+						x:  10,
+						y: -10
+					}),
+					new alien.Math.Vector({
+						x: 10,
+						y: 10
+					}),
+					new alien.Math.Vector({
+						x: -10,
+						y:  10
+					}),
+				]
+			})
+		],
 		behaviors: [
 			circleScript,
 			circle2
 		]
 	});
 
+	var circlePath = new alien.Entity({
+		position: new alien.Math.Vector({
+			x: 200,
+			y: 200
+		}),
+		renderables: [
+			new alien.components.renderable.Circle({
+				radius: 100
+			})
+		]
+	});
+
 	var s2 = new alien.Scene({
 		entities: [
+			circlePath,
 			movement,
 			listener
 		]
