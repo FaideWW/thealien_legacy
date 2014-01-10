@@ -4,6 +4,7 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
         'use strict';
 
         var renderable = {
+            DEFAULT_COLOR: "rgba(0,0,0,1)",
             /**
              * renderable.Polygon
              * - color : String - the color to use when filling the polygon
@@ -33,7 +34,7 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
                         return new Polygon(args);
                     }
                     args = args || {};
-                    this.color = args.color || "rgba(0,0,0,1)";
+                    this.color = args.color || this.DEFAULT_COLOR;
                     this.points = Global.deepClone(args.points) || [
                     new AlienMath.Vector()
                     ];
@@ -145,7 +146,7 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
                         return new Text(args);
                     }
                     args = args || {};
-                    this.color = args.color || "rgba(0,0,0,1)";
+                    this.color = args.color || this.DEFAULT_COLOR;
                     this.font = args.font || "normal 18px sans-serif";
                     this.text = args.text || "";
                 }
@@ -217,7 +218,7 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
 
                     this.source = args.source;
                     this.dest = args.dest;
-                    this.color = args.color || "rgba(0,0,0,1)";
+                    this.color = args.color || this.DEFAULT_COLOR;
                     this.linewidth = args.linewidth || 1;
                 }
 
@@ -249,9 +250,8 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
                     c.beginPath();
                     c.moveTo(source_pos.x, source_pos.y);
                     c.lineTo(dest_pos.x, dest_pos.y);
-
+                    c.closePath();
                     c.stroke();
-
                 };
 
                 Line.prototype.getBoundingBox = function() {
@@ -328,7 +328,11 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
                 }
 
                 Sprite.prototype.getBoundingBox = function() {
-                    // method body
+                    return new Collidable.AABB({
+                        half_width: this.width / 2,
+                        half_height: this.height / 2,
+                        origin: new AlienMath.Vector()
+                    });
                 }
 
                 Sprite.prototype.clone = function() {
@@ -337,7 +341,37 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
 
                 return Sprite;
 
-            }())
+            }()),
+
+        Vector: (function() {
+            'use strict';
+        
+            function Vector(args) {
+                // enforces new
+                if (!(this instanceof Vector)) {
+                    return new Vector(args);
+                }
+                args = args || {};
+                this.vec = args.vector || new AlienMath.Vector();
+                if (this.vec.mag() !== 1) {
+                    this.vec = this.vec.unt();
+                }
+                this.scale = args.scale || 1;
+                this.color = args.color || this.DEFAULT_COLOR;
+                this.linewidth = args.linewidth || 1;
+            }
+        
+            Vector.prototype.draw = function(args) {
+                var c = args.context,
+                    p = args.position;
+                c.fillStyle = this.color;
+                c.lineWidth = this.linewidth;
+                c.beginPath();
+            };
+        
+            return Vector;
+        
+        }())
     };
 
     return renderable;

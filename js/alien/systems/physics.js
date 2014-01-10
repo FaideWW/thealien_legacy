@@ -134,6 +134,7 @@ define(["../math", "../systems/collision", "../entity", "../game"], function(Ali
         Entity.default_properties.acceleration = new AlienMath.Vector();
         Entity.default_properties.massless = true;
         Entity.default_properties.on_ground = false;
+        Entity.default_properties.orientation = new AlienMath.Vector();
 
         Entity.prototype.physicsUpdate = function(dt) {
 
@@ -150,8 +151,18 @@ define(["../math", "../systems/collision", "../entity", "../game"], function(Ali
             }
         };
 
+        Entity.prototype.getOrientation = function() {
+            return this.orientation;
+        };
+
+        Entity.prototype.setOrientation = function(or) {
+            this.orientation = or;
+            return this;
+        }
+
         Game.default_properties.systems.push(PhysicsSystem);
         
+
 
         return PhysicsSystem;
 
