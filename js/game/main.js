@@ -7,6 +7,30 @@ require(["alien/alien"], function(alien) {
 
 	const ASSET_PATH = "../../assets/";
 
+	//convenience methods
+	var vec = function() {
+		var args = arguments,
+			x = 0,
+			y = 0,
+			z = 0;
+		if (typeof args[0] === "object") {
+			x = args[0].x;
+			y = args[0].y;
+			z = args[0].z;
+		} else if (typeof args[0] === "number") {
+			x = args[0];
+			y = args[1];
+			z = args[2];
+		} else {
+			console.error("Invalid vector arguments");
+		}
+		return new alien.Math.Vector({
+			x: x,
+			y: y,
+			z: z
+		});
+	};
+
 	var canvas = document.getElementById('canvas');
 
 	console.log(canvas);
@@ -16,30 +40,14 @@ require(["alien/alien"], function(alien) {
 	});
 
 	var red = new alien.Entity({
-		'position': new alien.Math.Vector({
-			x: 100,
-			y: 100,
-			z: 0.5
-		}),
+		'position': vec(100,100,0.5),
 		'renderables': [new alien.components.renderable.Polygon({
 			color: "rgba(75,0,0,1)",
 			points: [
-				new alien.Math.Vector({
-					x: -50,
-					y: -50
-				}),
-				new alien.Math.Vector({
-					x: 50,
-					y: -50
-				}),
-				new alien.Math.Vector({
-					x: 50,
-					y: 50
-				}),
-				new alien.Math.Vector({
-					x: -50,
-					y: 50
-				})
+				vec(-50,-50),
+				vec(50,-50),
+				vec(50,50),
+				vec(-50,50)
 			]
 		})],
 		'behaviors': [new alien.components.behavior.Draggable()],
@@ -67,7 +75,7 @@ require(["alien/alien"], function(alien) {
 
 
 
-	blue.set('position', new alien.Math.Vector({ x: 150, y: 200,	z: 0.6 }));
+	blue.set('position', vec(150,200,0.6));
 
 	var listener = new alien.Entity();
 	listener.on('keydown', function(e, data) {
@@ -81,11 +89,7 @@ require(["alien/alien"], function(alien) {
 	});
 
 	var text = new alien.Entity({
-		position: new alien.Math.Vector({
-			x: 200,
-			y: 200,
-			z: 1
-		}),
+		position: vec(200,200,1),
 		renderables: [new alien.components.renderable.Text()],
 		behaviors: [new alien.components.behavior.Follow({
 			target: 'mouse',
@@ -96,29 +100,14 @@ require(["alien/alien"], function(alien) {
 	});
 
 	var ground = new alien.Entity({
-		position: new alien.Math.Vector({
-			x: 640,
-			y: 440
-		}),
+		position: new vec(640,440),
 		renderables: [new alien.components.renderable.Polygon({
 			color: "rgba(0,75,0,1)",
 			points: [
-				new alien.Math.Vector({
-					x:-640,
-					y: -40
-				}),
-				new alien.Math.Vector({
-					x:640,
-					y: -40
-				}),
-				new alien.Math.Vector({
-					x:640,
-					y: 40
-				}),
-				new alien.Math.Vector({
-					x:-640,
-					y: 40
-				}),
+				vec(-640,-40),
+				vec(640,-40),
+				vec(640,40),
+				vec(-640,40)
 			]
 		})],
 		collidable: new alien.components.collidable.AABB({
@@ -191,7 +180,6 @@ require(["alien/alien"], function(alien) {
 	}),
 		circle2 = new alien.components.movement.CircleAround({
 		radius: 20,
-		root: circleScript,
 		period: 500,
 		repeat: true
 	});
@@ -207,36 +195,36 @@ require(["alien/alien"], function(alien) {
 			new alien.components.renderable.Polygon({
 				color: "rgba(0,150,0,1)",
 				points:  [
-					new alien.Math.Vector({
-						x: -10,
-						y: -10
-					}),
-					new alien.Math.Vector({
-						x:  10,
-						y: -10
-					}),
-					new alien.Math.Vector({
-						x: 10,
-						y: 10
-					}),
-					new alien.Math.Vector({
-						x: -10,
-						y:  10
-					}),
+					vec(-10,-10),
+					vec(10,-10),
+					vec(10,10),
+					vec(-10,10)
 				]
 			})
 		],
 		behaviors: [
-			circleScript,
-			circle2
+			circleScript
 		]
 	});
 
+	var subMovement = new alien.Entity({
+		parent: movement,
+		renderables: [
+			new alien.components.renderable.Polygon({
+				color: "rgba(150,0,0,1)",
+				points: [
+					vec(-10,-10),
+					vec(10,-10),
+					vec(10,10),
+					vec(-10,10)
+				]
+			})
+		],
+		behaviors: [circle2]
+	});
+
 	var circlePath = new alien.Entity({
-		position: new alien.Math.Vector({
-			x: 200,
-			y: 200
-		}),
+		position: vec(200,200),
 		renderables: [
 			new alien.components.renderable.Circle({
 				radius: 100
@@ -248,6 +236,7 @@ require(["alien/alien"], function(alien) {
 		entities: [
 			circlePath,
 			movement,
+			subMovement,
 			listener
 		]
 	});

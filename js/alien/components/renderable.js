@@ -79,7 +79,7 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
             }()),
             Circle: (function() {
                 'use strict';
-            
+
                 function Circle(args) {
                     // enforces new
                     if (!(this instanceof Circle)) {
@@ -93,7 +93,7 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
 
                 Circle.prototype.draw = function(args) {
                     var p = args.position || new AlienMath.Vector(),
-                        c = args.context;
+                    c = args.context;
 
                     c.fillStyle = this.color;
                     c.moveTo(p.x, p.y);
@@ -114,13 +114,13 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
                         origin: new AlienMath.Vector()
                     });
                 }
-            
+
                 Circle.prototype.clone = function(args) {
                     return new Circle(this);
                 };
-            
+
                 return Circle;
-            
+
             }()),
     /**
      * renderable.Text
@@ -137,10 +137,10 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
      * todo
      * - figure out getBoundingBox
      */
-    Text: (function() {
-        'use strict';
+             Text: (function() {
+                'use strict';
 
-        function Text(args) {
+                function Text(args) {
                     // enforces new
                     if (!(this instanceof Text)) {
                         return new Text(args);
@@ -202,10 +202,10 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
      * - replacing 'mouse' is a little hacky, find a more elegant solution
      * - implement getBoundingBox()
      */
-    Line: (function() {
-        'use strict';
+             Line: (function() {
+                'use strict';
 
-        function Line(args) {
+                function Line(args) {
                     // enforces new
                     if (!(this instanceof Line)) {
                         return new Line(args);
@@ -287,10 +287,10 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
      * todo
      * - spritesheet/animation functionality
      */
-    Sprite: (function() {
-        'use strict';
+             Sprite: (function() {
+                'use strict';
 
-        function Sprite(args) {
+                function Sprite(args) {
                     // enforces new
                     if (!(this instanceof Sprite)) {
                         return new Sprite(args);
@@ -343,39 +343,40 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
 
             }()),
 
-        Vector: (function() {
-            'use strict';
-        
-            function Vector(args) {
-                // enforces new
-                if (!(this instanceof Vector)) {
-                    return new Vector(args);
-                }
-                args = args || {};
-                this.vec = args.vector || new AlienMath.Vector();
-                if (this.vec.mag() !== 1) {
-                    this.vec = this.vec.unt();
-                }
-                this.scale = args.scale || 1;
-                this.color = args.color || this.DEFAULT_COLOR;
-                this.linewidth = args.linewidth || 1;
-            }
-        
-            Vector.prototype.draw = function(args) {
-                var c = args.context,
-                    p = args.position;
-                c.fillStyle = this.color;
-                c.lineWidth = this.linewidth;
-                c.beginPath();
-            };
-        
-            return Vector;
-        
-        }())
-    };
+            Vector: (function() {
+                'use strict';
 
-    return renderable;
+                function Vector(args) {
+                    // enforces new
+                    if (!(this instanceof Vector)) {
+                        return new Vector(args);
+                    }
+                    args = args || {};
+                    this.vec = args.vector || new AlienMath.Vector();
+                    if (this.vec.mag() !== 1) {
+                        this.vec = this.vec.unt();
+                    }
+                    this.scale = args.scale || 1;
+                    this.color = args.color || this.DEFAULT_COLOR;
+                    this.linewidth = args.linewidth || 1;
+                }
+
+                Vector.prototype.draw = function(args) {
+                    var c = args.context,
+                    p = args.position;
+                    c.fillStyle = this.color;
+                    c.lineWidth = this.linewidth;
+                    c.beginPath();
+                };
+
+                return Vector;
+
+            }())
+        };
+
+        return renderable;
 
     }());
+    
     return renderable;
 });
