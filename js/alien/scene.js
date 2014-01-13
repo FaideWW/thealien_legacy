@@ -29,7 +29,7 @@ define(["./entity", "./bsp", "./math", "./game"], function(Entity, BSP, AlienMat
      *     - propagates an update event to all Entities in Scene.entities
      *
      * Scene adds position and parent to the Entity.default_properties list.
-     *  It also adds getPosition to the Entity prototype, as well as attaching
+     *  It also adds getWorldSpacePosition to the Entity prototype, as well as attaching
      *  setScene to alien.Game.prototype.
      *
      * todo
@@ -110,7 +110,7 @@ define(["./entity", "./bsp", "./math", "./game"], function(Entity, BSP, AlienMat
                         continue;
                     }
 
-                    if (entities[k].getPosition().z <= pivot.getPosition().z) {
+                    if (entities[k].getWorldSpacePosition().z <= pivot.getWorldSpacePosition().z) {
                         lower.push(entities[k]);
                     } else {
                         higher.push(entities[k]);
@@ -157,26 +157,28 @@ define(["./entity", "./bsp", "./math", "./game"], function(Entity, BSP, AlienMat
                 }
             };
 
-
         //extend Entity prototype for requisite properties
         Entity.default_properties.position = new AlienMath.Vector();
         Entity.default_properties.parent = null;
         Entity.default_properties.isStatic= false;
 
-        Entity.prototype.getPosition = function() {
-            return (this.parent === null) ? this.position : this.parent.position.add(this.position);
+        Entity.prototype.getWorldSpacePosition = function() {
+            return (this.parent === null) ? this.position : this.parent.getWorldSpacePosition().add(this.position);
         };
+
+        Entity.prototype.getPosition = function() {
+            return this.position;
+        }
+
 
         Entity.prototype.setPosition = function(p) {
             this.position = p;
         };
 
-
         Game.prototype.setScene = function(scene) {
             this.scene = scene;
             return this.scene;
         };
-
 
         return Scene;
 

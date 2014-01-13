@@ -191,7 +191,7 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
      *
      * renderable.Line.prototype.draw ( args : Object )
      *     - uses the rendering context's lineTo to draw a line from
-     *       Line.source.getPosition() to Line.dest.getPosition().
+     *       Line.source.getWorldSpacePosition() to Line.dest.getWorldSpacePosition().
      *       if the source or destination is 'mouse', substitute it for
      *       the mouse entity in the scene.
      *
@@ -235,12 +235,12 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
                     }
 
                     if (this.source instanceof Entity) {
-                        source_pos = this.source.getPosition();
+                        source_pos = this.source.getWorldSpacePosition();
                     } else {
                         source_pos = this.source;
                     }
                     if (this.dest instanceof Entity) {
-                        dest_pos = this.dest.getPosition();
+                        dest_pos = this.dest.getWorldSpacePosition();
                     } else {
                         dest_pos = this.dest;
                     }

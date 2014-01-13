@@ -67,7 +67,6 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
 
                     this.radius = args.radius || 20;
 
-                    this.anchor = args.anchor || this.anchor;
                     this.period = args.period || this.period;
                     this.repeat = args.repeat || this.repeat;
                     this.anticlockwise = args.anticlockwise || false;
@@ -92,13 +91,7 @@ define(["../math", "../global", "../promise"], function(AlienMath, Global, Promi
                         y: Math.sin(interpolation)
                     }).mul(this.radius);
 
-                    var anchor_position = this.anchor;
-                    if (this.anchor === "root") {
-                        anchor_position = e.getPosition();
-                    } else {
-                        anchor_position = this.anchor.getPosition();
-                    }
-                    e.setPosition(anchor_position.add(newPosition.sub(this.lastPosition)));
+                    e.setPosition(e.getPosition().add(newPosition.sub(this.lastPosition)));
                     this.lastPosition = newPosition;
                 };
 

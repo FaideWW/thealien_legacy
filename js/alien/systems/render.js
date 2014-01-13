@@ -58,7 +58,7 @@ define(["../math", "../entity", "../game"], function(AlienMath, Entity, Game) {
                     //if the entity has a position, grab it; otherwise set to origin
                     //trigger a draw event with the position and context
                     scene.entities[i].draw({
-                        position: scene.entities[i].getPosition(),
+                        position: scene.entities[i].getWorldSpacePosition(),
                         context: c
                     });
                 }

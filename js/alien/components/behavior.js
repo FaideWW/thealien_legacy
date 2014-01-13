@@ -34,8 +34,8 @@ define(["../entity", "../components/renderable"], function(Entity, Renderable) {
                     if (this.target === 'mouse') {
                         this.target = s.mouse;
                     }
-                    if (JSON.stringify(e.getPosition()) !== JSON.stringify(this.target.getPosition())) {
-                        e.position = this.target.getPosition();
+                    if (JSON.stringify(e.getWorldSpacePosition()) !== JSON.stringify(this.target.getWorldSpacePosition())) {
+                        e.position = this.target.getWorldSpacePosition();
                         this.callback(e);
                     }
                 }

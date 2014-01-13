@@ -94,7 +94,7 @@ require(["alien/alien"], function(alien) {
 		behaviors: [new alien.components.behavior.Follow({
 			target: 'mouse',
 			callback: function(e) {
-				e.renderables[0].text = e.getPosition().x + ", " + e.getPosition().y;
+				e.renderables[0].text = e.getWorldSpacePosition().x + ", " + e.getWorldSpacePosition().y;
 			}
 		})]
 	});
@@ -172,17 +172,24 @@ require(["alien/alien"], function(alien) {
 				listener
 			]
 	});
-
+	//debugger;
 	var circleScript = new alien.components.movement.CircleAround({
 		radius: 100,
 		repeat: true,
 		anticlockwise: true
 	}),
 		circle2 = new alien.components.movement.CircleAround({
-		radius: 20,
+		radius: 100,
 		period: 500,
 		repeat: true
+	}),
+		circle3 = new alien.components.movement.CircleAround({
+		radius: 50,
+		period: 250,
+		repeat: true,
+		anticlockwise: true
 	});
+	circle3.start();
 	circle2.start();
 	circleScript.start();
 
@@ -223,6 +230,22 @@ require(["alien/alien"], function(alien) {
 		behaviors: [circle2]
 	});
 
+	var subSubMovement = new alien.Entity({
+		parent: subMovement,
+		renderables: [
+			new alien.components.renderable.Polygon({
+				color: "rgba(0,0,150,1)",
+				points: [
+					vec(-10,-10),
+					vec(10,-10),
+					vec(10,10),
+					vec(-10,10)
+				]
+			})
+		],
+		behaviors: [circle3]
+	});
+
 	var circlePath = new alien.Entity({
 		position: vec(200,200),
 		renderables: [
@@ -237,6 +260,7 @@ require(["alien/alien"], function(alien) {
 			circlePath,
 			movement,
 			subMovement,
+			subSubMovement,
 			listener
 		]
 	});
