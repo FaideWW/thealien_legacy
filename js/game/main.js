@@ -293,6 +293,7 @@ require(["alien/alien"], function(alien) {
 
 
 	//expose alien and current game to window
-	window.alien = alien;
-	window.game = _;
+	// window.alien = alien;
+	// window.game = _;
+	_.run();
 });
