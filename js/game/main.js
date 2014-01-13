@@ -180,7 +180,7 @@ require(["alien/alien"], function(alien) {
 	}),
 		circle2 = new alien.components.movement.CircleAround({
 		radius: 100,
-		period: 500,
+		period: 1000,
 		repeat: true
 	}),
 		circle3 = new alien.components.movement.CircleAround({
@@ -250,14 +250,35 @@ require(["alien/alien"], function(alien) {
 		position: vec(200,200),
 		renderables: [
 			new alien.components.renderable.Circle({
+				color: "rgba(0,75,0,1)",
 				radius: 100
 			})
 		]
-	});
+	}),
+		subCirclePath = new alien.Entity({
+			parent: movement,
+			renderables: [
+				new alien.components.renderable.Circle({
+					color: "rgba(75,0,0,1)",
+					radius: 100
+				})
+			]
+		}),
+		subSubCirclePath = new alien.Entity({
+			parent: subMovement,
+			renderables: [
+				new alien.components.renderable.Circle({
+					color: "rgba(0,0,75,1)",
+					radius: 50
+				})
+			]
+		});
 
 	var s2 = new alien.Scene({
 		entities: [
 			circlePath,
+			subCirclePath,
+			subSubCirclePath,
 			movement,
 			subMovement,
 			subSubMovement,

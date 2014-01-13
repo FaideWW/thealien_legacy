@@ -86,7 +86,8 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
                         return new Circle(args);
                     }
                     args = args || {};
-                    this.color = args.color || "rgba(255,0,255,1)";
+                    this.color = args.color || "rgba(0,0,0,1)";
+                    this.fillColor = args.fillColor || "rgba(255,0,255,1)";
                     this.radius = args.radius || 50;
                     this.filled = args.filled || false;
                 }
@@ -95,7 +96,8 @@ define(["../global", "../math", "../components/collidable", "../entity"], functi
                     var p = args.position || new AlienMath.Vector(),
                     c = args.context;
 
-                    c.fillStyle = this.color;
+                    c.strokeStyle = this.color;
+                    c.fillStyle = this.fillColor;
                     c.moveTo(p.x, p.y);
                     c.beginPath();
                     c.arc(p.x, p.y, this.radius, 0, (Math.PI * 2), false);
