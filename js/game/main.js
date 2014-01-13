@@ -58,27 +58,21 @@ require(["alien/alien"], function(alien) {
 	});
 
 
-	// var blue = new alien.Entity({
-	// 	'renderables': [new alien.components.renderable.Sprite({
-	// 		src: ASSET_PATH + 'sprite.png'
-	// 	})],
-	// 	'collidable': new alien.components.collidable.AABB({
-	// 		half_width: 16,
-	// 		half_height: 16
-	// 	})
+	var blue = new alien.Entity({
+		'renderables': [new alien.components.renderable.Sprite({
+			src: ASSET_PATH + 'sprite.png'
+		})],
+		'collidable': new alien.components.collidable.AABB({
+			half_width: 16,
+			half_height: 16
+		})
 
-	// });
-	// blue.behaviors = [
-	// 	new alien.components.behavior.DrawLineBetween(),
-	// 	new alien.components.behavior.Draggable()
-	// ];
-	// blue.set('position', vec(150,200,0.6));
-	// blue.on('collide', function(e, data) {
-	// 	if ((data.entity.isStatic || data.entity.on_ground) && data.collision.x === 0) {
-	// 		e.on_ground = true;
-	// 	}
-	// 	e.position = e.position.sub(data.collision);
-	// }).massless = false;
+	});
+	blue.behaviors = [
+		new alien.components.behavior.DrawLineBetween(),
+		new alien.components.behavior.Draggable()
+	];
+	blue.set('position', vec(150,200,0.6));
 
 	var listener = new alien.Entity();
 	listener.on('keydown', function(e, data) {
@@ -120,6 +114,12 @@ require(["alien/alien"], function(alien) {
 		isStatic: true
 	});
 
+	blue.on('collide', function(e, data) {
+		if ((data.entity.isStatic || data.entity.on_ground) && data.collision.x === 0) {
+			e.on_ground = true;
+		}
+		e.position = e.position.sub(data.collision);
+	}).massless = false;
 
 	red.isStatic = true;
 
@@ -163,7 +163,7 @@ require(["alien/alien"], function(alien) {
 	var s1 = new alien.Scene({
 			entities: [
 				red,
-				//blue,
+				blue,
 				ground,
 				text,
 				listener
