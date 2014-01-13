@@ -68,26 +68,27 @@ define(["../entity", "../components/renderable"], function(Entity, Renderable) {
             
                 Draggable.prototype.update = function(e, dt, s) {
                     if (!this.init) {
+                        e.Draggable = e.Draggable || {};
                         e.on('mousedown', function(e, data) {
-                            if (!e.isBeingDragged) {
-                                e.temp = e.temp || {};
-                                e.temp.massless = e.massless;
+                            if (!e.Draggable.isBeingDragged) {
+                                e.Draggable.temp = e.Draggable.temp || {};
+                                e.Draggable.temp.massless = e.massless;
                                 e.massless = true;
-                                e.isBeingDragged = true;
-                                e.srcX = data.event.offsetX;
-                                e.srcY = data.event.offsetY;
+                                e.Draggable.isBeingDragged = true;
+                                e.Draggable.srcX = data.event.offsetX;
+                                e.Draggable.srcY = data.event.offsetY;
                             }
                         }).on('mousemove', function(e, data) {
-                            if (e.isBeingDragged) {
-                                e.position.x += data.event.offsetX - e.srcX;
-                                e.position.y += data.event.offsetY - e.srcY;
-                                e.srcX = data.event.offsetX;
-                                e.srcY = data.event.offsetY;
+                            if (e.Draggable.isBeingDragged) {
+                                e.position.x += data.event.offsetX - e.Draggable.srcX;
+                                e.position.y += data.event.offsetY - e.Draggable.srcY;
+                                e.Draggable.srcX = data.event.offsetX;
+                                e.Draggable.srcY = data.event.offsetY;
                             }
                         }).on('mouseup', function(e, data) {
-                            if (e.isBeingDragged) {
-                                e.massless = e.temp.massless;
-                                e.isBeingDragged = false;
+                            if (e.Draggable.isBeingDragged) {
+                                e.massless = e.Draggable.temp.massless;
+                                e.Draggable.isBeingDragged = false;
                             }
                         });
                         this.init = true;
@@ -177,6 +178,55 @@ define(["../entity", "../components/renderable"], function(Entity, Renderable) {
                 return DrawLineBetween;
             
             }()),
+
+            Fling: (function() {
+                'use strict';
+
+                function Fling(args) {
+                    if (!(this instanceof Fling)) {
+                        return new Fling(args);
+                    }
+                    args = args || {};
+                    this.init = false;
+                };
+
+                Fling.prototype.update = function(e, dt, s) {
+                    if (!this.init) {
+                        e.Fling = e.Fling || {};
+                        e.on('mousedown', function(e, data) {
+                            if (!e.Fling.isBeingFlung) {
+                                e.Fling.temp = e.Fling.temp || {};
+                                e.Fling.temp.massless = e.massless;
+                                e.massless = true;
+                                e.Fling.isBeingFlung = true;
+                                e.Fling.srcX = data.event.offsetX;
+                                e.Fling.srcY = data.event.offsetY;
+                            }
+                        }).on('mousemove', function(e, data) {
+                            if (e.Fling.isBeingFlung) {
+                                //draw line between
+                                
+                                e.Fling.srcX = data.event.offsetX;
+                                e.Fling.srcY = data.event.offsetY;
+                            }
+                        }).on('mouseup', function(e, data) {
+                            if (e.Fling.isBeingFlung) {
+                                //fling
+                                e.massless = e.Fling.temp.massless;
+                                e.Fling.isBeingFlung = false;
+                            }
+                        });
+                        this.init = true;
+                    }
+                }
+
+
+                Fling.prototype.clone = function() {
+                    return new Fling(this);
+                }
+
+                return Fling;
+            }())
         };
 
         return behavior;
