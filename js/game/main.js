@@ -5,7 +5,7 @@ var t = require.config({
 });
 require(["alien/alien"], function(alien) {
 
-	const ASSET_PATH = "../../assets/";
+	const ASSET_PATH = "../assets/";
 
 	//convenience methods
 	var vec = function() {
