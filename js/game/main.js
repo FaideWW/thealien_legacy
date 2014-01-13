@@ -73,6 +73,12 @@ require(["alien/alien"], function(alien) {
 	// 	new alien.components.behavior.Draggable()
 	// ];
 	// blue.set('position', vec(150,200,0.6));
+	// blue.on('collide', function(e, data) {
+	// 	if ((data.entity.isStatic || data.entity.on_ground) && data.collision.x === 0) {
+	// 		e.on_ground = true;
+	// 	}
+	// 	e.position = e.position.sub(data.collision);
+	// }).massless = false;
 
 	var listener = new alien.Entity();
 	listener.on('keydown', function(e, data) {
@@ -114,12 +120,6 @@ require(["alien/alien"], function(alien) {
 		isStatic: true
 	});
 
-	blue.on('collide', function(e, data) {
-		if ((data.entity.isStatic || data.entity.on_ground) && data.collision.x === 0) {
-			e.on_ground = true;
-		}
-		e.position = e.position.sub(data.collision);
-	}).massless = false;
 
 	red.isStatic = true;
 
