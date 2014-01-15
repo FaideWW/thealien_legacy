@@ -283,14 +283,42 @@ require(["alien/alien"], function(alien) {
 		]
 	});
 
+	var fling = new alien.components.behavior.Fling(),
+		flingThis = new alien.Entity({
+			position: vec(200,200),
+			renderables: [
+				new alien.components.renderable.Polygon({
+					color: "rgba(75,0,0,1)",
+					points: [
+						vec(-20,-20),
+						vec(20,-20),
+						vec(20,20),
+						vec(-20,20),
+					]
+				})
+			],
+			behaviors: [fling],
+			collidable: new alien.components.collidable.AABB({
+				half_height: 20,
+				half_width: 20
+			})
+		}),
 
-	_.setScene(s2);
+		s3 = new alien.Scene({
+			entities: [
+				flingThis,
+				listener
+			]
+		});
+
+	//debugger;
+	_.setScene(s3);
 	_.registerEventListeners(_.canvas);
 
 
 
 	//expose alien and current game to window
-	// window.alien = alien;
-	// window.game = _;
+	 window.alien = alien;
+	 window.game = _;
 	_.run();
 });

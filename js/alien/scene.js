@@ -60,31 +60,30 @@ define(["./entity", "./bsp", "./math", "./game"], function(Entity, BSP, AlienMat
             }
             // constructor body
             properties = properties || {};
-            var t = {};
-            t.entities = [];
-            t.collision_tree = null;
+            
+            this.entities = [];
+            this.collision_tree = null;
             for (var k in properties) {
                 if (properties.hasOwnProperty(k)) {
-                    t[k] = properties[k];
+                    this[k] = properties[k];
                 }
             }
 
             //bind mouse entity
-            t.mouse = new Entity({
+            this.mouse = new Entity({
             });
-            t.mouse.on('mousemove', function(e, data) {
+            this.mouse.on('mousemove', function(e, data) {
                 e.position = new AlienMath.Vector({
                     x: data.event.offsetX,
                     y: data.event.offsetY
                 });
             });
 
-            t.entities.push(t.mouse);
+            this.entities.push(this.mouse);
 
-            if (t.entities.length > 0) {
-                t.entities = this.sort(t.entities);
+            if (this.entities.length > 0) {
+                this.entities = this.sort(this.entities);
             }
-            return t;
         }
 
             Scene.prototype.extend = function(extension) {
@@ -122,8 +121,8 @@ define(["./entity", "./bsp", "./math", "./game"], function(Entity, BSP, AlienMat
 
             Scene.prototype.addEntity = function(entity) {
                 this.entities.push(entity);
-                var index = this.entities.length - 1;
                 this.entities = this.sort(this.entities);
+                var index = this.find(entity);
                 return index;
             };
 
@@ -139,6 +138,7 @@ define(["./entity", "./bsp", "./math", "./game"], function(Entity, BSP, AlienMat
             };
 
             Scene.prototype.removeEntity = function(entity) {
+                //debugger;
                 if (typeof entity === 'number') {
                     //the entity is an index
                     if (entity === -1) {

@@ -193,6 +193,7 @@ define(["../entity", "../components/renderable", "../math"], function(Entity, Re
                 Fling.prototype.update = function(e, dt, s) {
                     if (!this.init) {
                         e.Fling = e.Fling || {};
+                        e.Fling.isBeingFlung = false;
                         e.Fling.line = e.Fling.line || new Entity({
                             renderables: [
                                 new Renderable.Line({
@@ -213,7 +214,7 @@ define(["../entity", "../components/renderable", "../math"], function(Entity, Re
                                 e.Fling.impulseY = data.event.offsetY;
                                 e.globallyListeningFor["mouseup"] = true;
                                 if (e.Fling.lineIndex === -1) {
-                                    e.Fling.lineIndex = s.entities.push(e.Fling.line);
+                                    e.Fling.lineIndex = s.addEntity(e.Fling.line);
                                 }
                             }
                         }).on('mousemove', function(e, data) {
@@ -229,6 +230,7 @@ define(["../entity", "../components/renderable", "../math"], function(Entity, Re
                                 e.massless = e.Fling.temp.massless;
                                 e.Fling.isBeingFlung = false;
                                 if (e.Fling.lineIndex !== -1) {
+                                    //debugger;
                                     s.removeEntity(e.Fling.lineIndex);                                    
                                     e.Fling.lineIndex = -1;
                                 }
