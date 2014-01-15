@@ -1,5 +1,5 @@
 
-define(["../entity", "../components/renderable"], function(Entity, Renderable) {
+define(["../entity", "../components/renderable", "../math"], function(Entity, Renderable, AlienMath) {
     var behavior = (function() {
         'use strict';
 
@@ -193,27 +193,52 @@ define(["../entity", "../components/renderable"], function(Entity, Renderable) {
                 Fling.prototype.update = function(e, dt, s) {
                     if (!this.init) {
                         e.Fling = e.Fling || {};
+                        e.Fling.line = e.Fling.line || new Entity({
+                            renderables: [
+                                new Renderable.Line({
+                                    source: e,
+                                    dest: s.mouse,
+                                    linewidth: 5
+                                })
+                            ]
+                        });
+                        e.Fling.lineIndex = -1;
                         e.on('mousedown', function(e, data) {
                             if (!e.Fling.isBeingFlung) {
                                 e.Fling.temp = e.Fling.temp || {};
                                 e.Fling.temp.massless = e.massless;
                                 e.massless = true;
                                 e.Fling.isBeingFlung = true;
-                                e.Fling.srcX = data.event.offsetX;
-                                e.Fling.srcY = data.event.offsetY;
+                                e.Fling.impulseX = data.event.offsetX;
+                                e.Fling.impulseY = data.event.offsetY;
+                                e.globallyListeningFor["mouseup"] = true;
+                                if (e.Fling.lineIndex === -1) {
+                                    e.Fling.lineIndex = s.entities.push(e.Fling.line);
+                                }
                             }
                         }).on('mousemove', function(e, data) {
                             if (e.Fling.isBeingFlung) {
                                 //draw line between
                                 
-                                e.Fling.srcX = data.event.offsetX;
-                                e.Fling.srcY = data.event.offsetY;
+                                e.Fling.impulseX = data.event.offsetX;
+                                e.Fling.impulseY = data.event.offsetY;
                             }
                         }).on('mouseup', function(e, data) {
                             if (e.Fling.isBeingFlung) {
                                 //fling
                                 e.massless = e.Fling.temp.massless;
                                 e.Fling.isBeingFlung = false;
+                                if (e.Fling.lineIndex !== -1) {
+                                    s.removeEntity(e.Fling.lineIndex);                                    
+                                    e.Fling.lineIndex = -1;
+                                }
+                                var deltaV = e.getWorldSpacePosition().sub(new AlienMath.Vector({
+                                    x: e.Fling.impulseX,
+                                    y: e.Fling.impulseY
+                                }));
+
+                                e.velocity = deltaV;
+                                e.globallyListeningFor["mouseup"] = false;
                             }
                         });
                         this.init = true;
