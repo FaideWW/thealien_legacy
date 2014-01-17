@@ -51,13 +51,31 @@ define(["../math", "../game"], function(AlienMath, Game) {
     var CollisionSystem = (function () {
         'use strict';
 
+        function generateAxes(points) {
+            //debugger;
+            var axes = [],
+                i = points.length - 1,
+                j;
+            for (;i >= 0;i--) {
+                j = i - 1;
+                if (j < 0) {
+                    j = points.length - 1;
+                }
+                axes.push(new AlienMath.Vector({
+                    x: points[j].x - points[i].x,
+                    y: points[j].y - points[i].y
+                }).unt());
+            }
+            return axes;
+        }
+
         var CollisionSystem = {
 
             AABBTest: function(c1,c2) {
                 return this[0](c1,c2);
             },
 
-            SeparatingAxisTheorem: function(c1,c2) {
+            SeparatingAxisTest: function(c1,c2) {
                 return this[1](c1,c2);
             },
 
@@ -136,7 +154,57 @@ define(["../math", "../game"], function(AlienMath, Game) {
             },
 
             1: function(c1, c2) {
-                return 0;
+                //generate axes (choose the entity with less sides)
+                var collidables1 = c1.collidable.getPoints(),
+                    collidables2 = c2.collidable.getPoints(),
+                    pos1 = c1.getWorldSpacePosition(),
+                    pos2 = c2.getWorldSpacePosition(),
+                    axes = generateAxes((collidables1 <= collidables2) ? c1 : c2),
+                    i = axes.length,
+                    collision = -1,
+                    c_depth, j, axis, projection1, projection2, projection_list1, projection_list2;
+                
+                // for each axis that we test against
+                for (;i>0;i--) {
+                    axis = axes[i-1];
+                    projection_list1 = [];
+                    projection_list2 = [];
+                    j = collidables1.length;
+                    for (;j > 0; j--) {
+                        //project each point from the collidable
+                        // (offset by the entity's worldspace position)
+                        // onto the axis
+                        projection_list1.push(pos1.add(collidables1[j-1]).scalarProject(axis));
+                    } 
+                    j = collidables2.length;
+                    for (;j > 0; j--) {
+                        //repeat for the other collidable
+                        projection_list2.push(pos2.add(collidables2[j-1]).scalarProject(axis));
+                    }
+                    //find the intervals that each projection lies on
+                    projection1 = {
+                        min: AlienMath.min(projection_list1),
+                        max: AlienMath.max(projection_list1)
+                    };
+
+                    projection2 = {
+                        min: AlienMath.min(projection_list2),
+                        max: AlienMath.max(projection_list2)
+                    };
+                    // if there is no intersection of the intervals, then there is no collision
+                    if (projection1.min < projection2.min && projection1.max < projection2.min
+                     || projection1.max > projection2.max && projection1.min > projection2.max) {
+                        return 0;
+                    } else {
+                        c_depth = (projection1.min < projection2.min) ? (projection1.max - projection2.min) : (projection2.max - projection1.min);
+                        if (collision === -1 || (c_depth * c_depth) < collision.magsquared()) {
+                            // if this is the shallowest collision depth, that's the axis of collision
+                            collision = axis.mul(c_depth);
+                        }
+                    }
+                }
+                return collision;
+
             },
 
             collide: function (e1, e2) {
@@ -146,8 +214,11 @@ define(["../math", "../game"], function(AlienMath, Game) {
 
                 this.numTests += 1;
                 return this[Math.max(this.tests[e1.collidable.preferredTest], this.tests[e2.collidable.preferredTest])](e1.collidable.offset(e1.position), e2.collidable.offset(e2.position));
-
             },
+
+            testGenAxes: function(entity) {
+                return generateAxes(entity.collidable.getPoints());
+            }
         };
 
         Game.default_properties.systems.push(CollisionSystem);

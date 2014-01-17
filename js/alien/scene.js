@@ -160,7 +160,7 @@ define(["./entity", "./bsp", "./math", "./game"], function(Entity, BSP, AlienMat
         //extend Entity prototype for requisite properties
         Entity.default_properties.position = new AlienMath.Vector();
         Entity.default_properties.parent = null;
-        Entity.default_properties.isStatic= false;
+        Entity.default_properties.isStatic = false;
 
         Entity.prototype.getWorldSpacePosition = function() {
             return (this.parent === null) ? this.position : this.parent.getWorldSpacePosition().add(this.position);

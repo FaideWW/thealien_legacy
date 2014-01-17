@@ -61,8 +61,12 @@ define(function() {
                 }
                 //magnitude of the vector
                 Vector.prototype.mag = function() {
-                    return MATH.sqrt(MATH.pow(this.x, 2) + MATH.pow(this.y, 2));
+                    return MATH.sqrt(this.magsquared());
                 };
+
+                Vector.prototype.magsquared = function() {
+                    return MATH.pow(this.x, 2) + MATH.pow(this.y, 2);
+                }
 
                 //returns a vector of the same direction with magnitude 1
                 Vector.prototype.unt = function() {
@@ -110,6 +114,10 @@ define(function() {
                         u: (this.cmg(this.sub(o2, o1), r) / c)
                     };
                 };
+
+                Vector.prototype.scalarProject = function(axis) {
+                    return this.dot(axis.unt());
+                }
 
                 //pretty print the value of the vector
                 Vector.prototype.toString = function() {
