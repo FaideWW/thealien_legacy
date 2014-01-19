@@ -293,7 +293,7 @@ require(["alien/alien"], function(alien) {
 						vec(-20,-20),
 						vec(20,-20),
 						vec(20,20),
-						vec(-20,20),
+						vec(-20,20)
 					]
 				})
 			],
@@ -304,9 +304,29 @@ require(["alien/alien"], function(alien) {
 			})
 		}),
 
+		collidee = new alien.Entity({
+			position: vec(300,200),
+			renderables: [
+				new alien.components.renderable.Polygon({
+					color: "rgba(0,75,0,1)",
+					points: [
+						vec(-20, -20),
+						vec(20,-20),
+						vec(20,20),
+						vec(-20,20)
+					]
+				})
+			],
+			collidable: new alien.components.collidable.AABB({
+				half_height: 20,
+				half_width: 20
+			})
+		}),
+
 		s3 = new alien.Scene({
 			entities: [
 				flingThis,
+				collidee,
 				listener
 			]
 		});

@@ -154,12 +154,13 @@ define(["../math", "../game"], function(AlienMath, Game) {
             },
 
             1: function(c1, c2) {
+                debugger;
                 //generate axes (choose the entity with less sides)
                 var collidables1 = c1.collidable.getPoints(),
                     collidables2 = c2.collidable.getPoints(),
                     pos1 = c1.getWorldSpacePosition(),
                     pos2 = c2.getWorldSpacePosition(),
-                    axes = generateAxes((collidables1 <= collidables2) ? c1 : c2),
+                    axes = generateAxes((collidables1 <= collidables2) ? collidables1 : collidables2),
                     i = axes.length,
                     collision = -1,
                     c_depth, j, axis, projection1, projection2, projection_list1, projection_list2;
