@@ -302,6 +302,11 @@ require(["alien/alien"], function(alien) {
 				half_height: 20,
 				half_width: 20
 			})
+		}).on('collide', function(e, data) {
+			console.log('collision');
+			//debugger;
+			e.setPosition(e.getPosition().sub(data.collision));
+			e.velocity = e.velocity.mul(-1);
 		}),
 
 		collidee = new alien.Entity({
