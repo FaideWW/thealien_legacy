@@ -306,7 +306,7 @@ require(["alien/alien"], function(alien) {
 			console.log('collision');
 			//debugger;
 			e.setPosition(e.getPosition().sub(data.collision));
-			e.velocity = e.velocity.mul(-1);
+			e.velocity = e.velocity.normalReflect(data.collision);
 		}),
 
 		collidee = new alien.Entity({

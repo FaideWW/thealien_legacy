@@ -119,6 +119,15 @@ define(function() {
                     return this.dot(axis.unt());
                 }
 
+                Vector.prototype.normalReflect = function(normal) {
+                    var r;
+                    if (normal.mag() !== 1) {
+                        normal = normal.unt();
+                    }
+                    r = this.sub(normal.mul(2 * this.dot(normal)));
+                    return r;
+                }
+
                 //pretty print the value of the vector
                 Vector.prototype.toString = function() {
                     return "{x: " + this.x + ", y: " + this.y + ", z: " + this.z + "}";
