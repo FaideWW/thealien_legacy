@@ -37,6 +37,13 @@ define(function() {
                 Vector.prototype.clone = function() {
                     return new Vector(this);
                 }
+
+                Vector.prototype.eq = function(other) {
+                    return (this.x === other.x 
+                         && this.y === other.y
+                         && this.z === other.z);
+                }
+
                 //addition with another vector
                 Vector.prototype.add = function(v2) {
                     return new AlienMath.Vector({

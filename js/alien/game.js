@@ -71,11 +71,17 @@ define(["./global"], function(Global) {
         Game.prototype.step = function(t, last_tick) {
             if (t.running) {
                 var d = new Date().getTime(),
-                    s;
+                    s,
+                    i = t.scene.entities.length - 1;
                 for (s in t.systems) {
                     if (t.systems[s].update) {
                         t.systems[s].update(d - last_tick, t);
                     }
+                }
+                for (;i >= 0; i--) {
+                    t.scene.entities[i].trigger('update', {
+                        dt: (d - last_tick)
+                    });
                 }
                 t.timeoutID = window.setTimeout(t.step, 0, t, d);
             }

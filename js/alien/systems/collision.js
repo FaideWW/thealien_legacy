@@ -51,6 +51,8 @@ define(["../math", "../game"], function(AlienMath, Game) {
     var CollisionSystem = (function () {
         'use strict';
 
+        var depth_tolerance = 0.5;
+
         function generateAxes(points) {
             //debugger;
             var axes = [],
@@ -214,7 +216,11 @@ define(["../math", "../game"], function(AlienMath, Game) {
                 }
 
                 this.numTests += 1;
-                return this[Math.max(this.tests[e1.collidable.preferredTest], this.tests[e2.collidable.preferredTest])](e1.collidable.offset(e1.position), e2.collidable.offset(e2.position));
+                var result = this[Math.max(this.tests[e1.collidable.preferredTest], this.tests[e2.collidable.preferredTest])](e1.collidable.offset(e1.position), e2.collidable.offset(e2.position));
+                if (result.mag && result.mag() < depth_tolerance) {
+                    return 0;
+                }
+                return result;
             },
 
             testGenAxes: function(entity) {

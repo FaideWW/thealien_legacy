@@ -1,4 +1,4 @@
-define(["./entity", "./bsp", "./math", "./game"], function(Entity, BSP, AlienMath, Game) {
+define(["./entity", "./bsp", "./math", "./game", "./global"], function(Entity, BSP, AlienMath, Game, Global) {
 
 
     /**
@@ -53,6 +53,8 @@ define(["./entity", "./bsp", "./math", "./game"], function(Entity, BSP, AlienMat
             return BSP.build(polys);
         }
 
+        Scene.default_properties = {};
+
         function Scene(properties) {
             // enforces new
             if (!(this instanceof Scene)) {
@@ -61,6 +63,12 @@ define(["./entity", "./bsp", "./math", "./game"], function(Entity, BSP, AlienMat
             // constructor body
             properties = properties || {};
             
+            for (k in Scene.default_properties) {
+                if (Scene.default_properties.hasOwnProperty(k)) {
+                    this[k] = Global.deepClone(Scene.default_properties[k]);
+                }
+            }
+
             this.entities = [];
             this.collision_tree = null;
             for (var k in properties) {

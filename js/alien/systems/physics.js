@@ -72,6 +72,8 @@ define(["../math", "../systems/collision", "../entity", "../game"], function(Ali
 
         var PhysicsSystem = {
             update: function(dt, g) {
+                
+                console.log('step');
                 CollisionSystem.numTests = 0; 
                 time_since_last_update += dt;
                 if (time_since_last_update >= update_freq) {
@@ -135,9 +137,10 @@ define(["../math", "../systems/collision", "../entity", "../game"], function(Ali
         Entity.default_properties.massless = true;
         Entity.default_properties.on_ground = false;
         Entity.default_properties.orientation = new AlienMath.Vector();
+        Entity.default_properties.last_pos = new AlienMath.Vector();
+        Entity.default_properties.curr_pos = new AlienMath.Vector();
 
         Entity.prototype.physicsUpdate = function(dt) {
-
             this.position = this.position.add(this.velocity.mul(dt / 1000));
             this.velocity = this.velocity.add(this.acceleration.mul(dt / 1000));
 
@@ -149,7 +152,22 @@ define(["../math", "../systems/collision", "../entity", "../game"], function(Ali
             if (!this.massless && !this.on_ground) {
                 this.acceleration = this.acceleration.add(gravity.mul(1000 / dt));
             }
+
+            this.last_pos = this.curr_pos;
+            this.curr_pos = this.getPosition();
+
         };
+
+        Entity.prototype.determineVelocity = function() {
+            if (this.velocity.mag() === 0) {
+                if (!this.curr_pos.eq(this.last_pos)) {
+                    var x = this.last_pos.sub(this.curr_pos);
+                    return x.mul(update_freq);
+                }
+            } 
+
+            return this.velocity;
+        }
 
         Entity.prototype.getOrientation = function() {
             return this.orientation;

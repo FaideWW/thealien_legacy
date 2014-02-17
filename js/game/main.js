@@ -208,7 +208,11 @@ require(["alien/alien"], function(alien) {
 		],
 		behaviors: [
 			circleScript
-		]
+		],
+		collidable: new alien.components.collidable.AABB({
+			half_height: 10,
+			half_width: 10
+		})
 	});
 
 	var subMovement = new alien.Entity({
@@ -224,7 +228,11 @@ require(["alien/alien"], function(alien) {
 				]
 			})
 		],
-		behaviors: [circle2]
+		behaviors: [circle2],
+		collidable: new alien.components.collidable.AABB({
+			half_height: 10,
+			half_width: 10
+		})
 	});
 
 	var subSubMovement = new alien.Entity({
@@ -240,7 +248,11 @@ require(["alien/alien"], function(alien) {
 				]
 			})
 		],
-		behaviors: [circle3]
+		behaviors: [circle3],
+		collidable: new alien.components.collidable.AABB({
+			half_height: 10,
+			half_width: 10
+		})
 	});
 
 	var circlePath = new alien.Entity({
@@ -315,7 +327,7 @@ require(["alien/alien"], function(alien) {
 				new alien.components.renderable.Polygon({
 					color: "rgba(0,75,0,1)",
 					points: [
-						vec(-20, -20),
+						vec(-20,-20),
 						vec(20,-20),
 						vec(20,20),
 						vec(-20,20)
@@ -336,8 +348,53 @@ require(["alien/alien"], function(alien) {
 			]
 		});
 
+	function bounce(e, data) {
+		var newV;
+		console.log(data);
+		e.behaviors[0].stop();
+		console.log(e.getWorldSpacePosition());
+		e.setPosition(e.getPosition().sub(data.collision));
+		console.log(e.getWorldSpacePosition());
+		newV = e.determineVelocity();
+		console.log('');
+		console.log(newV);
+		e.velocity = newV.normalReflect(data.collision.unt());
+		//e.velocity = newV;
+		console.log(e.velocity);
+	}
+
+	movement.on('collide', bounce);
+	subMovement.on('collide', bounce);
+	subSubMovement.on('collide', bounce);
+
+
+	s2.on('click', function(s, data) {
+		console.log('adding block at ' + data.event.layerX + ', ' + data.event.layerY);
+		var e = new alien.Entity({
+			position: vec(data.event.layerX, data.event.layerY),
+			renderables: [
+				new alien.components.renderable.Polygon({
+					color: "rgba(75,75,75,1)",
+					points: [
+						vec(-20,-20),
+						vec(20,-20),
+						vec(20,20),
+						vec(-20,20)
+					]
+				})
+			],
+			collidable: new alien.components.collidable.AABB({
+				half_height: 20,
+				half_width: 20
+			})
+		}).on('click', function(e, data) {
+			s.removeEntity(e);
+		});
+		s.addEntity(e);
+	});
+
 	//debugger;
-	_.setScene(s3);
+	_.setScene(s2);
 	_.registerEventListeners(_.canvas);
 
 

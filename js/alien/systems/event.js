@@ -1,4 +1,4 @@
-define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
+define(["../entity", "../game", "../math", "../scene"], function(Entity, Game, AlienMath, Scene) {
 
 
     /**
@@ -130,6 +130,21 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
             return this;
         };
 
+        Scene.prototype.on = function (event, callback) {
+            this.listeners[event] = this.listeners[event] || [];
+            this.listeners[event].push(callback);
+        }
+
+        Scene.prototype.trigger = function(event, data) {
+            if (this.listeners[event]) {
+                var i,
+                    l = this.listeners[event].length;
+                for (i = 0; i < l; i+=1) {
+                    this.listeners[event][i](this, data);
+                }
+            }
+        }
+
         Entity.prototype.isListeningFor = function (event) {
             if (this.listeners.hasOwnProperty(event)) {
                 return this.listeners[event].length > 0;
@@ -178,6 +193,8 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
             'mouseout': false
         };
 
+        Scene.default_properties.listeners = {};
+
         function entitiesAtPoint(point, scene, e_type) {
             var entities = scene.entities || [],
                 entities_at_point = [];
@@ -208,6 +225,11 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
                 if (!isDragEvent) {
                     scene = scene || {};
                     var entities = entitiesAtPoint(new AlienMath.Vector({ x: event.offsetX, y: event.offsetY }), scene, 'click');
+                    if (!entities.length) {
+                        scene.trigger('click', {
+                            event: event
+                        });
+                    }
                     for (var i = 0; i < entities.length; i += 1) {
                         entities[i].trigger('click', {
                             event: event
@@ -219,6 +241,11 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
             dblclick: function(event, scene) {
                 scene = scene || {};
                 var entities = entitiesAtPoint(new AlienMath.Vector({ x: event.offsetX, y: event.offsetY }), scene, 'dblclick');
+                if (!entities.length) {
+                        scene.trigger('dblclick', {
+                            event: event
+                        });
+                    }
                 for (var i = 0; i < entities.length; i++) {
                     entities[i].trigger('dblclick', {
                         event: event
@@ -228,6 +255,11 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
             mousedown: function(event, scene) {
                 scene = scene || {};
                 var entities = entitiesAtPoint(new AlienMath.Vector({ x: event.offsetX, y: event.offsetY }), scene, 'mousedown');
+                if (!entities.length) {
+                        scene.trigger('mousedown', {
+                            event: event
+                        });
+                    }
                 for (var i = 0; i < entities.length; i++) {
                     entities[i].trigger('mousedown', {
                         event: event
@@ -247,6 +279,9 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
                         });
                     }
                 }
+                scene.trigger('mousemove', {
+                    event: event
+                });
             },
             mouseup: function(event, scene) {
                 scene = scene || {};
@@ -258,6 +293,9 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
                         });
                     }
                 }
+                scene.trigger('mouseup', {
+                    event: event
+                });
                 deltaDrag = deltaDrag.sub(new AlienMath.Vector({
                     x: event.offsetX,
                     y: event.offsetY
@@ -270,6 +308,11 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
             mouseover: function(event, scene) {
                 scene = scene || {};
                 var entities = entitiesAtPoint(new AlienMath.Vector({ x: event.offsetX, y: event.offsetY }), scene, 'mouseover');
+                if (!entities.length) {
+                        scene.trigger('mouseover', {
+                            event: event
+                        });
+                    }
                 for (var i = 0; i < entities.length; i++) {
                     entities[i].trigger('mouseover', {
                         event: event
@@ -279,6 +322,11 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
             mouseout: function(event, scene) {
                 scene = scene || {};
                 var entities = entitiesAtPoint(new AlienMath.Vector({ x: event.offsetX, y: event.offsetY }), scene, 'mouseout');
+                if (!entities.length) {
+                        scene.trigger('mouseout', {
+                            event: event
+                        });
+                    }
                 for (var i = 0; i < entities.length; i++) {
                     entities[i].trigger('mouseout', {
                         event: event
@@ -295,6 +343,9 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
                         });
                     }
                 }
+                scene.trigger('keyup', {
+                    event: event
+                });
             },
             keydown: function(event, scene) {
                 scene = scene || {};
@@ -306,6 +357,9 @@ define(["../entity", "../game", "../math"], function(Entity, Game, AlienMath) {
                         });
                     }
                 }
+                scene.trigger('keydown', {
+                    event: event
+                });
             }
         };
     }();
