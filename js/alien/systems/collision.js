@@ -215,7 +215,6 @@ define(["../math", "../game"], function(AlienMath, Game) {
                     return 0;
                 }
 
-                this.numTests += 1;
                 var result = this[Math.max(this.tests[e1.collidable.preferredTest], this.tests[e2.collidable.preferredTest])](e1.collidable.offset(e1.position), e2.collidable.offset(e2.position));
                 if (result.mag && result.mag() < depth_tolerance) {
                     return 0;

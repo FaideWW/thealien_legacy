@@ -35,7 +35,7 @@ define(["../entity", "../components/renderable", "../math"], function(Entity, Re
                         this.target = s.mouse;
                     }
                     if (JSON.stringify(e.getWorldSpacePosition()) !== JSON.stringify(this.target.getWorldSpacePosition())) {
-                        e.position = this.target.getWorldSpacePosition();
+                        e.setPosition(this.target.getWorldSpacePosition());
                         this.callback(e);
                     }
                 }

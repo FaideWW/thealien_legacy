@@ -81,10 +81,10 @@ define(["./entity", "./bsp", "./math", "./game", "./global"], function(Entity, B
             this.mouse = new Entity({
             });
             this.mouse.on('mousemove', function(e, data) {
-                e.position = new AlienMath.Vector({
+                e.setPosition(new AlienMath.Vector({
                     x: data.event.offsetX,
                     y: data.event.offsetY
-                });
+                }));
             });
 
             this.entities.push(this.mouse);

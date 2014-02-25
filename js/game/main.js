@@ -118,7 +118,7 @@ require(["alien/alien"], function(alien) {
 		if ((data.entity.isStatic || data.entity.on_ground) && data.collision.x === 0) {
 			e.on_ground = true;
 		}
-		e.position = e.position.sub(data.collision);
+		e.setPosition(e.position.sub(data.collision));
 	}).massless = false;
 
 	red.isStatic = true;
@@ -352,21 +352,20 @@ require(["alien/alien"], function(alien) {
 		var newV;
 		console.log(data);
 		e.behaviors[0].stop();
-		console.log(e.getWorldSpacePosition());
 		e.setPosition(e.getPosition().sub(data.collision));
+		console.log("new worldspace:");
 		console.log(e.getWorldSpacePosition());
 		newV = e.determineVelocity();
-		console.log('');
+		console.log("velocity:");
 		console.log(newV);
-		e.velocity = newV.normalReflect(data.collision.unt());
-		//e.velocity = newV;
+		e.setVelocity(newV.normalReflect(data.collision.unt()));
+		console.log("new velocity");
 		console.log(e.velocity);
 	}
 
 	movement.on('collide', bounce);
 	subMovement.on('collide', bounce);
 	subSubMovement.on('collide', bounce);
-
 
 	s2.on('click', function(s, data) {
 		console.log('adding block at ' + data.event.layerX + ', ' + data.event.layerY);

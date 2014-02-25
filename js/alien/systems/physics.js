@@ -73,7 +73,6 @@ define(["../math", "../systems/collision", "../entity", "../game"], function(Ali
         var PhysicsSystem = {
             update: function(dt, g) {
                 
-                console.log('step');
                 CollisionSystem.numTests = 0; 
                 time_since_last_update += dt;
                 if (time_since_last_update >= update_freq) {
@@ -93,7 +92,6 @@ define(["../math", "../systems/collision", "../entity", "../game"], function(Ali
                     }
 
                     this.doCollision(g.scene);
-                    //console.log('collisions: ' + CollisionSystem.numTests);
                     time_since_last_update = 0;
                 }
             },
@@ -103,6 +101,8 @@ define(["../math", "../systems/collision", "../entity", "../game"], function(Ali
                     for (var j = i+1; j < s.entities.length; j += 1) {
                         collision = this.testCollision(s.entities[i], s.entities[j]);
                         if (collision !== 0) {
+                            CollisionSystem.numTests++;
+                            console.log('collision between ' + i + ', ' + j);
                             s.entities[i].trigger('collide', {
                                 collision: collision,
                                 entity: s.entities[j]
@@ -141,7 +141,7 @@ define(["../math", "../systems/collision", "../entity", "../game"], function(Ali
         Entity.default_properties.curr_pos = new AlienMath.Vector();
 
         Entity.prototype.physicsUpdate = function(dt) {
-            this.position = this.position.add(this.velocity.mul(dt / 1000));
+            this.setPosition(this.position.add(this.velocity.mul(dt / 1000)));
             this.velocity = this.velocity.add(this.acceleration.mul(dt / 1000));
 
             if (this.on_ground) {
@@ -165,8 +165,13 @@ define(["../math", "../systems/collision", "../entity", "../game"], function(Ali
                     return x.mul(update_freq);
                 }
             } 
-
             return this.velocity;
+        }
+
+        Entity.prototype.setVelocity = function(v) {
+            if (this.velocity !== v) {
+                this.velocity = v;
+            }
         }
 
         Entity.prototype.getOrientation = function() {

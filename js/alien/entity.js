@@ -25,8 +25,6 @@ define(["./global"], function(Global) {
     var Entity = (function () {
         'use strict';
 
-
-
         Entity.default_properties = {};
 
         function Entity(properties) {

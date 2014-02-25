@@ -131,7 +131,7 @@ define(function() {
                     if (normal.mag() !== 1) {
                         normal = normal.unt();
                     }
-                    r = this.sub(normal.mul(2 * this.dot(normal)));
+                    r = (normal.mul(2 * this.dot(normal))).sub(this);
                     return r;
                 }
 
