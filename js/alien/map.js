@@ -118,9 +118,6 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                                     collidables[j] = null;
                                     collidables[i] = merged_tile;
                                     collidables = _.compact(collidables);
-                                    console.groupCollapsed('merging tiles at ' + p1.toString() + ' and ' + p2.toString());
-                                    console.log(collidables[i]);
-                                    console.groupEnd();
                                     i = 0;
                                     j = 0;
                                 }
