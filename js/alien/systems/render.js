@@ -28,9 +28,28 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
                 var renderables = scene.getAllWithAllOf(['renderable', 'position']),
                     camera      = scene.getAllWithAllOf(['camera', 'position'])[0];
 
+                default_ctx.clearRect(0, 0, ctx_width, ctx_height);
                 /* If there's more than one entity with a camera, choose the first one in the list */
 
-                this.drawCamera(camera, renderables);
+                /* Draw the map background */
+                default_ctx.save();
+                default_ctx.fillStyle = scene.map.background;
+                default_ctx.fillRect(0, 0, ctx_width, ctx_height);
+                default_ctx.restore();
+                this.drawCamera(camera, scene.map, renderables);
+            },
+            drawMap: function (map) {
+                _.each(map.mapdata, function (row, y) {
+                    _.each(row, function (tile, x) {
+                        if (tile) {
+                            var tile_pos = {
+                                x: (x * map.tile_width) + (map.tile_width / 2),
+                                y: (y * map.tile_height) + (map.tile_height / 2)
+                            };
+                            Render.methods[map.tileset[tile].method](default_ctx, tile_pos, map.tileset[tile]);
+                        }
+                    });
+                });
             },
             /**
              * Accepts a camera object, and a list of renderable objects with a polygon (offset to a position),
@@ -42,10 +61,9 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
              * @param camera
              * @param renderables
              */
-            drawCamera: function (camera, renderables) {
+            drawCamera: function (camera, map, renderables) {
                 var cam_scale_x, cam_scale_y, cam_space_x, cam_space_y;
                 /* clear the entire canvas (might be some performance increase in tracking changed regions */
-                default_ctx.clearRect(0, 0, ctx_width, ctx_height);
                 default_ctx.save();
                 /* Transform to camera-space */
                 cam_scale_x = camera.camera.output.half_width  / camera.camera.view.half_width;
@@ -55,6 +73,10 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
                 default_ctx.scale(cam_scale_x, cam_scale_y);
 
                 default_ctx.translate(cam_space_x, cam_space_y);
+
+                /* Draw the map first */
+                Render.drawMap(map);
+
 
                 _.each(renderables, function (r) {
                     /* each renderable has a "preferred" rendering method */
@@ -169,9 +191,9 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
                     }
                 },
                 drawImage: function (ctx, pos, r) {
-                    if (r.ready) {
+                    if (r.spritesheet.ready) {
                         /* all values from the renderable are floored during initialization */
-                        ctx.drawImage(r.spritesheet, r.x, r.y, r.width, r.height,
+                        ctx.drawImage(r.spritesheet.image, r.x, r.y, r.width, r.height,
                                      (pos.x - r.r_width / 2), (pos.y - r.r_height / 2), r.r_width, r.r_height);
                     }
                 }

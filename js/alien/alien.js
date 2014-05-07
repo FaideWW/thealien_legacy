@@ -5,8 +5,8 @@ define(['./game', './utilities/math', './systems/render', './scene', './entity',
         './components/renderable', './systems/collision', './components/collidable',
         './systems/event', './components/controller', './systems/interface', './components/movable',
         './components/camera', './components/transformable', './systems/physics', './systems/animation',
-        './components/animatable'],
-    function (a, b, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) {
+        './components/animatable', './map'],
+    function (a, b, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) {
         'use strict';
         return {
             systems: {
@@ -30,6 +30,7 @@ define(['./game', './utilities/math', './systems/render', './scene', './entity',
                 Math: b
             },
             Game:   a,
+            Map:    s,
             Scene:  e,
             Entity: f
         };

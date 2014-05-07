@@ -32,7 +32,17 @@ define(['alien/systems/render'], function (Render) {
                 };
             },
             createRenderImage: function (spritesheet, x, y, width, height, r_width, r_height) {
-                var renderable = {
+                var renderable;
+                if (!imageCache.hasOwnProperty(spritesheet)) {
+                    imageCache[spritesheet] = {};
+                    imageCache[spritesheet].image = new Image();
+                    imageCache[spritesheet].image.src = spritesheet;
+                    imageCache[spritesheet].image.onload = function () {
+                        console.log('img ' + spritesheet + ' ready');
+                        imageCache[spritesheet].ready = true;
+                    };
+                }
+                renderable = {
                     method: 'drawImage',
                     spritesheet: imageCache[spritesheet],
                     x:           (x + 0.5) | 0,
@@ -40,20 +50,8 @@ define(['alien/systems/render'], function (Render) {
                     width:       (width + 0.5) | 0,
                     height:      (height + 0.5) | 0,
                     r_width:     ((r_width + 0.5) | 0) || ((width + 0.5) | 0),
-                    r_height:    ((r_height + 0.5) | 0) || ((height + 0.5) | 0),
-                    ready:       false
+                    r_height:    ((r_height + 0.5) | 0) || ((height + 0.5) | 0)
                 };
-                if (imageCache.hasOwnProperty(spritesheet)) {
-                    renderable.ready = true;
-                } else {
-                    imageCache[spritesheet] = new Image();
-                    imageCache[spritesheet].src = spritesheet;
-                    imageCache[spritesheet].onload = function () {
-                        console.log('img ' + spritesheet + ' ready');
-                        renderable.spritesheet = imageCache[spritesheet];
-                        renderable.ready = true;
-                    };
-                }
                 return renderable;
             }
         };

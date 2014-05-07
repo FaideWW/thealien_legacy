@@ -6,7 +6,7 @@ define(['underscore', 'alien/entity', 'alien/logging'], function (_, Entity, Log
     var Scene = (function () {
         var id_counter = 0,
             scene_ids = [];
-        function Scene(id, entities) {
+        function Scene(id, map, entities) {
             if (!(this instanceof Scene)) {
                 return new Scene(id, entities);
             }
@@ -40,6 +40,7 @@ define(['underscore', 'alien/entity', 'alien/logging'], function (_, Entity, Log
                     this.entities = entities;
                 }
             }
+            this.map = map;
         }
 
         Scene.prototype = {

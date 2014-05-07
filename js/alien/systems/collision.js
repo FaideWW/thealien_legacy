@@ -27,7 +27,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
              */
             var entities            = scene.getAllWithAllOf(['collidable', 'position']),
                 nonstatic_entities  = _.where(entities, {isStatic: false}),
-                static_entities     = _.where(entities, {isStatic: true}),
+                static_entities     = _.where(entities, {isStatic: true}).concat(scene.map.getCollidables()),
                 possible_collisions = [],
                 collisions,
                 i,
@@ -60,6 +60,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
             }
 
             collisions = this.collide(possible_collisions);
+            Log.log(possible_collisions.length + ' possible collisions; ' + collisions.length + ' actual collisions');
             if (collisions.length) {
                 //debugger;
                 Messaging.enqueue('collisionresolution', _.map(collisions, function (manifold) {

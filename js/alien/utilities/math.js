@@ -291,7 +291,8 @@ define(["underscore"], function (_) {
                 }
 
                 Polygon.prototype = {
-                    toLines: function () {
+                    toLines: function (offset) {
+                        offset = offset || new Math.Vector();
                         var i, j, l = this.points.length, lines = [];
                         for (i = 0; i < l; i += 1) {
                             j = i + 1;
@@ -299,8 +300,8 @@ define(["underscore"], function (_) {
                                 j = 0;
                             }
                             lines.push(new Math.Line({
-                                start: this.points[i],
-                                end: this.points[j],
+                                start: this.points[i].add(offset),
+                                end: this.points[j].add(offset),
                                 poly: this
                             }));
                         }
@@ -337,6 +338,26 @@ define(["underscore"], function (_) {
                                 return p.mul(scalar);
                             })
                         });
+                    },
+                    sharedEdge: function (other, other_position) {
+                        var this_lines   = this.toLines(),
+                            other_lines  = other.toLines(other_position),
+                            this_length  = this_lines.length,
+                            other_length = other_lines.length,
+                            i,
+                            j;
+                        for (i = 0; i < this_length; i += 1) {
+                            for (j = 0; j < other_length; j += 1) {
+                                if (this_lines[i].start.eq(other_lines[j].end) && this_lines[i].end.eq(other_lines[j].start)) {
+                                    return {
+                                        line: this_lines[i],
+                                        this_index: i,
+                                        other_index: j
+                                    };
+                                }
+                            }
+                        }
+                        return false;
                     }
                 };
 
@@ -386,6 +407,12 @@ define(["underscore"], function (_) {
 
             clamp: function (val, min, max) {
                 return m.max(min, m.min(val, max));
+            },
+            average: function (p1, p2) {
+                return new this.Vector({
+                    x: (p1.x + p2.x) / 2,
+                    y: (p1.y + p2.y) / 2
+                });
             }
         };
 

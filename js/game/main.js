@@ -244,18 +244,57 @@ require(['alien/alien'], function (alien) {
                 collidable: cl.createBoundingCircle(radius),
                 movable: m.createMovable(),
                 position: new am.Vector({x: 205, y: 165}),
-                renderable: r.createRenderCircle(radius, null, "rgba(0,255,255,1)")
-            }),
-            new alien.Entity({
-                id: "ground",
-                collidable: cl.createAABB(canvas.width / 2, 50),
-                position: new am.Vector({x: canvas.width / 2, y: canvas.height + 40 }),
-                renderable: r.createRenderRectangle(canvas.width, 100, null, "rgba(255,0,255,1)"),
-                isStatic: true
+                renderable: r.createRenderCircle(radius, null, "rgba(100,100,100,1)")
             })
         ],
-
-        s = new alien.Scene(null, e);
+        map = new alien.Map({
+            tile_width: 20,
+            tile_height: 20,
+            tileset: {
+                tilesheet: "img/tileset.png",
+                tiles: {
+                    GROUND: {
+                        x: 0,
+                        y: 0,
+                        w: 20,
+                        h: 20
+                    },
+                    WALL: {
+                        x: 20,
+                        y: 0,
+                        w: 20,
+                        h: 20
+                    }
+                }
+            },
+            background: "rgba(100,255,255,1)",
+            tilemap: {
+                "_": 'GROUND',
+                "#": 'WALL'
+            },
+            mapdata: [
+                "####################",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#                  #",
+                "#__________________#",
+            ]
+        }),
+        s = new alien.Scene(null, map, e);
     game.addScene(s).loadScene(s.id);
 
     window.game = game;
