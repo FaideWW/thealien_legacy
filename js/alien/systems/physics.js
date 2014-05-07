@@ -8,7 +8,7 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
     var PhysicsSystem = (function () {
         var MAX_V               = 100,
             gravity             = new M.Vector({x: 0, y: 100}),
-            air_friction        = 0.9,
+            air_friction        = 0.98,
             ground_friction     = 0.9,
             initGravityEntities = function (scene) {
                 var entities = scene.getAllWithAllOf(['collidable', 'movable']);
@@ -27,6 +27,7 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
             };
 
         return {
+            MAX_V: MAX_V,
             init: function (scene) {
                 initGravityEntities(scene);
             },
@@ -53,6 +54,13 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                         }
                         if (!(m.movingRight || m.movingLeft)) {
                             m.velocity = m.velocity.mul(ground_friction);
+                        }
+                    } else {
+                        if (Math.abs(m.velocity.x) < 1) {
+                            m.velocity.x = 0;
+                        }
+                        if (!(m.movingRight || m.movingLeft)) {
+                            m.velocity.x *= air_friction;
                         }
                     }
 

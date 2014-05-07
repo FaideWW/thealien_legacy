@@ -24,23 +24,24 @@ define(['underscore', 'alien/systems/messaging', 'alien/logging'], function (_, 
                 Filter the animation set by each animation's predicate, sort by their priority and pluck the last element,
                  */
                 var active    = _.last(_.sortBy(_.filter(entity.animatable.animations, function (animation) {
-                        //debugger;
+                    //debugger;
                     return animation.predicate.call(entity, scene);
                 }), function (anim) {
                     return anim.priority;
                 })),
-                    animation = entity.animatable.animations[entity.animatable.activeAnimation];
+                    animation = entity.animatable.animations[entity.animatable.activeAnimation],
+                    frametime = (typeof animation.framerate === 'function') ? 1000 / animation.framerate.call(entity, dt) : 1000 / animation.framerate;
                 if (!active) {
                     this.setAnimation(entity, entity.animatable.defaultAnimation);
                 } else if (active !== animation) {
                     this.setAnimation(entity, active.id);
                 }
                 animation.timeSince += dt;
-                if (animation.timeSince >= animation.frametime) {
+                if (animation.timeSince >= frametime) {
                     /* Switch to next frame */
                     animation.currentFrame = (animation.loops) ? (animation.currentFrame + 1) % animation.frames.length
                                                                : Math.min(animation.currentFrame + 1, animation.frames.length - 1);
-                    animation.timeSince = animation.timeSince % animation.frametime;
+                    animation.timeSince = animation.timeSince % frametime;
                     entity.renderable = animation.frames[animation.currentFrame];
                 }
             }, this);

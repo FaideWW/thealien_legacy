@@ -12,6 +12,7 @@ define(['underscore', 'alien/components/renderable'], function (_, RenderableFac
                     animations: {}
                 };
                 _.each(animations, function (animation, animation_id) {
+                    //debugger;
                     animation_set.animations[animation_id] = this.createAnimation(animation_id, spritesheet, animation.frames,
                                                                                   animation.predicate, animation.options);
                 }, this);
@@ -24,20 +25,19 @@ define(['underscore', 'alien/components/renderable'], function (_, RenderableFac
              *  multiple states return true, the animation with the highest priority will be played.  When animations
              *  have equally high priorities, alphabetical order will serve as priority.
              *
-             * @param spritesheet     : img      - The image data for the animation
+             * @param spritesheet     : Object   - The image data for the animation
              * @param frames          : Array    - A list of coordinates on the spritesheet representing the frames of the animation
              * @param state_predicate : Function - Is invoked within the containing entity's context.  Returns true if the animation should be played, false otherwise.
-             * @param framerate       : Number   - The speed the animation should play at, in FPS
-             * @param loops           : Boolean  - Whether the animation loops or not
-             * @param priority        : Number   - The animation's priority in the state machine
+             * @param options         : Object   - Other miscellaneous parameters
              * @returns {{frames: (Array|*), frametime: number, loops: (*|boolean), currentFrame: number, timeSince: number}}
              */
             createAnimation: function (id, spritesheet, frames, state_predicate, options) {
+                options = options || {};
                 return {
                     frames: _.map(frames, function (frame) {
                         return RenderableFactory.createRenderImage(spritesheet, frame.x, frame.y, frame.w, frame.h, frame.rw, frame.rh);
                     }),
-                    frametime:    1000 / options.framerate,
+                    framerate:    options.framerate,
                     id:           id,
                     loops:        (options.loops === undefined) ? true : options.loops,
                     predicate:    state_predicate,

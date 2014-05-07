@@ -25,28 +25,38 @@ require(['alien/alien'], function (alien) {
             }, function () { /* this.movable.velocity.y =  speed; */ }, true),
             cn.createKeyBinding('a', function () {
                 /* left keydown */
-                this.movable.acceleration.x = -speed;
-                this.movable.facingRight = false;
-                this.movable.facingLeft = true;
-                this.movable.movingRight = false;
-                this.movable.movingLeft = true;
+                if (this.movable.velocity.x > 0) {
+                    this.movable.velocity.x *= 0.4;
+                }
+                this.movable.velocity.x -= speed / 10;
+                if (!this.movable.movingLeft || !this.movable.movingRight) {
+                    this.movable.facingRight = false;
+                    this.movable.facingLeft = true;
+                    this.movable.movingRight = false;
+                    this.movable.movingLeft = true;
+                }
             }, function () {
                 /* left keyup */
                 this.movable.movingLeft = false;
                 this.movable.acceleration.x = 0;
-            }, true),
+            }),
             cn.createKeyBinding('d', function () {
                 /* right keydown */
-                this.movable.acceleration.x = speed;
-                this.movable.facingLeft = false;
-                this.movable.facingRight = true;
-                this.movable.movingLeft = false;
-                this.movable.movingRight = true;
+                if (this.movable.velocity.x < 0) {
+                    this.movable.velocity.x *= 0.4;
+                }
+                this.movable.velocity.x += speed / 10;
+                if (!this.movable.movingRight || !this.movable.movingLeft) {
+                    this.movable.facingLeft = false;
+                    this.movable.facingRight = true;
+                    this.movable.movingLeft = false;
+                    this.movable.movingRight = true;
+                }
             }, function () {
                 /* right keyup */
                 this.movable.movingRight = false;
                 this.movable.acceleration.x = 0;
-            }, true)
+            })
         ],
         mouse_map = cn.createMouseMap(
             function () {},
@@ -93,9 +103,22 @@ require(['alien/alien'], function (alien) {
                     return this.movable.onGround && (this.movable.facingRight && this.movable.velocity.x > 0);
                 },
                 options: {
-                    framerate: framerate,
+                    framerate: function (dt) {
+                        return Math.abs(this.movable.velocity.x) / alien.systems.Physics.MAX_V * framerate;
+                    },
                     loops: true
                 }
+            },
+            skid_right: {
+                frames: [
+                    an.createFrame(186, 72, 22, 22)
+                ],
+                predicate: function () {
+                    return this.movable.onGround && (this.movable.facingLeft && this.movable.velocity.x > 0);
+                },
+                options: {
+                    framerate: framerate
+                },
             },
             air_up_right: {
                 frames: [
@@ -179,8 +202,21 @@ require(['alien/alien'], function (alien) {
                     return this.movable.onGround && (this.movable.facingLeft && this.movable.velocity.x < 0);
                 },
                 options: {
-                    framerate: framerate,
+                    framerate: function (dt) {
+                        return Math.abs(this.movable.velocity.x) / alien.systems.Physics.MAX_V * framerate;
+                    },
                     loops: true
+                }
+            },
+            skid_left: {
+                frames: [
+                    an.createFrame(768, 72, 22, 22)
+                ],
+                predicate: function () {
+                    return this.movable.onGround && (this.movable.facingRight && this.movable.velocity.x < 0);
+                },
+                options: {
+                    framerate: framerate
                 }
             },
             air_up_left: {
