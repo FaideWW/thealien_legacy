@@ -291,11 +291,12 @@ require(['alien/alien'], function (alien) {
                 "#                  #",
                 "#                  #",
                 "#                  #",
-                "#__________________#",
+                "#__________________#"
             ]
         }),
         s = new alien.Scene(null, map, e);
     game.addScene(s).loadScene(s.id);
+    game.run();
 
     window.game = game;
 
