@@ -63,7 +63,7 @@ require(['alien/alien'], function (alien) {
                     an.createFrame(3, 0, 20, 20),
                     an.createFrame(27, 0, 20, 20)
                 ],
-                predicate: function (scene) {
+                predicate: function () {
                     return (this.movable.onGround && this.movable.facingRight && this.movable.velocity.x === 0);
                 },
                 options: {
@@ -83,7 +83,7 @@ require(['alien/alien'], function (alien) {
                     an.createFrame(189, 50, 20, 20),
                     an.createFrame(212, 50, 20, 20)
                 ],
-                predicate: function (scene) {
+                predicate: function () {
                     return this.movable.onGround && (this.movable.facingRight && this.movable.velocity.x > 0);
                 },
                 options: {
@@ -95,7 +95,7 @@ require(['alien/alien'], function (alien) {
                 frames: [
                     an.createFrame(4, 98, 20, 20)
                 ],
-                predicate: function (scene) {
+                predicate: function () {
                     return (!this.movable.onGround && (this.movable.facingRight && (this.movable.jumping && this.movable.velocity.y < 0)));
                 },
                 options: {
@@ -114,7 +114,7 @@ require(['alien/alien'], function (alien) {
                     an.createFrame(173, 98, 21, 20),
                     an.createFrame(198, 98, 20, 20)
                 ],
-                predicate: function (scene) {
+                predicate: function () {
                     return (!this.movable.onGround && (this.movable.facingRight && (this.movable.jumping && this.movable.velocity.y >= 0)));
                 },
                 options: {
@@ -127,7 +127,7 @@ require(['alien/alien'], function (alien) {
                 frames: [
                     an.createFrame(225, 97, 20, 21)
                 ],
-                predicate: function (scene) {
+                predicate: function () {
                     return (!this.movable.onGround && (this.movable.facingRight && (!this.movable.jumping && this.movable.velocity.y > 0)));
                 },
                 options: {
@@ -149,7 +149,7 @@ require(['alien/alien'], function (alien) {
                     an.createFrame(953, 0, 20, 20),
                     an.createFrame(929, 0, 20, 20)
                 ],
-                predicate: function (scene) {
+                predicate: function () {
                     return (this.movable.onGround && this.movable.facingLeft && this.movable.velocity.x === 0);
                 },
                 options: {
@@ -169,7 +169,7 @@ require(['alien/alien'], function (alien) {
                     an.createFrame(768, 50, 20, 20),
                     an.createFrame(744, 50, 20, 20)
                 ],
-                predicate: function (scene) {
+                predicate: function () {
                     return this.movable.onGround && (this.movable.facingLeft && this.movable.velocity.x < 0);
                 },
                 options: {
@@ -181,7 +181,7 @@ require(['alien/alien'], function (alien) {
                 frames: [
                     an.createFrame(952, 98, 20, 20)
                 ],
-                predicate: function (scene) {
+                predicate: function () {
                     return (!this.movable.onGround && (this.movable.facingLeft && (this.movable.jumping && this.movable.velocity.y < 0)));
                 },
                 options: {
@@ -200,7 +200,7 @@ require(['alien/alien'], function (alien) {
                     an.createFrame(782, 98, 21, 20),
                     an.createFrame(758, 98, 20, 20)
                 ],
-                predicate: function (scene) {
+                predicate: function () {
                     return (!this.movable.onGround && (this.movable.facingLeft && (this.movable.jumping && this.movable.velocity.y >= 0)));
                 },
                 options: {
@@ -213,7 +213,7 @@ require(['alien/alien'], function (alien) {
                 frames: [
                     an.createFrame(731, 97, 20, 21)
                 ],
-                predicate: function (scene) {
+                predicate: function () {
                     return (!this.movable.onGround && (this.movable.facingLeft && (!this.movable.jumping && this.movable.velocity.y > 0)));
                 },
                 options: {
@@ -233,7 +233,6 @@ require(['alien/alien'], function (alien) {
                 mouselistener: cn.createMouseListener(mouse_map),
                 position: new am.Vector({x: 205, y: 205}),
                 transformable: t.createTransformable(null, null, null)
-                //renderable: r.createRenderImage("img/sprite.jpg", 0, 0, 1920, 1080, 20, 20)
             }),
             new alien.Entity({
                 collidable: cl.createBoundingPolygon(polygon),
