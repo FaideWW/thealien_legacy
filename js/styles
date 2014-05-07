@@ -1,2 +1,0 @@
-//OO functions (those attached to obj.prototype or invoked with obj.foo() modify the state of obj only
-//all other functions are purely stateless; nothing is modified, only new objects are created
