@@ -60,7 +60,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
             }
 
             collisions = this.collide(possible_collisions);
-            Log.log(possible_collisions.length + ' possible collisions; ' + collisions.length + ' actual collisions');
+            //Log.log(possible_collisions.length + ' possible collisions; ' + collisions.length + ' actual collisions');
             if (collisions.length) {
                 //debugger;
                 Messaging.enqueue('collisionresolution', _.map(collisions, function (manifold) {
