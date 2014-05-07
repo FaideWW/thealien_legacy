@@ -141,7 +141,7 @@ define(function() {
                 }
 
                 return Vector;
-
+ 
             }()),
             
             /**

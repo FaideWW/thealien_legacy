@@ -392,8 +392,50 @@ require(["alien/alien"], function(alien) {
 		s.addEntity(e);
 	});
 
+	var s3_listener = new alien.Entity(),
+		keyCapture = new alien.components.Controller({
+		control_entity: s3_listener,
+		keymap: {
+			'all': {
+				down: function(e, data) {
+					document.getElementById('keyText').innerHTML = "Key " + data.event.keyCode + " down";
+				},
+				up: function(e, data) {
+					document.getElementById('keyText').innerHTML = "Key " + data.event.keyCode + " up";
+				}
+			},
+			'w+e': {
+				down: function(e, data) {
+					document.getElementById('keyText').innerHTML = "WE down";
+				},
+				up: function(e, data) {
+					document.getElementById('keyText').innerHTML = "WE up";
+				}
+			},
+		},
+		newKeymap: [
+			{
+				'key': 'any',
+				'onkeydown': function(e, data) {
+						document.getElementById('keyText').innerHTML = data.event.keyCode + " keyDown";
+					},
+				'onkeyup': function(e, data) {
+						document.getElementById('keyText').innerHTML = data.event.keyCode + " keyUp";
+					},
+				'repeats': false
+			}
+		]
+	});
+
+	var s3 = new alien.Scene({
+		entities: [
+			s3_listener
+		]
+	})
+
+
 	//debugger;
-	_.setScene(s2);
+	_.setScene(s3);
 	_.registerEventListeners(_.canvas);
 
 

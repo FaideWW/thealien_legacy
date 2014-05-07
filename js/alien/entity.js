@@ -26,6 +26,7 @@ define(["./global"], function(Global) {
         'use strict';
 
         Entity.default_properties = {};
+        var global_id = 0;
 
         function Entity(properties) {
             // enforces new
@@ -43,6 +44,12 @@ define(["./global"], function(Global) {
                 if (properties.hasOwnProperty(k)) {
                     this[k] = properties[k];
                 }
+            }
+            this.g_id = global_id++;
+            if (properties.name) {
+                this.name = properties.name;
+            } else {
+                this.name = this.g_id;
             }
         }
 
