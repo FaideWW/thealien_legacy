@@ -158,7 +158,7 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                             Render.step(this.scenes[this.activeScene], dt);
                             fps_array[fps_iterations] = dt;
                             fps_iterations = (fps_iterations + 1) % fps_max;
-                            Log.log("Average fps: " + (1000 * fps_array.length / _.reduce(fps_array, function (sum, n) { return n + sum; }, 0)));
+                            //Log.log("Average fps: " + (1000 * fps_array.length / _.reduce(fps_array, function (sum, n) { return n + sum; }, 0)));
 
                         }
                         g = this;

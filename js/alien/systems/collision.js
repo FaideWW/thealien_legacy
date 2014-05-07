@@ -79,6 +79,9 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                             manifold = m.manifold;
                         }
                         Physics.shift(toShift, manifold);
+                        if (manifold.x > 0) {
+                            //debugger;
+                        }
                         Physics.flatten(toShift, manifold);
                         //debugger;
                         Event.trigger('collide', m.collider, {

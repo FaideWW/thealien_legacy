@@ -8,16 +8,18 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
     var PhysicsSystem = (function () {
         var MAX_V               = 100,
             gravity             = new M.Vector({x: 0, y: 100}),
-            air_friction        = 1,
-            ground_friction     = 5,
+            air_friction        = 0.9,
+            ground_friction     = 0.9,
             initGravityEntities = function (scene) {
                 var entities = scene.getAllWithAllOf(['collidable', 'movable']);
                 console.log(entities);
                 _.each(entities, function (entity) {
                     Event.on(entity, 'collide', function (manifold) {
-                        if (manifold.other.isStatic && (1 - manifold.manifold.unt().dot(new M.Vector({x: 0, y: -1}))) < 0.0001
-                            && this.movable.velocity.y >= 0) {
-                            this.movable.onGround = true;
+                        if (manifold.other.isStatic
+                                && (1 - manifold.manifold.unt().dot(new M.Vector({x: 0, y: -1}))) < 0.0001
+                                && this.movable.velocity.y >= 0
+                                ) {
+                            PhysicsSystem.ground(this);
                             this.movable.jumping = false;
                         }
                     });
@@ -34,20 +36,39 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                 var entities = scene.getAllWithAllOf(['movable', 'position']);
                 _.each(entities, function (e) {
                     var m = e.movable;
+                    if (m.velocity.y !== 0) {
+                        m.onGround = false;
+                    }
 
                     /* Resolve position first, then velocity */
                     e.position = e.position.add(m.velocity.mul(dt / 1000));
                     m.velocity = m.velocity.add(m.acceleration.mul(dt / 1000));
-                    if (e.movable.onGround) {
-                        m.velocity.y = 0;
-                    } else if (e.movable.hasGravity) {
+                    if (m.hasGravity) {
                         m.velocity = m.velocity.add(gravity.mul(dt / 1000));
+                    }
+
+                    if (m.onGround) {
+                        if (Math.abs(m.velocity.x) < 1) {
+                            m.velocity.x = 0;
+                        }
+                        if (!(m.movingRight || m.movingLeft)) {
+                            m.velocity = m.velocity.mul(ground_friction);
+                        }
                     }
 
                     /* Clamp velocity to MAX_V on each axis*/
                     m.velocity.x = M.clamp(m.velocity.x, -MAX_V, MAX_V);
                     m.velocity.y = M.clamp(m.velocity.y, -MAX_V, MAX_V);
+                    if (e.id === "player") {
+                        Log.log(m.velocity.toString());
+                    }
                 });
+            },
+            ground: function (entity) {
+                if (entity.movable) {
+                    entity.movable.onGround = true;
+                    entity.movable.velocity.y = 0;
+                }
             },
             resolveCollision: function () {
                 Messaging.fetch('collisionresolution');
@@ -64,12 +85,7 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
             },
             flatten: function (entity, normal) {
                 if (entity.movable) {
-                    entity.movable.velocity.sub(entity.movable.velocity.vectorProject(normal));
-                }
-            },
-            ground: function (entity) {
-                if (entity.movable && entity.movable.hasGravity) {
-                    entity.movable.onGround = true;
+                    entity.movable.velocity = entity.movable.velocity.sub(entity.movable.velocity.vectorProject(normal));
                 }
             },
             bounce: function (entity, normal) {

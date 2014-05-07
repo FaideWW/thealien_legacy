@@ -25,21 +25,27 @@ require(['alien/alien'], function (alien) {
             }, function () { /* this.movable.velocity.y =  speed; */ }, true),
             cn.createKeyBinding('a', function () {
                 /* left keydown */
-                this.movable.velocity.x -= speed;
+                this.movable.acceleration.x = -speed;
                 this.movable.facingRight = false;
                 this.movable.facingLeft = true;
+                this.movable.movingRight = false;
+                this.movable.movingLeft = true;
             }, function () {
                 /* left keyup */
-                this.movable.velocity.x += speed;
+                this.movable.movingLeft = false;
+                this.movable.acceleration.x = 0;
             }, true),
             cn.createKeyBinding('d', function () {
                 /* right keydown */
-                this.movable.velocity.x +=  speed;
+                this.movable.acceleration.x = speed;
                 this.movable.facingLeft = false;
                 this.movable.facingRight = true;
+                this.movable.movingLeft = false;
+                this.movable.movingRight = true;
             }, function () {
                 /* right keyup */
-                this.movable.velocity.x -= speed;
+                this.movable.movingRight = false;
+                this.movable.acceleration.x = 0;
             }, true)
         ],
         mouse_map = cn.createMouseMap(
@@ -289,14 +295,13 @@ require(['alien/alien'], function (alien) {
                 "#                  #",
                 "#                  #",
                 "#                  #",
-                "#                  #",
+                "#     ___________  #",
                 "#                  #",
                 "#__________________#"
             ]
         }),
         s = new alien.Scene(null, map, e);
     game.addScene(s).loadScene(s.id);
-    game.run();
 
     window.game = game;
 

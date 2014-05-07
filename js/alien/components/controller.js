@@ -22,7 +22,8 @@ define(['underscore'], function (_) {
              */
             createKeyListener: function (keymap) {
                 return {
-                    keymap: keymap
+                    keymap: keymap,
+                    keys_pressed: 0
                 };
             },
             /**

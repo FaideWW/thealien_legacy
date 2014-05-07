@@ -1,7 +1,7 @@
 /**
  * Created by faide on 2014-05-01.
  */
-define(['underscore', 'alien/systems/messaging'], function (_, Messaging) {
+define(['underscore', 'alien/systems/messaging', 'alien/logging'], function (_, Messaging, Log) {
     "use strict";
     var synchronized_animations = [];
     return {
