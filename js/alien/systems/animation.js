@@ -3,6 +3,7 @@
  */
 define(['underscore', 'alien/systems/messaging'], function (_, Messaging) {
     "use strict";
+    var synchronized_animations = [];
     return {
         init: function (scene) {
             var animated = scene.getAllWith('animatable');
@@ -45,13 +46,27 @@ define(['underscore', 'alien/systems/messaging'], function (_, Messaging) {
             }, this);
         },
         setAnimation: function (entity, animation_id) {
+            var current_anim,
+                next_anim,
+                resetAnimation = function (animation_id) {
+                    if (this.animatable) {
+                        this.animatable.animations[animation_id].currentFrame = 0;
+                    }
+                };
             if (entity.animatable) {
-                /* Reset the currently active animation */
-                if (!(entity.animatable.animations[entity.animatable.activeAnimation].synchronized
-                    && entity.animatable.animations[animation_id].synchronized)) {
-                    entity.animatable.animations[entity.animatable.activeAnimation].currentFrame = 0;
+                current_anim = entity.animatable.animations[entity.animatable.activeAnimation];
+                next_anim    = entity.animatable.animations[animation_id];
+                if (current_anim.id !== animation_id) {
+                    /* Reset the currently active animation */
+                    if (!(current_anim.synchronized && next_anim.synchronized)) {
+                        _.each(synchronized_animations, resetAnimation, entity);
+                        synchronized_animations = [];
+                    } else {
+                        next_anim.currentFrame = current_anim.currentFrame;
+                    }
+                    synchronized_animations.push(current_anim.id, animation_id);
+                    entity.animatable.activeAnimation = animation_id;
                 }
-                entity.animatable.activeAnimation = animation_id;
             }
         }
     };
