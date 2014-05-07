@@ -6,4 +6,13 @@ html, body {
 	overflow: hidden;
 
 	font: 18px sans-serif;
+	background-color: #ddd;
+}
+
+.canvas-container {
+	text-align: center;
+}
+
+canvas {
+	background-color: #fff;
 }
