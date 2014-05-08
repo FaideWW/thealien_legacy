@@ -6,7 +6,7 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
         'alien/systems/messaging'], function (_, M, Log, Event, Messaging) {
     "use strict";
     var PhysicsSystem = (function () {
-        var MAX_V               = 100,
+        var MAX_V               = 120,
             gravity             = new M.Vector({x: 0, y: 100}),
             air_friction        = 0.98,
             ground_friction     = 0.9,
@@ -67,9 +67,6 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                     /* Clamp velocity to MAX_V on each axis*/
                     m.velocity.x = M.clamp(m.velocity.x, -MAX_V, MAX_V);
                     m.velocity.y = M.clamp(m.velocity.y, -MAX_V, MAX_V);
-                    if (e.id === "player") {
-                        Log.log(m.velocity.toString());
-                    }
                 });
             },
             ground: function (entity) {

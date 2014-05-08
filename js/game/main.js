@@ -25,16 +25,11 @@ require(['alien/alien'], function (alien) {
             }, function () { /* this.movable.velocity.y =  speed; */ }, true),
             cn.createKeyBinding('a', function () {
                 /* left keydown */
-                if (this.movable.velocity.x > 0) {
-                    this.movable.velocity.x *= 0.4;
-                }
-                this.movable.velocity.x -= speed / 10;
-                if (!this.movable.movingLeft || !this.movable.movingRight) {
-                    this.movable.facingRight = false;
-                    this.movable.facingLeft = true;
-                    this.movable.movingRight = false;
-                    this.movable.movingLeft = true;
-                }
+                this.movable.velocity.x -= speed / 20;
+                this.movable.facingRight = false;
+                this.movable.facingLeft = true;
+                this.movable.movingRight = false;
+                this.movable.movingLeft = true;
             }, function () {
                 /* left keyup */
                 this.movable.movingLeft = false;
@@ -42,16 +37,11 @@ require(['alien/alien'], function (alien) {
             }),
             cn.createKeyBinding('d', function () {
                 /* right keydown */
-                if (this.movable.velocity.x < 0) {
-                    this.movable.velocity.x *= 0.4;
-                }
-                this.movable.velocity.x += speed / 10;
-                if (!this.movable.movingRight || !this.movable.movingLeft) {
-                    this.movable.facingLeft = false;
-                    this.movable.facingRight = true;
-                    this.movable.movingLeft = false;
-                    this.movable.movingRight = true;
-                }
+                this.movable.velocity.x += speed / 20;
+                this.movable.facingLeft = false;
+                this.movable.facingRight = true;
+                this.movable.movingLeft = false;
+                this.movable.movingRight = true;
             }, function () {
                 /* right keyup */
                 this.movable.movingRight = false;
@@ -117,8 +107,9 @@ require(['alien/alien'], function (alien) {
                     return this.movable.onGround && (this.movable.facingLeft && this.movable.velocity.x > 0);
                 },
                 options: {
-                    framerate: framerate
-                },
+                    framerate: framerate,
+                    priority: 1
+                }
             },
             air_up_right: {
                 frames: [
@@ -216,7 +207,8 @@ require(['alien/alien'], function (alien) {
                     return this.movable.onGround && (this.movable.facingRight && this.movable.velocity.x < 0);
                 },
                 options: {
-                    framerate: framerate
+                    framerate: framerate,
+                    priority: 1
                 }
             },
             air_up_left: {

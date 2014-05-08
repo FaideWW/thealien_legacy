@@ -148,7 +148,7 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                             if (this.timeSince >= this.frametime) {
                                 this.timeSince = this.timeSince % this.frametime;
 
-                                Event.trigger('update', null, dt);
+                                Event.step(this.scenes[this.activeScene], dt);
                                 Physics.step(this.scenes[this.activeScene], dt);
                                 Collider.step(this.scenes[this.activeScene], dt);
                                 Physics.resolveCollision();
@@ -159,7 +159,10 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                             fps_array[fps_iterations] = dt;
                             fps_iterations = (fps_iterations + 1) % fps_max;
                             //Log.log("Average fps: " + (1000 * fps_array.length / _.reduce(fps_array, function (sum, n) { return n + sum; }, 0)));
-
+                            Log.log("movingLeft: " + this.scenes[this.activeScene].entities.player.movable.movingLeft +
+                                   " movingRight: " + this.scenes[this.activeScene].entities.player.movable.movingRight +
+                                   " facingLeft: " + this.scenes[this.activeScene].entities.player.movable.facingLeft +
+                                   " facingRight: " + this.scenes[this.activeScene].entities.player.movable.facingRight);
                         }
                         g = this;
                         this.loopID = requestNextFrame(function () { g.step(currTime); });

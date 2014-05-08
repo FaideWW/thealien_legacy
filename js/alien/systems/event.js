@@ -25,9 +25,11 @@ define(['underscore'], function (_) {
             });
         },
         triggerCallback = function (cb, context, event_data) {
-            if (cb.once && event_data.type === "keydown") {
+            if (event_data.type === "keydown") {
                 if (!keys_pressed[event_data.keyCode]) {
                     cb.handler.call(context, event_data);
+                } else if (!cb.once) {
+                    cb.handler.call(context, keys_pressed[event_data.keyCode]);
                 }
             } else {
                 cb.handler.call(context, event_data);
@@ -69,6 +71,12 @@ define(['underscore'], function (_) {
             }
             return this;
         },
+        step: function (scene, dt) {
+            this.trigger('update', null, dt);
+            _.each(keys_pressed, function (event) {
+                this.trigger('keydown', null, event);
+            }, this);
+        },
         trigger: function (event, entity, msg) {
             if (entity) {
                 if (entity.entity) {
@@ -88,7 +96,7 @@ define(['underscore'], function (_) {
                 }, this);
             }
             if (event === "keydown") {
-                keys_pressed[msg.keyCode] = true;
+                keys_pressed[msg.keyCode] = msg;
             } else if (event === "keyup") {
                 keys_pressed[msg.keyCode] = false;
             }
