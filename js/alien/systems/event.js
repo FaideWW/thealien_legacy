@@ -74,6 +74,9 @@ define(['underscore'], function (_) {
         step: function (scene, dt) {
             this.trigger('update', null, dt);
             _.each(keys_pressed, function (event) {
+                if (!event) {
+                    return;
+                }
                 this.trigger('keydown', null, event);
             }, this);
         },

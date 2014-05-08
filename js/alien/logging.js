@@ -5,10 +5,13 @@ define(function () {
     'use strict';
     var reported = [];
     return {
+        fps: function (msg) {
+            window.document.getElementById("fps").innerHTML = msg;
+        },
         log: function (msg, once) {
             // report the error to whatever error handling is in place (in this case, just dump to the console)
             if (!once || reported.indexOf(msg) === -1) {
-                window.document.getElementById("time").innerHTML = msg;
+                window.document.getElementById("log").innerHTML = msg;
             }
             if (once) {
                 reported.push(msg);

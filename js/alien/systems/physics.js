@@ -8,8 +8,8 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
     var PhysicsSystem = (function () {
         var MAX_V               = 120,
             gravity             = new M.Vector({x: 0, y: 100}),
-            air_friction        = 0.98,
-            ground_friction     = 0.9,
+            air_friction        = 0.95,
+            ground_friction     = 0.5,
             initGravityEntities = function (scene) {
                 var entities = scene.getAllWithAllOf(['collidable', 'movable']);
                 console.log(entities);

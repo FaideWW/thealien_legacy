@@ -23,10 +23,10 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
             PAUSED:  2
         },
         supportedEvents = [
-//            'click',
-//            'mousedown',
-//            'mouseup',
-//            'mousemove',
+            'click',
+            'mousedown',
+            'mouseup',
+            'mousemove',
             'keydown',
             'keyup'
         ],
@@ -158,11 +158,8 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                             Render.step(this.scenes[this.activeScene], dt);
                             fps_array[fps_iterations] = dt;
                             fps_iterations = (fps_iterations + 1) % fps_max;
-                            //Log.log("Average fps: " + (1000 * fps_array.length / _.reduce(fps_array, function (sum, n) { return n + sum; }, 0)));
-                            Log.log("movingLeft: " + this.scenes[this.activeScene].entities.player.movable.movingLeft +
-                                   " movingRight: " + this.scenes[this.activeScene].entities.player.movable.movingRight +
-                                   " facingLeft: " + this.scenes[this.activeScene].entities.player.movable.facingLeft +
-                                   " facingRight: " + this.scenes[this.activeScene].entities.player.movable.facingRight);
+                            Log.fps((1000 * fps_array.length / _.reduce(fps_array, function (sum, n) { return n + sum; }, 0)));
+                            Log.log(this.scenes[this.activeScene].entities.player.movable.velocity.toString());
                         }
                         g = this;
                         this.loopID = requestNextFrame(function () { g.step(currTime); });
