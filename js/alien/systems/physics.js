@@ -31,6 +31,12 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
             init: function (scene) {
                 initGravityEntities(scene);
             },
+            interpolatedVector: function (v, dt) {
+                return v.mul(dt / 1000);
+            },
+            uninterpolatedVector: function (v, dt) {
+                return v.mul(1000 / dt);
+            },
             step: function (scene, dt) {
                 /* Fetch messages */
                 Messaging.fetch('physics');
@@ -40,12 +46,15 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                     if (m.velocity.y !== 0) {
                         m.onGround = false;
                     }
-
+                    if (dt > 1000 && e.id === "player") {
+                        console.log(m.velocity);
+                        console.log(this.interpolatedVector(m.velocity, dt));
+                    }
                     /* Resolve position first, then velocity */
-                    e.position = e.position.add(m.velocity.mul(dt / 1000));
-                    m.velocity = m.velocity.add(m.acceleration.mul(dt / 1000));
+                    e.position = e.position.add(this.interpolatedVector(m.velocity, dt));
+                    m.velocity = m.velocity.add(this.interpolatedVector(m.acceleration, dt));
                     if (m.hasGravity) {
-                        m.velocity = m.velocity.add(gravity.mul(dt / 1000));
+                        m.velocity = m.velocity.add(this.interpolatedVector(gravity, dt));
                     }
 
                     if (m.onGround) {
@@ -67,7 +76,7 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                     /* Clamp velocity to MAX_V on each axis*/
                     m.velocity.x = M.clamp(m.velocity.x, -MAX_V, MAX_V);
                     m.velocity.y = M.clamp(m.velocity.y, -MAX_V, MAX_V);
-                });
+                }, this);
             },
             ground: function (entity) {
                 if (entity.movable) {

@@ -24,7 +24,6 @@ define(['underscore', 'alien/systems/messaging', 'alien/logging'], function (_, 
                 Filter the animation set by each animation's predicate, sort by their priority and pluck the last element,
                  */
                 var active    = _.last(_.sortBy(_.filter(entity.animatable.animations, function (animation) {
-                    //debugger;
                     return animation.predicate.call(entity, scene);
                 }), function (anim) {
                     return anim.priority;

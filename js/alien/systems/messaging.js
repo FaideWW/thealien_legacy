@@ -25,10 +25,10 @@ define(["underscore"], function (_) {
                     queue[system].push(message);
                 }
             },
-            fetch: function (system) {
+            fetch: function (system, context) {
                 queue[system] = _.filter(queue[system], function (message) {
                     if (!message.delay || message.delay <= 0) {
-                        message.cb.call(system, message.msg);
+                        message.cb.call(context || this, message.msg);
                         return false;
                     }
                     return true;

@@ -44,8 +44,6 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
              *  scenes - a list of scenes in the game (these can be loaded later as well)
              *
              */
-            var sinceLast = 0,
-                lastTick = 0;
             function Game(options) {
 
                 //enforces the use of new
@@ -67,6 +65,7 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                 this.fps = options.fps || 60;
                 this.frametime = 1000 / this.fps;
                 this.timeSince = 0;
+                this.totalTime = 0;
 
                 this.scenes = {};
                 if (options.scenes) {
@@ -145,10 +144,27 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                         if (this.state === states.RUNNING) {
                             //main game loop
                             this.timeSince += dt;
+                            this.totalTime += dt;
                             if (this.timeSince >= this.frametime) {
+                                /*
+                                Check for pause-delay hacks/glitches
+
+                                 If the delay between steps is greater than five expected frame iterations, there is a
+                                 high probability that unexpected behavior will occur when the logic resumes.  In this
+                                 scenario, we need to perform more expensive contingency operations.  These include:
+
+                                    Continuous sweeping collision detection
+                                    ...
+                                 */
+                                Event.step(this.scenes[this.activeScene], dt);
+
+
+                                if (this.timeSince / this.frametime >= 5) {
+                                    console.log('skip');
+                                    Collider.sweepTest(this.scenes[this.activeScene], dt);
+                                }
                                 this.timeSince = this.timeSince % this.frametime;
 
-                                Event.step(this.scenes[this.activeScene], dt);
                                 Physics.step(this.scenes[this.activeScene], dt);
                                 Collider.step(this.scenes[this.activeScene], dt);
                                 Physics.resolveCollision();
