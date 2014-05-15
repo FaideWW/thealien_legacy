@@ -24,7 +24,7 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
             },
             step: function (scene, dt) {
                 /* Fetch messages */
-                Messaging.fetch('render');
+                //Messaging.fetch('render');
                 var renderables = scene.getAllWithAllOf(['renderable', 'position']),
                     camera      = scene.getAllWithAllOf(['camera', 'position'])[0];
 
@@ -91,10 +91,14 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
                     Render.methods[r.renderable.method](default_ctx, r.position, r.renderable);
                     default_ctx.restore();
                 });
+
+                Messaging.fetch('render', this);
                 default_ctx.restore();
             },
-            draw: function (position, renderable, camera) {
-                // TODO: allow for entity/renderable hierarchies
+            draw: function (position, renderable) {
+                default_ctx.save();
+                Render.methods[renderable.method](default_ctx, position, renderable);
+                default_ctx.restore();
             },
             /**
              * Each render method accepts three parameters:

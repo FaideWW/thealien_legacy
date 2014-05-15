@@ -73,136 +73,138 @@ define(["underscore"], function (_) {
                     this.z = options.z || 0;
                 }
 
-                Vector.prototype.eq = function (other) {
-                    return this  === other || (this.x === other.x && this.y === other.y && this.z === other.z);
-                };
 
-                Vector.prototype.sameDir = function (other) {
-                    /* fault tolerance */
-                    return (this.x / this.y) - (other.x / other.y) < 0.0001;
-                };
+                Vector.prototype = {
+                    eq: function (other) {
+                        return this === other || (this.x === other.x && this.y === other.y && this.z === other.z);
+                    },
+                    sameDir: function (other) {
+                        /* fault tolerance */
+                        return (this.x / this.y) - (other.x / other.y) < 0.0001;
+                    },
+                    neg: function () {
+                        /* returns the opposite vector (vec + opposite = 0) */
+                        return new Vector().sub(this);
+                    },
+                    add: function (other) {
+                        return new Vector({
+                            x: this.x + other.x,
+                            y: this.y + other.y,
+                            z: this.z + other.z
+                        });
+                    },
+                    sub: function (other) {
+                        return new Vector({
+                            x: this.x - other.x,
+                            y: this.y - other.y,
+                            z: this.z - other.z
+                        });
+                    },
+                    mul: function (scalar) {
+                        return new Vector({
+                            x: this.x * scalar,
+                            y: this.y * scalar,
+                            z: this.z * scalar
+                        });
+                    },
+                    vectorMul: function (vector) {
+                        return new Vector({
+                            x: this.x * vector.x,
+                            y: this.y * vector.y,
+                            z: this.z * vector.z
+                        });
+                    },
+                    div: function (scalar) {
+                        return this.mul(1 / scalar);
+                    },
+                    mag: function () {
+                        return m.sqrt(this.magsqrd());
+                    },
+                    magsqrd: function () {
+                        return (this.x * this.x) + (this.y * this.y) + (this.z * this.z);
+                    },
+                    unt: function () {
+                        return this.div(this.mag());
+                    },
+                    nml: function (anticlockwise) {
+                        anticlockwise = (anticlockwise === undefined) ? true : anticlockwise;
+                        return new Vector({
+                            x: anticlockwise ? -this.y : this.y,
+                            y: anticlockwise ? this.x : -this.x,
+                            z: this.z
+                        });
+                    },
+                    dot: function (other) {
+                        return (this.x * other.x) + (this.y * other.y) + (this.z * other.z);
+                    },
+                    //Magnitude of the cross product
+                    cmg: function (other) {
+                        return (this.x * other.y) - (this.y * other.x);
+                    },
+                    /**
+                     * Intersection of two vectors
+                     *
+                     * @param other
+                     * @param this_origin
+                     * @param other_origin
+                     * @returns {*}
+                     */
+                    int: function (other, this_origin, other_origin) {
+                        this_origin = this_origin || new Vector();
+                        other_origin = other_origin || new Vector();
+                        var r = this.sub(this_origin),
+                            s = other.sub(other_origin),
+                            denom = r.cmg(s),
+                            numer = other_origin.sub(this_origin).cmg(r);
 
-                Vector.prototype.neg = function () {
-                    /* returns the opposite vector (vec + opposite = 0) */
-                    return new Vector().sub(this);
-                };
-
-                Vector.prototype.add = function (other) {
-                    return new Vector({
-                        x: this.x + other.x,
-                        y: this.y + other.y,
-                        z: this.z + other.z
-                    });
-                };
-
-                Vector.prototype.sub = function (other) {
-                    return new Vector({
-                        x: this.x - other.x,
-                        y: this.y - other.y,
-                        z: this.z - other.z
-                    });
-                };
-
-                Vector.prototype.mul = function (scalar) {
-                    return new Vector({
-                        x: this.x * scalar,
-                        y: this.y * scalar,
-                        z: this.z * scalar
-                    });
-                };
-
-                Vector.prototype.div = function (scalar) {
-                    return this.mul(1 / scalar);
-                };
-
-                Vector.prototype.mag = function () {
-                    return m.sqrt(this.magsqrd());
-                };
-
-                Vector.prototype.magsqrd = function () {
-                    return (this.x * this.x) + (this.y * this.y) + (this.z * this.z);
-                };
-
-                Vector.prototype.unt = function () {
-                    return this.div(this.mag());
-                };
-
-                Vector.prototype.nml = function (anticlockwise) {
-                    anticlockwise = (anticlockwise === undefined) ? true : anticlockwise;
-                    return new Vector({
-                        x: anticlockwise ? -this.y : this.y,
-                        y: anticlockwise ? this.x : -this.x,
-                        z: this.z
-                    });
-                };
-
-                Vector.prototype.dot = function (other) {
-                    return (this.x * other.x) + (this.y * other.y);
-                };
-
-                //Magnitude of the cross product
-                Vector.prototype.cmg = function (other) {
-                    return (this.x * other.y) - (this.y * other.x);
-                };
-
-                /**
-                 * Intersection of two vectors
-                 *
-                 * @param other
-                 * @param this_origin
-                 * @param other_origin
-                 * @returns {*}
-                 */
-                Vector.prototype.int = function (other, this_origin, other_origin) {
-                    this_origin = this_origin || new Vector();
-                    other_origin = other_origin || new Vector();
-                    var r = this.sub(this_origin),
-                        s = other.sub(other_origin),
-                        denom = r.cmg(s),
-                        numer = other_origin.sub(this_origin).cmg(r);
-
-                    if (denom !== 0) {
-                        //intersection possible
-                        return {
-                            t: numer / denom,
-                            u: other_origin.sub(this_origin).cmg(s) / denom
-                        };
-                    }
-                    if (numer === 0) {
-                        //colinear, search for an overlap
-                        if ((this.x >= other_origin.x && this.y >= other_origin.y && this.x <= other.x && this.y <= other)) {
+                        if (denom !== 0) {
+                            //intersection possible
                             return {
-                                t: 0,
-                                u: 0
+                                t: numer / denom,
+                                u: other_origin.sub(this_origin).cmg(s) / denom
                             };
                         }
-                        if ((other.x >= this_origin.x && other.y >= this_origin.y && other.x <= this.x && other.y <= this.y)) {
-                            return {
-                                t: 0,
-                                u: 0
-                            };
+                        if (numer === 0) {
+                            //colinear, search for an overlap
+                            if ((this.x >= other_origin.x && this.y >= other_origin.y && this.x <= other.x && this.y <= other)) {
+                                return {
+                                    t: 0,
+                                    u: 0
+                                };
+                            }
+                            if ((other.x >= this_origin.x && other.y >= this_origin.y && other.x <= this.x && other.y <= this.y)) {
+                                return {
+                                    t: 0,
+                                    u: 0
+                                };
+                            }
+                            return false;
                         }
+                        //parallel
                         return false;
+                    },
+                    scalarProject: function (axis) {
+                        return this.dot(axis.unt());
+                    },
+                    vectorProject: function (axis) {
+                        return axis.unt().mul(this.scalarProject(axis));
+                    },
+                    normalReflect: function (normal) {
+                        normal = (normal.magsqrd() === 1) ? normal : normal.unt();
+                        return normal.mul(2 * this.dot(normal)).sub(this);
+                    },
+                    majorAxis: function () {
+                        var axis;
+                        if (m.abs(this.x) > m.abs(this.y)) {
+                            axis = new Vector({ x: Math.sign(this.x), y: 0 });
+                        } else {
+                            axis = new Vector({ x: 0, y: Math.sign(this.y) });
+                        }
+                        return axis;
+                    },
+                    toString: function () {
+                        return "{" + this.x + ", " + this.y + ", " + this.z + "}";
                     }
-                    //parallel
-                    return false;
-                };
-
-                Vector.prototype.scalarProject = function (axis) {
-                    return this.dot(axis.unt());
-                };
-
-                Vector.prototype.vectorProject = function (axis) {
-                    return axis.unt().mul(this.scalarProject(axis));
-                };
-
-                Vector.prototype.normalReflect = function (normal) {
-                    normal = (normal.magsqrd() === 1) ? normal : normal.unt();
-                    return normal.mul(2 * this.dot(normal)).sub(this);
-                };
-
-                Vector.prototype.toString = function () {
-                    return "{" + this.x + ", " + this.y + ", " + this.z + "}";
                 };
 
                 return Vector;
@@ -306,6 +308,23 @@ define(["underscore"], function (_) {
                             }));
                         }
                         return lines;
+                    },
+                    getExtrema: function () {
+                        var points = this.getPoints(),
+                            xmin = _.min(points, function (p) { return p.x; }).x,
+                            xmax = _.max(points, function (p) { return p.x; }).x,
+                            ymin = _.min(points, function (p) { return p.y; }).y,
+                            ymax = _.max(points, function (p) { return p.y; }).y;
+                        return {
+                            x: {
+                                min: xmin,
+                                max: xmax
+                            },
+                            y: {
+                                min: ymin,
+                                max: ymax
+                            }
+                        };
                     },
                     getNormals: function () {
                         return _.map(this.toLines(), function (x) {
@@ -413,6 +432,9 @@ define(["underscore"], function (_) {
                     x: (p1.x + p2.x) / 2,
                     y: (p1.y + p2.y) / 2
                 });
+            },
+            sign: function (val) {
+                return (val > 0) ? 1 : -1;
             }
         };
 

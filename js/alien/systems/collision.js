@@ -2,9 +2,9 @@
  * Created by faide on 2014-04-18.
  */
 
-define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'alien/logging', 'alien/components/message',
-    'alien/systems/physics', 'alien/systems/render', 'alien/systems/event',
-    'alien/systems/messaging'], function (_, M, CF, Log, Message, Physics, Render, Event, Messaging) {
+define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'alien/components/message',
+    'alien/systems/physics', 'alien/systems/event',
+    'alien/systems/messaging', 'alien/components/renderable'], function (_, M, CF, Message, Physics, Event, Messaging, RenderableFactory) {
     'use strict';
 
     var AABB_faces = [
@@ -60,7 +60,6 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
             }
 
             collisions = this.collide(possible_collisions);
-            //Log.log(possible_collisions.length + ' possible collisions; ' + collisions.length + ' actual collisions');
             if (collisions.length) {
                 //debugger;
                 Messaging.enqueue('collisionresolution', _.map(collisions, function (manifold) {
@@ -79,9 +78,6 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                             manifold = m.manifold;
                         }
                         Physics.shift(toShift, manifold);
-                        if (manifold.x > 0) {
-                            //debugger;
-                        }
                         Physics.flatten(toShift, manifold);
                         //debugger;
                         Event.trigger('collide', m.collider, {
@@ -97,12 +93,91 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
             }
 
         },
+        /**
+         * A more expensive speculative contacts collision algorithm, to be used sparingly.
+         *
+         *  This generates a boundingbox around any moving objects, and performs standard collision against the map
+         *      geometry for each one.  Resolution involves decaying the velocity vector so that the component normal
+         *      to the geometry is equal to the distance to that geometry, such that the object will move into contact,
+         *      but not penetrate, the geometry.
+         *
+         *  Speculative contacts is not 100% accurate, so we want to only use it in cases where there is a high
+         *      probability that the bullet through paper problem will occur (e.g. during a large frame delay).
+         *
+         * @param scene
+         * @param dt
+         */
+        speculativeContact: function (scene, dt) {
+            var moving_entities = _.filter(scene.getAllWithAllOf(['collidable', 'position', 'movable']), function (entity) {
+                return entity.movable.velocity.magsqrd() > 0;
+            }),
+                sweeps,
+                collisions,
+                final_v;
+
+            _.each(moving_entities, function (entity) {
+                var interpolated_velocity, velocity_trace, dist, aabb, decay;
+                interpolated_velocity = Physics.interpolatedVector(entity.movable.velocity, dt);
+                velocity_trace = {
+                    collidable: this.componentMethods.generateVelocityTrace(entity.collidable, interpolated_velocity),
+                    position:   M.average(entity.position, entity.position.add(interpolated_velocity))
+                };
+                Messaging.enqueue('render', new Message(velocity_trace, function (vt) {
+                    this.draw(vt.position, RenderableFactory.createRenderRectangle(vt.collidable.half_width * 2,
+                                                                                   vt.collidable.half_height * 2,
+                                                                                   null,
+                                                                                   "rgba(0,0,255,0.5)"));
+                }));
+                sweeps =  _.map(scene.map.getCollidables(), function (geometry) {
+                    return {
+                        collider: velocity_trace,
+                        other: geometry
+                    };
+                }, this);
+                collisions = this.collide(sweeps);
+
+                while (collisions.length) {
+                    /* Collisions must be resolved one after another */
+
+                    interpolated_velocity = Physics.interpolatedVector(final_v || entity.movable.velocity, dt);
+                    aabb = entity.collidable;
+                    if (entity.collidable.type === 1) {
+                        aabb = this.componentMethods.polyToAABB(entity.collidable);
+                    } else if (entity.collidable.type === -1) {
+                        aabb = this.componentMethods.circleToAABB(entity.collidable);
+                    }
+                    dist = this.collisionMethods.shortestDistanceTo(collisions[0].other.position, entity.position, collisions[0].other.collidable, aabb);
+                    console.log(dist);
+                    if (dist.magsqrd() < interpolated_velocity.magsqrd()) {
+                        if (dist.x === 0) {
+                            decay = dist.y / Math.abs(interpolated_velocity.y);
+                        } else {
+                            decay = dist.x / Math.abs(interpolated_velocity.x);
+                        }
+
+                        final_v = Physics.uninterpolatedVector(interpolated_velocity.mul(decay), dt);
+                    }
+
+                    collisions = _.tail(collisions);
+                }
+                if (final_v) {
+                    Messaging.enqueue('physics', new Message({
+                        entity: entity,
+                        new_v:  final_v
+                    }, function (manifold) {
+                        manifold.entity.movable.velocity = manifold.new_v;
+                    }));
+                }
+            }, this);
+
+
+        },
         /*
          Accepts a list of possible collisions (pruned or not) that must be checked;
          Returns an in-order list of the actual collisions that have occurred
          */
         collide: function (possible_collisions) {
-            return _.compact(_.map(possible_collisions, function (collision, index) {
+            return _.compact(_.map(possible_collisions, function (collision) {
                 /**
                  * Collidable components can degrade from bounding circle to AABB to polygon as necessary
                  *
@@ -348,7 +423,10 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                     return new M.Vector();
                 }
 
-                if (inside) {
+                if (inside || reverse) {
+                    if (inside && reverse) {
+                        return axis;
+                    }
                     return axis.mul(-1);
                 }
                 return axis;
@@ -519,17 +597,60 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                     return M.withinRange(line.int(ray).t, 0, 1);
                 }).length % 2 === 1;
 
+            },
+            /**
+             * Returns the shortest separating Vector between two AABBs, using the Minkowski difference
+             *
+             * Algorithm taken from Real Time Collision Detection, pg. 132
+             * @param position1 : Vector
+             * @param position2 : Vector
+             * @param aabb1 : AABB
+             * @param aabb2 : AABB
+             */
+            shortestDistanceTo: function (position1, position2, aabb1, aabb2) {
+                var minkowski_aabb = CF.createAABB(aabb1.half_width + aabb2.half_width, aabb1.half_height + aabb2.half_height),
+                    relative_pos   = position2.sub(position1),
+                    square_x       = 0,
+                    square_y       = 0;
+                if (relative_pos.x < -minkowski_aabb.half_width) {
+                    square_x += (-minkowski_aabb.half_width - relative_pos.x) * (-minkowski_aabb.half_width - relative_pos.x);
+                }
+                if (relative_pos.x > minkowski_aabb.half_width) {
+                    square_x += (relative_pos.x - minkowski_aabb.half_width) * (relative_pos.x - minkowski_aabb.half_width);
+                }
+                if (relative_pos.y < -minkowski_aabb.half_height) {
+                    square_y += (-minkowski_aabb.half_height - relative_pos.y) * (-minkowski_aabb.half_height - relative_pos.y);
+                }
+                if (relative_pos.y > minkowski_aabb.half_height) {
+                    square_y += (relative_pos.y - minkowski_aabb.half_height) * (relative_pos.y - minkowski_aabb.half_height);
+                }
+                return new M.Vector({
+                    x: Math.sqrt(square_x),
+                    y: Math.sqrt(square_y)
+                });
             }
         },
         componentMethods: {
+            generateVelocityTrace: function (collidable, velocity) {
+                var half_width = Math.abs(velocity.x / 2),
+                    half_height = Math.abs(velocity.y / 2),
+                    intermediate;
+                if (collidable.type === CF.collidables.CIRCLE) {
+                    half_width += collidable.radius;
+                    half_height += collidable.radius;
+                } else if (collidable.type === CF.collidables.AABB) {
+                    half_width += collidable.half_width;
+                    half_height += collidable.half_height;
+                } else if (collidable.type === CF.collidables.POLYGON) {
+                    intermediate = this.polyToAABB(collidable);
+                    half_width += intermediate.half_width;
+                    half_height += intermediate.half_height;
+                }
+                return CF.createAABB(half_width, half_height);
+            },
             polyToAABB: function (polygon) {
-                var points = polygon.getPoints(),
-                    xmin = _.min(points, function (p) { return p.x; }).x,
-                    xmax = _.max(points, function (p) { return p.x; }).x,
-                    ymin = _.min(points, function (p) { return p.y; }).y,
-                    ymax = _.max(points, function (p) { return p.y; }).y;
-
-                return CF.createAABB(Math.max(-xmin, xmax), Math.max(-ymin, ymax));
+                var bounds = polygon.getExtrema();
+                return CF.createAABB(Math.max(-bounds.x.min, bounds.x.max), Math.max(-bounds.y.min, bounds.y.max));
             },
 
             /**
@@ -569,6 +690,9 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                         y: -aabb.half_height
                     })
                 ]);
+            },
+            circleToAABB: function (circle) {
+                return CF.createAABB(circle.radius, circle.radius);
             }
         }
     };
