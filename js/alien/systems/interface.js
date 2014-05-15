@@ -104,7 +104,7 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
             '\'': 222
         },
         sequences = [],
-        count = 0,
+        combos = [],
         InterfaceSystem = {
             init: function (controllables) {
                 _.each(controllables, function (entity) {
@@ -150,12 +150,22 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
                             Event.on(e, 'keyup', func_up, null);
                         }
                     } else if (key.type === "sequence") {
+                        kc = _.map(key.sequence.split(","), function (key) { return key_codes[key]; });
                         sequences.push({
                             entity:   e,
-                            sequence: _.map(key.sequence, function (char) { return key_codes[char]; }),
+                            sequence: kc,
                             handler:  key.cb,
-                            current:  _.map(key.sequence, function (char) { return key_codes[char]; }),
+                            current:  kc,
                             once:     key.once
+                        });
+                    } else if (key.type === "combination") {
+                        combos.push({
+                            entity:      e,
+                            combination: _.map(key.combination.split("+"), function (key) { return key_codes[key]; }),
+                            handler:     key.cb,
+                            current:     [],
+                            active:      false,
+                            once:        key.once
                         });
                     }
                 });
@@ -179,6 +189,29 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
                             }
                         });
                     }, true);
+                }
+                if (combos.length) {
+                    Event.on(e, 'keydown', function (event_data) {
+                        var kc = event_data.keyCode;
+                        _.each(combos, function (c) {
+                            if (c.combination.indexOf(kc) !== -1 && c.current.indexOf(kc) === -1) {
+                                c.current.push(kc);
+                            }
+                            if (c.current.length === c.combination.length && (!c.active || !c.once)) {
+                                c.active = true;
+                                c.handler.call(e, event_data);
+                            }
+                        });
+                    });
+                    Event.on(e, 'keyup', function (event_data) {
+                        var kc = event_data.keyCode;
+                        _.each(combos, function (c) {
+                            if (c.combination.indexOf(kc) !== -1 && c.current.indexOf(kc) !== -1) {
+                                c.active = false;
+                                c.current.splice(c.current.indexOf(kc), 1);
+                            }
+                        });
+                    });
                 }
             },
             bindEntityToMouse: function (e) {

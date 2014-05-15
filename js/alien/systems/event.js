@@ -7,7 +7,6 @@
 define(['underscore'], function (_) {
     "use strict";
     var EventSystem,
-        keys_pressed = {},
         createListener = function (event) {
             return function (event_data) {
                 EventSystem.trigger(event_data.type, null, event_data);
@@ -26,10 +25,10 @@ define(['underscore'], function (_) {
         },
         triggerCallback = function (cb, context, event_data) {
             if (event_data.type === "keydown") {
-                if (!keys_pressed[event_data.keyCode]) {
+                if (!EventSystem.keys_pressed[event_data.keyCode]) {
                     cb.handler.call(context, event_data);
                 } else if (!cb.once) {
-                    cb.handler.call(context, keys_pressed[event_data.keyCode]);
+                    cb.handler.call(context, EventSystem.keys_pressed[event_data.keyCode]);
                 }
             } else {
                 cb.handler.call(context, event_data);
@@ -37,6 +36,7 @@ define(['underscore'], function (_) {
         },
         entities;
     EventSystem = {
+        keys_pressed: {},
         init: function (events) {
             generateWindowListeners(events);
             entities = {};
@@ -73,7 +73,7 @@ define(['underscore'], function (_) {
         },
         step: function (scene, dt) {
             this.trigger('update', null, dt);
-            _.each(keys_pressed, function (event) {
+            _.each(EventSystem.keys_pressed, function (event) {
                 if (!event) {
                     return;
                 }
@@ -99,9 +99,9 @@ define(['underscore'], function (_) {
                 }, this);
             }
             if (event === "keydown") {
-                keys_pressed[msg.keyCode] = msg;
+                EventSystem.keys_pressed[msg.keyCode] = msg;
             } else if (event === "keyup") {
-                keys_pressed[msg.keyCode] = false;
+                EventSystem.keys_pressed[msg.keyCode] = false;
             }
             return this;
         }

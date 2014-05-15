@@ -57,7 +57,15 @@ define(['underscore'], function (_) {
                     type: "sequence",
                     sequence: sequence,
                     cb: callback,
-                    once: once || false
+                    once: once
+                };
+            },
+            createKeyCombination: function (combination, callback, once) {
+                return {
+                    type: "combination",
+                    combination: combination,
+                    cb: callback,
+                    once: once
                 };
             },
             /**

@@ -51,12 +51,15 @@ require(['alien/alien'], function (alien) {
                     this.movable.velocity.x = 0;
                 }
             }),
-            cn.createKeySequence('foo', function () {
+            cn.createKeySequence('f,o,o', function () {
                 console.log('bar');
             }),
-            cn.createKeySequence('baz', function () {
+            cn.createKeySequence('b,a,z', function () {
                 console.log('baz');
-            }, true)
+            }, true),
+            cn.createKeyCombination('r+t+y', function () {
+                console.log('rty');
+            })
         ],
         mouse_map = cn.createMouseMap(
             function () {},
