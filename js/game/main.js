@@ -50,7 +50,13 @@ require(['alien/alien'], function (alien) {
                 if (this.movable.onGround) {
                     this.movable.velocity.x = 0;
                 }
-            })
+            }),
+            cn.createKeySequence('foo', function () {
+                console.log('bar');
+            }),
+            cn.createKeySequence('baz', function () {
+                console.log('baz');
+            }, true)
         ],
         mouse_map = cn.createMouseMap(
             function () {},

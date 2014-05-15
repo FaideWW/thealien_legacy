@@ -103,6 +103,8 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
             ']': 221,
             '\'': 222
         },
+        sequences = [],
+        count = 0,
         InterfaceSystem = {
             init: function (controllables) {
                 _.each(controllables, function (entity) {
@@ -122,31 +124,62 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
             bindEntityToKeys: function (e) {
                 _.each(e.keylistener.keymap, function (key) {
                     var kc, func_down, func_up;
-                    if (key.key === '*') {
-                        /* Trigger on every key */
-                        func_down = key.down;
-                        func_up   = key.up;
-                    } else {
-                        /* Wrap each function to check for the appropriate key */
-                        kc = key_codes[key.key];
-                        func_down = function (event_data) {
-                            if (event_data.keyCode === kc) {
-                                key.down.call(this, event_data);
-                            }
-                        };
-                        func_up = function (event_data) {
-                            if (event_data.keyCode === kc) {
-                                key.up.call(this, event_data);
-                            }
-                        };
-                    }
-                    if (key.down) {
-                        Event.on(e, 'keydown', func_down, key.once);
-                    }
-                    if (key.up) {
-                        Event.on(e, 'keyup', func_up, null);
+                    if (key.type === "key") {
+                        if (key.key === '*') {
+                            /* Trigger on every key */
+                            func_down = key.down;
+                            func_up   = key.up;
+                        } else {
+                            /* Wrap each function to check for the appropriate key */
+                            kc = key_codes[key.key];
+                            func_down = function (event_data) {
+                                if (event_data.keyCode === kc) {
+                                    key.down.call(this, event_data);
+                                }
+                            };
+                            func_up = function (event_data) {
+                                if (event_data.keyCode === kc) {
+                                    key.up.call(this, event_data);
+                                }
+                            };
+                        }
+                        if (key.down) {
+                            Event.on(e, 'keydown', func_down, key.once);
+                        }
+                        if (key.up) {
+                            Event.on(e, 'keyup', func_up, null);
+                        }
+                    } else if (key.type === "sequence") {
+                        sequences.push({
+                            entity:   e,
+                            sequence: _.map(key.sequence, function (char) { return key_codes[char]; }),
+                            handler:  key.cb,
+                            current:  _.map(key.sequence, function (char) { return key_codes[char]; }),
+                            once:     key.once
+                        });
                     }
                 });
+                if (sequences.length) {
+                    Event.on(e, 'keydown', function (event_data) {
+                        var kc = event_data.keyCode;
+                        _.each(sequences, function (s) {
+                            if (s.current[0] === kc) {
+                                /* The key is next in the sequence */
+                                s.current = _.tail(s.current);
+                                if (!s.current.length) {
+                                    /* If the sequence is complete, trigger the callback */
+                                    s.handler.call(e, event_data);
+                                    if (s.once) {
+                                        s.current = s.sequence;
+                                    }
+                                }
+                            } else if (s.current.length && s.current.length !== s.sequence.length) {
+                                /* The key is not next in the sequence; reset the sequence if needed */
+                                s.current = s.sequence;
+                            }
+                        });
+                    }, true);
+                }
             },
             bindEntityToMouse: function (e) {
                 Event.on(e, 'mousedown', e.mouselistener.mousemap.mousedown, null);

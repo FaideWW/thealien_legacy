@@ -45,10 +45,19 @@ define(['underscore'], function (_) {
             createKeyBinding: function (key, down, up, once) {
 
                 return {
+                    type: "key",
                     key:  key,
                     down: down,
                     up:   up,
                     once: once
+                };
+            },
+            createKeySequence: function (sequence, callback, once) {
+                return {
+                    type: "sequence",
+                    sequence: sequence,
+                    cb: callback,
+                    once: once || false
                 };
             },
             /**
