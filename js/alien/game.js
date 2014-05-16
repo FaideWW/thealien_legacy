@@ -1,6 +1,7 @@
 define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/collision', 'alien/systems/messaging',
         'alien/systems/event', 'alien/systems/interface', 'alien/systems/physics',
-        'alien/systems/animation'], function (_, Log, Render, Collider, Messaging, Event, UI, Physics, Animation) {
+        'alien/systems/animation', 'alien/utilities/math',
+        'alien/components/renderable'], function (_, Log, Render, Collider, Messaging, Event, UI, Physics, Animation, M, RF) {
     'use strict';
     var root = window,
         requestNextFrame = (function () {
@@ -28,7 +29,9 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
             'mouseup',
             'mousemove',
             'keydown',
-            'keyup'
+            'keyup',
+            'blur',
+            'focus'
         ],
         fps_array = [],
         fps_iterations = 0,
@@ -64,6 +67,7 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                 this.canvasContext = options.canvas.getContext('2d');
                 this.fps = options.fps || 60;
                 this.frametime = 1000 / this.fps;
+                this.autopause = options.autopause || false;
                 this.timeSince = 0;
                 this.totalTime = 0;
 
@@ -104,6 +108,24 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                     UI.init(this.scenes[scene_id].getAllWithOneOf(['keylistener', 'mouselistener']));
                     Physics.init(this.scenes[scene_id]);
                     Animation.init(this.scenes[scene_id]);
+
+                    /* Enable pause when the window loses focus */
+                    if (this.autopause) {
+                        Event.on(this, 'blur', function () {
+                            if (this.state === states.RUNNING) {
+                                this.state = states.PAUSED;
+                                this.pause();
+                                Render.draw(new M.Vector({x: this.canvas_width / 2, y: this.canvas_height / 2}), RF.createRenderRectangle(this.canvas_width, this.canvas_height, null, "rgba(0,0,0,0.5)"));
+                                Log.log("Paused");
+                            }
+                        });
+                        Event.on(this, 'focus', function () {
+                            if (this.state === states.PAUSED) {
+                                this.state = states.RUNNING;
+                                this.run();
+                            }
+                        });
+                    }
                     return this;
                 },
                 run: function () {

@@ -2,8 +2,9 @@ require(['alien/alien'], function (alien) {
     'use strict';
     var canvas = document.getElementById("gameCanvas"),
         game = new alien.Game({
-            canvas: canvas,
-            fps:    60
+            canvas:    canvas,
+            fps:       60,
+            autopause: true
         }),
         an      = alien.components.AnimationFactory,
         cm      = alien.components.CameraFactory,
