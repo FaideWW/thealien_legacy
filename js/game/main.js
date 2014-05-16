@@ -18,36 +18,51 @@ require(['alien/alien'], function (alien) {
         radius  = 10,
         speed   = 100,
         key_map = [
-            cn.createKeyBinding('w', function () {
+            cn.createKeyBinding('w', function (event, mod) {
                 /* up keydown */
                 this.movable.jumping = true;
                 this.movable.onGround = false;
                 this.movable.velocity.y = -200;
+                console.log(mod);
             }, function () { /* this.movable.velocity.y =  speed; */ }, true),
-            cn.createKeyBinding('a', function () {
+            cn.createKeyBinding('a', function (event, mod) {
                 /* left keydown */
                 this.movable.velocity.x = -speed;
                 this.movable.facingRight = false;
                 this.movable.facingLeft = true;
                 this.movable.movingRight = false;
                 this.movable.movingLeft = true;
+                if (mod[16]) {
+                    this.movable.velocity.x = -speed * 1.5;
+                    this.movable.running = true;
+                } else {
+                    this.movable.running = false;
+                }
             }, function () {
                 /* left keyup */
                 this.movable.movingLeft = false;
+                this.movable.running = false;
                 if (this.movable.onGround) {
                     this.movable.velocity.x = 0;
                 }
             }),
-            cn.createKeyBinding('d', function () {
+            cn.createKeyBinding('d', function (event, mod) {
                 /* right keydown */
                 this.movable.velocity.x = speed;
                 this.movable.facingLeft = false;
                 this.movable.facingRight = true;
                 this.movable.movingLeft = false;
                 this.movable.movingRight = true;
+                if (mod[16]) {
+                    this.movable.velocity.x = speed * 1.5;
+                    this.movable.running = true;
+                } else {
+                    this.movable.running = false;
+                }
             }, function () {
                 /* right keyup */
                 this.movable.movingRight = false;
+                this.movable.running = false;
                 if (this.movable.onGround) {
                     this.movable.velocity.x = 0;
                 }
@@ -58,7 +73,7 @@ require(['alien/alien'], function (alien) {
             cn.createKeySequence('b,a,z', function () {
                 console.log('baz');
             }, true),
-            cn.createKeyCombination('r+t+y', function () {
+            cn.createKeyCombination('shift+r', function () {
                 console.log('rty');
             })
         ],
@@ -104,12 +119,33 @@ require(['alien/alien'], function (alien) {
                     an.createFrame(212, 50, 20, 20)
                 ],
                 predicate: function () {
-                    return this.movable.onGround && (this.movable.facingRight && this.movable.velocity.x > 0);
+                    return this.movable.onGround && (this.movable.facingRight && (this.movable.velocity.x > 0 && !this.movable.running));
                 },
                 options: {
                     framerate: function (dt) {
                         return Math.abs(this.movable.velocity.x) / alien.systems.Physics.MAX_V * framerate;
                     },
+                    loops: true
+                }
+            },
+            run_right: {
+                frames: [
+                    an.createFrame(3, 74, 20, 20),
+                    an.createFrame(26, 75, 19, 19),
+                    an.createFrame(48, 76, 18, 18),
+                    an.createFrame(69, 75, 19, 19),
+                    an.createFrame(92, 75, 24, 19),
+                    an.createFrame(120, 75, 19, 19),
+                    an.createFrame(143, 76, 17, 18),
+                    an.createFrame(164, 75, 18, 19),
+                    an.createFrame(164, 75, 18, 19)
+                ],
+                predicate: function () {
+                    return this.movable.onGround && (this.movable.facingRight && (this.movable.velocity.x > 0 && this.movable.running));
+                },
+                options: {
+                    framerate: framerate,
+                    priority: 1,
                     loops: true
                 }
             },
@@ -205,12 +241,32 @@ require(['alien/alien'], function (alien) {
                     an.createFrame(744, 50, 20, 20)
                 ],
                 predicate: function () {
-                    return this.movable.onGround && (this.movable.facingLeft && this.movable.velocity.x < 0);
+                    return this.movable.onGround && (this.movable.facingLeft && (this.movable.velocity.x < 0 && !this.movable.running));
                 },
                 options: {
                     framerate: function (dt) {
                         return Math.abs(this.movable.velocity.x) / alien.systems.Physics.MAX_V * framerate;
                     },
+                    loops: true
+                }
+            },
+            run_left: {
+                frames: [
+                    an.createFrame(954, 75, 19, 19),
+                    an.createFrame(932, 75, 19, 19),
+                    an.createFrame(911, 76, 18, 18),
+                    an.createFrame(888, 75, 19, 19),
+                    an.createFrame(860, 75, 24, 19),
+                    an.createFrame(837, 75, 19, 19),
+                    an.createFrame(816, 76, 18, 18),
+                    an.createFrame(794, 75, 19, 19)
+                ],
+                predicate: function () {
+                    return this.movable.onGround && (this.movable.facingLeft && (this.movable.velocity.x < 0 && this.movable.running));
+                },
+                options: {
+                    framerate: framerate,
+                    priority: 1,
                     loops: true
                 }
             },

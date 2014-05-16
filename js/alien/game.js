@@ -63,7 +63,7 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                 if (!options.canvas.getContext) {
                     return Log.log('Canvas element has no context');
                 }
-
+                this.id            = "__GAME";
                 this.canvasContext = options.canvas.getContext('2d');
                 this.fps = options.fps || 60;
                 this.frametime = 1000 / this.fps;

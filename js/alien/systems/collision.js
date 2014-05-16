@@ -19,6 +19,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
      * @param polygon : Polygon - point data for the polygon
      */
     return {
+        id: "__COLLISION",
         step: function (scene, dt) {
             Messaging.fetch('collision');
             /*

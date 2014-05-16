@@ -36,6 +36,7 @@ define(['underscore'], function (_) {
         },
         entities;
     EventSystem = {
+        id: "__EVENT",
         keys_pressed: {},
         init: function (events) {
             generateWindowListeners(events);

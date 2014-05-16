@@ -27,6 +27,7 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
             };
 
         return {
+            id: "__PHYSICS",
             MAX_V: MAX_V,
             init: function (scene) {
                 initGravityEntities(scene);

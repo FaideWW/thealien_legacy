@@ -13,6 +13,7 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
         ctx_width,
         ctx_height,
         Render = {
+            id: "__RENDER",
             init: function (context, width, height) {
                 default_ctx = context;
                 ctx_width = width || context.canvas.width;

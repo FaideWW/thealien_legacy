@@ -5,6 +5,7 @@ define(['underscore', 'alien/systems/messaging', 'alien/logging'], function (_, 
     "use strict";
     var synchronized_animations = [];
     return {
+        id: "__ANIMATION",
         init: function (scene) {
             var animated = scene.getAllWith('animatable');
             _.each(animated, function (entity) {

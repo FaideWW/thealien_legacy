@@ -5,6 +5,7 @@ define(["underscore"], function (_) {
     'use strict';
     var queue,
         MessageSystem = {
+            id: "__MESSAGING",
             init: function () {
                 queue = {};
             },

@@ -3,7 +3,7 @@
  */
 define(['underscore', 'alien/systems/event'], function (_, Event) {
     "use strict";
-    var key_codes = {
+    var key_codes =     {
             'backspace': 8,
             'tab': 9,
             'enter': 13,
@@ -103,9 +103,15 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
             ']': 221,
             '\'': 222
         },
-        sequences = [],
-        combos = [],
+        modifier_keys = {
+            16: false, // shift
+            17: false, // ctrl
+            18: false  // alt
+        },
+        sequences =     [],
+        combos =        [],
         InterfaceSystem = {
+            id:   "__INTERFACE",
             init: function (controllables) {
                 _.each(controllables, function (entity) {
                     if (entity.keylistener) {
@@ -115,6 +121,19 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
                         this.bindEntityToMouse(entity);
                     }
                 }, this);
+                /* Modifier keys */
+                Event.on(this, 'keydown', function (event_data) {
+                    var kc = event_data.keyCode;
+                    if (modifier_keys[kc] === false) {
+                        modifier_keys[kc] = true;
+                    }
+                });
+                Event.on(this, 'keyup', function (event_data) {
+                    var kc = event_data.keyCode;
+                    if (modifier_keys[kc] === true) {
+                        modifier_keys[kc] = false;
+                    }
+                });
             },
             /**
              * Binds a controllable entity to the event register, allowing it to be controlled
@@ -134,7 +153,7 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
                             kc = key_codes[key.key];
                             func_down = function (event_data) {
                                 if (event_data.keyCode === kc) {
-                                    key.down.call(this, event_data);
+                                    key.down.call(this, event_data, modifier_keys);
                                 }
                             };
                             func_up = function (event_data) {
