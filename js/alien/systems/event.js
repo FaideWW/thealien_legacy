@@ -4,7 +4,7 @@
 
 /* TODO: Custom events for entities */
 
-define(['underscore'], function (_) {
+define(['underscore', 'alien/logging'], function (_, Log) {
     "use strict";
     var EventSystem,
         createListener = function (event) {
@@ -40,11 +40,20 @@ define(['underscore'], function (_) {
         keys_pressed: {},
         init: function (events) {
             generateWindowListeners(events);
-            entities = {};
+            entities = {
+                __GLOBAL: {
+                    entity: null
+                }
+            };
         },
         on: function (entity, events, handler, once) {
             events = events.split(' ');
             _.each(events, function (event) {
+                if (!entity) {
+                    entity = {
+                        id: "__GLOBAL"
+                    };
+                }
                 if (!this.hasOwnProperty(entity.id)) {
                     this[entity.id] = {
                         entity: entity
@@ -92,12 +101,15 @@ define(['underscore'], function (_) {
                     });
                 }
             } else {
-                _.each(entities, function (entity) {
+                _.each(_.filter(entities, function (e) {
+                    return e.hasOwnProperty(event);
+                }), function (entity) {
                     /**
                      * If no entity is specified, trigger the event on all entities
                      */
                     this.trigger(event, entity, msg);
                 }, this);
+                this.trigger(event, "__GLOBAL", msg);
             }
             if (event === "keydown") {
                 EventSystem.keys_pressed[msg.keyCode] = msg;
