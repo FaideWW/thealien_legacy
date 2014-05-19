@@ -31,6 +31,15 @@ define(['alien/systems/render'], function (Render) {
                     fill:   fillStyle    //optional, will be ignored during rendering if undefined
                 };
             },
+            createRenderLine: function (vector, strokeStyle, fillStyle) {
+                return {
+                    method: 'drawLine',
+                    x:      vector.x,
+                    y:      vector.y,
+                    stroke: strokeStyle,
+                    fill:   fillStyle
+                };
+            },
             createRenderImage: function (spritesheet, x, y, width, height, r_width, r_height) {
                 var renderable;
                 if (!imageCache.hasOwnProperty(spritesheet)) {

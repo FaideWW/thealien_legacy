@@ -17,8 +17,7 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                     Event.on(entity, 'collide', function (manifold) {
                         if (manifold.other.isStatic
                                 && (1 - manifold.manifold.unt().dot(new M.Vector({x: 0, y: -1}))) < 0.0001
-                                && this.movable.velocity.y >= 0
-                                ) {
+                                && this.movable.velocity.y >= 0) {
                             PhysicsSystem.ground(this);
                             this.movable.jumping = false;
                         }

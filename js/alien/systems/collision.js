@@ -3,8 +3,8 @@
  */
 
 define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'alien/components/message',
-    'alien/systems/physics', 'alien/systems/event',
-    'alien/systems/messaging', 'alien/components/renderable'], function (_, M, CF, Message, Physics, Event, Messaging, RenderableFactory) {
+    'alien/systems/physics', 'alien/systems/event', 'alien/systems/messaging', 'alien/components/renderable',
+    'alien/systems/render'], function (_, M, CF, Message, Physics, Event, Messaging, RenderableFactory, Render) {
     'use strict';
 
     var AABB_faces = [
@@ -67,27 +67,30 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                     return new Message(manifold, function (m) {
                         var toShift,
                             other,
-                            manifold;
+                            manifold_vector;
                         if (m.collider.isStatic) {
                             //The "collider" is static; we need to move the other component
                             toShift  = m.other;
                             other    = m.collider;
-                            manifold = m.manifold.mul(-1);
+                            manifold_vector = m.manifold.mul(-1);
                         } else {
                             toShift  = m.collider;
                             other    = m.other;
-                            manifold = m.manifold;
+                            manifold_vector = m.manifold;
                         }
-                        Physics.shift(toShift, manifold);
-                        Physics.flatten(toShift, manifold);
+                        Physics.shift(toShift, manifold_vector);
+                        /* Decay velocity vector if it is at an angle of incidence */
+                        if (toShift.movable.velocity.dot(manifold_vector) < 0) {
+                            Physics.flatten(toShift, manifold_vector);
+                        }
                         //debugger;
                         Event.trigger('collide', m.collider, {
                             other:    other,
-                            manifold: manifold
+                            manifold: manifold_vector
                         });
                         Event.trigger('collide', m.other, {
                             other:    other,
-                            manifold: manifold
+                            manifold: manifold_vector
                         });
                     });
                 }));

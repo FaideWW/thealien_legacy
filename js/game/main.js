@@ -23,7 +23,6 @@ require(['alien/alien'], function (alien) {
                 this.movable.jumping = true;
                 this.movable.onGround = false;
                 this.movable.velocity.y = -200;
-                console.log(mod);
             }, function () { return; }, true),
             cn.createKeyBinding('a', function (event, mod) {
                 /* left keydown */
