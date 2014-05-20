@@ -30,14 +30,18 @@ define(['underscore', 'alien/systems/messaging', 'alien/logging'], function (_, 
                     return anim.priority;
                 })),
                     animation = entity.animatable.animations[entity.animatable.activeAnimation],
-                    frametime = (typeof animation.framerate === 'function') ? 1000 / animation.framerate.call(entity, dt) : 1000 / animation.framerate;
+                    frametime = (typeof animation.framerate === 'function') ? 1000 / animation.framerate.call(entity, dt) : 1000 / animation.framerate,
+                    new_animation = false;
                 if (!active) {
                     this.setAnimation(entity, entity.animatable.defaultAnimation);
+                    new_animation = true;
                 } else if (active !== animation) {
                     this.setAnimation(entity, active.id);
+                    new_animation = true;
+                } else {
+                    animation.timeSince += dt;
                 }
-                animation.timeSince += dt;
-                if (animation.timeSince >= frametime) {
+                if (animation.timeSince >= frametime || new_animation) {
                     /* Switch to next frame */
                     animation.currentFrame = (animation.loops) ? (animation.currentFrame + 1) % animation.frames.length
                                                                : Math.min(animation.currentFrame + 1, animation.frames.length - 1);

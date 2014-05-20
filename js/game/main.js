@@ -26,16 +26,20 @@ require(['alien/alien'], function (alien) {
             }, function () { return; }, true),
             cn.createKeyBinding('a', function (event, mod) {
                 /* left keydown */
-                this.movable.velocity.x = -speed;
-                this.movable.facingRight = false;
-                this.movable.facingLeft = true;
-                this.movable.movingRight = false;
-                this.movable.movingLeft = true;
-                if (mod[16]) {
-                    this.movable.velocity.x = -speed * 2;
-                    this.movable.running = true;
-                } else {
-                    this.movable.running = false;
+                if (!this.movable.crouching) {
+                    this.movable.velocity.x = -speed;
+                    this.movable.facingRight = false;
+                    this.movable.facingLeft = true;
+                    this.movable.movingRight = false;
+                    this.movable.movingLeft = true;
+                    if (mod[16]) {
+                        this.movable.velocity.x = -speed * 2;
+                        this.movable.running = true;
+                    } else {
+                        this.movable.running = false;
+                    }
+                } else if (this.movable.sliding && this.movable.velocity.x < 0) {
+                    this.movable.velocity.x *= 0.9;
                 }
             }, function () {
                 /* left keyup */
@@ -45,18 +49,35 @@ require(['alien/alien'], function (alien) {
                     this.movable.velocity.x = 0;
                 }
             }),
+            cn.createKeyBinding('s', function (event, mod) {
+                this.movable.crouching = true;
+                /* Continue a slide if the shift key is no longer pressed */
+                if ((mod[16] && this.movable.velocity.x !== 0) || this.sliding) {
+                    this.movable.sliding = true;
+                }
+                if (this.movable.velocity.x === 0) {
+                    this.movable.sliding = false;
+                }
+            }, function () {
+                this.movable.crouching = false;
+                this.movable.sliding = false;
+            }),
             cn.createKeyBinding('d', function (event, mod) {
                 /* right keydown */
-                this.movable.velocity.x = speed;
-                this.movable.facingLeft = false;
-                this.movable.facingRight = true;
-                this.movable.movingLeft = false;
-                this.movable.movingRight = true;
-                if (mod[16]) {
-                    this.movable.velocity.x = speed * 2;
-                    this.movable.running = true;
-                } else {
-                    this.movable.running = false;
+                if (!this.movable.crouching) {
+                    this.movable.velocity.x = speed;
+                    this.movable.facingLeft = false;
+                    this.movable.facingRight = true;
+                    this.movable.movingLeft = false;
+                    this.movable.movingRight = true;
+                    if (mod[16]) {
+                        this.movable.velocity.x = speed * 2;
+                        this.movable.running = true;
+                    } else {
+                        this.movable.running = false;
+                    }
+                } else if (this.movable.sliding && this.movable.velocity.x > 0) {
+                    this.movable.velocity.x *= 0.9;
                 }
             }, function () {
                 /* right keyup */
@@ -98,10 +119,23 @@ require(['alien/alien'], function (alien) {
                     an.createFrame(27, 0, 20, 20)
                 ],
                 predicate: function () {
-                    return (this.movable.onGround && this.movable.facingRight && this.movable.velocity.x === 0);
+                    return (this.movable.onGround && this.movable.facingRight && this.movable.velocity.x === 0 && !this.movable.crouching);
                 },
                 options: {
-                    framerate: 5
+                    framerate: 10
+                }
+            },
+            crouch_right: {
+                frames: [
+                    an.createFrame(66, 26, 23, 20)
+                ],
+                predicate: function () {
+                    return (this.movable.onGround && this.movable.crouching && this.movable.facingRight && this.movable.velocity.x === 0);
+                },
+                options: {
+                    loops: false,
+                    framerate: framerate,
+                    priority: 1
                 }
             },
             walk_right: {
@@ -122,7 +156,7 @@ require(['alien/alien'], function (alien) {
                 },
                 options: {
                     framerate: function (dt) {
-                        return Math.abs(this.movable.velocity.x) / alien.systems.Physics.MAX_V * framerate;
+                        return Math.abs(this.movable.velocity.x) / speed * framerate;
                     },
                     loops: true
                 }
@@ -149,13 +183,14 @@ require(['alien/alien'], function (alien) {
             },
             slide_right: {
                 frames: [
-                    an.createFrame(186, 72, 22, 22)
+                    an.createFrame(36, 25, 22, 20),
+                    an.createFrame(5, 25, 27, 20)
                 ],
                 predicate: function () {
-                    //return this.movable.onGround && (this.movable.facingLeft && this.movable.velocity.x > 0);
-                    return false;
+                    return this.movable.onGround && (this.movable.movingRight && this.movable.sliding);
                 },
                 options: {
+                    loops: false,
                     framerate: framerate,
                     priority: 1
                 }
@@ -219,10 +254,23 @@ require(['alien/alien'], function (alien) {
                     an.createFrame(929, 0, 20, 20)
                 ],
                 predicate: function () {
-                    return (this.movable.onGround && this.movable.facingLeft && this.movable.velocity.x === 0);
+                    return (this.movable.onGround && this.movable.facingLeft && this.movable.velocity.x === 0 && !this.movable.crouching);
                 },
                 options: {
-                    framerate: framerate
+                    framerate: 10
+                }
+            },
+            crouch_left: {
+                frames: [
+                    an.createFrame(887, 26, 23, 20)
+                ],
+                predicate: function () {
+                    return (this.movable.onGround && this.movable.crouching && this.movable.facingLeft && this.movable.velocity.x === 0);
+                },
+                options: {
+                    loops: false,
+                    framerate: framerate,
+                    priority: 1
                 }
             },
             walk_left: {
@@ -243,7 +291,7 @@ require(['alien/alien'], function (alien) {
                 },
                 options: {
                     framerate: function () {
-                        return Math.abs(this.movable.velocity.x) / alien.systems.Physics.MAX_V * framerate;
+                        return Math.abs(this.movable.velocity.x) / speed * framerate;
                     },
                     loops: true
                 }
@@ -270,12 +318,14 @@ require(['alien/alien'], function (alien) {
             },
             slide_left: {
                 frames: [
-                    an.createFrame(768, 72, 22, 22)
+                    an.createFrame(918, 25, 22, 20),
+                    an.createFrame(944, 25, 27, 20)
                 ],
                 predicate: function () {
-                    //return this.movable.onGround && (this.movable.facingRight && this.movable.velocity.x < 0);
+                    return this.movable.onGround && (this.movable.movingLeft && this.movable.sliding);
                 },
                 options: {
+                    loops: false,
                     framerate: framerate,
                     priority: 1
                 }
