@@ -16,8 +16,8 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                 _.each(entities, function (entity) {
                     Event.on(entity, 'collide', function (manifold) {
                         if (manifold.other.isStatic
-                                && (1 - manifold.manifold.unt().dot(new M.Vector({x: 0, y: -1}))) < 0.0001
-                                && this.movable.velocity.y >= 0) {
+                                && (0.0001 > 1 - manifold.manifold.unt().dot(new M.Vector({x: 0, y: -1})))
+                                && 0 <= this.movable.velocity.y) {
                             PhysicsSystem.ground(this);
                             this.movable.jumping = false;
                         }
@@ -43,10 +43,10 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                 var entities = scene.getAllWithAllOf(['movable', 'position']);
                 _.each(entities, function (e) {
                     var m = e.movable;
-                    if (m.velocity.y !== 0) {
+                    if (0 !== m.velocity.y) {
                         m.onGround = false;
                     }
-                    if (dt > 1000 && e.id === "player") {
+                    if (1000 < dt && 'player' === e.id) {
                         console.log(m.velocity);
                         console.log(this.interpolatedVector(m.velocity, dt));
                     }
@@ -58,14 +58,14 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                     }
 
                     if (m.onGround) {
-                        if (Math.abs(m.velocity.x) < 1) {
+                        if (1 > Math.abs(m.velocity.x)) {
                             m.velocity.x = 0;
                         }
                         if (!(m.movingRight || m.movingLeft)) {
                             m.velocity = m.velocity.mul(ground_friction);
                         }
                     } else {
-                        if (Math.abs(m.velocity.x) < 1) {
+                        if (1 > Math.abs(m.velocity.x)) {
                             m.velocity.x = 0;
                         }
                         if (!(m.movingRight || m.movingLeft)) {

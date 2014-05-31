@@ -80,7 +80,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                         }
                         Physics.shift(toShift, manifold_vector);
                         /* Decay velocity vector if it is at an angle of incidence */
-                        if (toShift.movable.velocity.dot(manifold_vector) < 0) {
+                        if (0 > toShift.movable.velocity.dot(manifold_vector)) {
                             Physics.flatten(toShift, manifold_vector);
                         }
                         //debugger;
@@ -113,7 +113,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
          */
         speculativeContact: function (scene, dt) {
             var moving_entities = _.filter(scene.getAllWithAllOf(['collidable', 'position', 'movable']), function (entity) {
-                return entity.movable.velocity.magsqrd() > 0;
+                return (0 < entity.movable.velocity.magsqrd());
             }),
                 sweeps,
                 collisions,
@@ -145,15 +145,15 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
 
                     interpolated_velocity = Physics.interpolatedVector(final_v || entity.movable.velocity, dt);
                     aabb = entity.collidable;
-                    if (entity.collidable.type === 1) {
+                    if (1 === entity.collidable.type) {
                         aabb = this.componentMethods.polyToAABB(entity.collidable);
-                    } else if (entity.collidable.type === -1) {
+                    } else if (-1 === entity.collidable.type) {
                         aabb = this.componentMethods.circleToAABB(entity.collidable);
                     }
                     dist = this.collisionMethods.shortestDistanceTo(collisions[0].other.position, entity.position, collisions[0].other.collidable, aabb);
                     console.log(dist);
                     if (dist.magsqrd() < interpolated_velocity.magsqrd()) {
-                        if (dist.x === 0) {
+                        if (0 === dist.x) {
                             decay = dist.y / Math.abs(interpolated_velocity.y);
                         } else {
                             decay = dist.x / Math.abs(interpolated_velocity.x);
@@ -215,7 +215,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                     /* TODO: Check for applied rotations or scaling */
 
 
-                    if (collider.collidable.type + other.collidable.type === -2) {
+                    if (-2 === collider.collidable.type + other.collidable.type) {
                         /*
                          -------------------------------------
                          CIRCLE-CIRCLE COLLISION
@@ -223,7 +223,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                          */
                         manifold = c.collideCircleCircle(collider.position, other.position, collider.collidable.radius,
                             other.collidable.radius, false);
-                    } else if (collider.collidable.type + other.collidable.type === -1) {
+                    } else if (-1 === collider.collidable.type + other.collidable.type) {
                         /*
                          -------------------------------------
                          CIRCLE-AABB COLLISION
@@ -275,7 +275,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                         /* Determine collided faces */
                         other_face = getCollidedFace(other.collidable.getNormals());
 
-                    } else if (collider.collidable.type + other.collidable.type === 0) {
+                    } else if (0 === collider.collidable.type + other.collidable.type) {
                         /*
                          -------------------------------------
                          AABB-AABB COLLISION
@@ -287,7 +287,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                         collider_face = getCollidedFace(AABB_faces, manifold.mul(-1));
                         other_face    = getCollidedFace(AABB_faces, manifold);
 
-                    } else if (collider.collidable.type + other.collidable.type === 1) {
+                    } else if (1 === collider.collidable.type + other.collidable.type) {
                         /*
                          -------------------------------------
                          AABB-Poly COLLISION
@@ -311,7 +311,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
 
                         collider_face = getCollidedFace(AABB_faces, manifold.mul(-1));
                         other_face    = getCollidedFace(other.collidable.getNormals(), manifold);
-                    } else if (collider.collidable.type + other.collidable.type === 2) {
+                    } else if (2 === collider.collidable.type + other.collidable.type) {
                         /*
                          -------------------------------------
                          Poly-Poly COLLISION
@@ -381,7 +381,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                 }
                 dist = Math.sqrt(distSquared);
                 scalar = (radius1 + radius2) - dist;
-                return (scalar > 0) ? position1.sub(position2).unt().mul(-scalar) : new M.Vector();
+                return (0 < scalar) ? position1.sub(position2).unt().mul(-scalar) : new M.Vector();
 
             },
             /**
@@ -411,10 +411,10 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                     inside = true;
                     if (Math.abs(dist.x) > Math.abs(dist.y)) {
                         /* The circle is closer to the bounds on the x-axis */
-                        closest_point.x = (closest_point.x > 0) ? aabb.half_width : -aabb.half_width;
+                        closest_point.x = (0 < closest_point.x) ? aabb.half_width : -aabb.half_width;
                     } else {
                         /* Closer on the y-axis */
-                        closest_point.y = (closest_point.y > 0) ? aabb.half_height : -aabb.half_height;
+                        closest_point.y = (0 < closest_point.y) ? aabb.half_height : -aabb.half_height;
                     }
                 }
                 /*  */
@@ -460,9 +460,9 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                     return point.scalarProject(axis);
                 }));
                 if (fast) {
-                    return (axis.magsqrd() > 0 && Math.pow(closestProjection + radius, 2) > axis.magsqrd());
+                    return (0 < axis.magsqrd() && Math.pow(closestProjection + radius, 2) > axis.magsqrd());
                 }
-                if (axis.magsqrd() <= 0 || Math.pow(closestProjection + radius, 2) <= axis.magsqrd()) {
+                if (0 >= axis.magsqrd() || Math.pow(closestProjection + radius, 2) <= axis.magsqrd()) {
                     return M.Vector();
                 }
                 scalar = closestProjection + radius - axis.mag();
@@ -585,7 +585,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                     poly_lines = poly.toLines(),
                     min_x = _.min(poly.getPoints(), function (point) {
                         return point.x;
-                    }).x - 10,
+                    }).x - 100,
                     ray = new M.Line({
                         start: new M.Vector({
                             x: min_x,
@@ -597,9 +597,9 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                         })
                     });
 
-                return _.filter(poly_lines, function (line) {
+                return (1 === _.filter(poly_lines, function (line) {
                     return M.withinRange(line.int(ray).t, 0, 1);
-                }).length % 2 === 1;
+                }).length % 2);
 
             },
             /**

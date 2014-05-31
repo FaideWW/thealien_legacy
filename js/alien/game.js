@@ -15,9 +15,9 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                 }
                 );
         }()),
-        time = function () {
-            return (new Date()).getTime();
-        },
+//        time = function () {
+//            return (new Date()).getTime();
+//        },
         states = {
             STOPPED: 0,
             RUNNING: 1,
@@ -181,11 +181,11 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                                 Event.step(this.scenes[this.activeScene], dt);
 
 
-                                if (this.timeSince / this.frametime >= 5) {
+                                if (5 <= this.timeSince / this.frametime) {
                                     console.log('skip');
                                     Collider.speculativeContact(this.scenes[this.activeScene], dt);
                                 }
-                                this.timeSince = this.timeSince % this.frametime;
+                                this.timeSince %= this.frametime;
 
                                 Physics.step(this.scenes[this.activeScene], dt);
                                 Collider.step(this.scenes[this.activeScene], dt);

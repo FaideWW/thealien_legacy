@@ -24,7 +24,7 @@ define(['underscore', 'alien/logging'], function (_, Log) {
             });
         },
         triggerCallback = function (cb, context, event_data) {
-            if (event_data.type === "keydown") {
+            if ('keydown' === event_data.type) {
                 if (!EventSystem.keys_pressed[event_data.keyCode]) {
                     cb.handler.call(context, event_data);
                 } else if (!cb.once) {
@@ -111,9 +111,9 @@ define(['underscore', 'alien/logging'], function (_, Log) {
                 }, this);
                 this.trigger(event, "__GLOBAL", msg);
             }
-            if (event === "keydown") {
+            if ('keydown' === event) {
                 EventSystem.keys_pressed[msg.keyCode] = msg;
-            } else if (event === "keyup") {
+            } else if ('keyup' === event) {
                 EventSystem.keys_pressed[msg.keyCode] = false;
             }
             return this;

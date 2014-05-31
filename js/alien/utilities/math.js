@@ -80,7 +80,7 @@ define(["underscore"], function (_) {
                     },
                     sameDir: function (other) {
                         /* fault tolerance */
-                        return (this.x / this.y) - (other.x / other.y) < 0.0001;
+                        return 0.0001 > (this.x / this.y) - (other.x / other.y);
                     },
                     neg: function () {
                         /* returns the opposite vector (vec + opposite = 0) */
@@ -157,14 +157,14 @@ define(["underscore"], function (_) {
                             denom = r.cmg(s),
                             numer = other_origin.sub(this_origin).cmg(r);
 
-                        if (denom !== 0) {
+                        if (0 !== denom) {
                             //intersection possible
                             return {
                                 t: numer / denom,
                                 u: other_origin.sub(this_origin).cmg(s) / denom
                             };
                         }
-                        if (numer === 0) {
+                        if (0 === numer) {
                             //colinear, search for an overlap
                             if ((this.x >= other_origin.x && this.y >= other_origin.y && this.x <= other.x && this.y <= other)) {
                                 return {
@@ -190,7 +190,7 @@ define(["underscore"], function (_) {
                         return axis.unt().mul(this.scalarProject(axis));
                     },
                     normalReflect: function (normal) {
-                        normal = (normal.magsqrd() === 1) ? normal : normal.unt();
+                        normal = (1 === normal.magsqrd()) ? normal : normal.unt();
                         return normal.mul(2 * this.dot(normal)).sub(this);
                     },
                     majorAxis: function () {
@@ -247,14 +247,14 @@ define(["underscore"], function (_) {
                             denom = r.cmg(s),
                             numer = other.start.sub(this.start).cmg(r);
 
-                        if (denom !== 0) {
+                        if (0 !== denom) {
                             //intersection possible
                             return {
                                 t: numer / denom,
                                 u: other.end.sub(this.start).cmg(s) / denom
                             };
                         }
-                        if (numer === 0) {
+                        if (0 === numer) {
                             //colinear, search for an overlap
                             if ((this.end.x >= other.start.x && this.end.y >= other.start.y && this.end.x <= other.end.x && this.end.y <= other.end.y)) {
                                 return {
@@ -434,7 +434,7 @@ define(["underscore"], function (_) {
                 });
             },
             sign: function (val) {
-                return (val > 0) ? 1 : -1;
+                return (0 < val) ? 1 : -1;
             }
         };
 

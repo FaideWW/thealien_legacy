@@ -153,7 +153,7 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
 
         Map.prototype.getCollidables = function () {
             return this.subset;
-        }
+        };
 
         return Map;
     }());

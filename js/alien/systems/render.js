@@ -42,8 +42,9 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
             drawMap: function (map) {
                 _.each(map.mapdata, function (row, y) {
                     _.each(row, function (tile, x) {
+                        var tile_pos;
                         if (tile) {
-                            var tile_pos = {
+                            tile_pos = {
                                 x: (x * map.tile_width) + (map.tile_width / 2),
                                 y: (y * map.tile_height) + (map.tile_height / 2)
                             };
@@ -136,13 +137,13 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
                  r - a sequential list of points {x,y} to define a polygon
                  */
                 drawPolygon: function (ctx, pos, r) {
-                    if (!ctx) {
-                        ctx = default_ctx;
-                    }
                     var poly = r.poly,
                         i,
                         points = poly.getPoints(),
                         l = points.length;
+                    if (!ctx) {
+                        ctx = default_ctx;
+                    }
                     if (r.stroke) {
                         ctx.strokeStyle = r.stroke;
                     }

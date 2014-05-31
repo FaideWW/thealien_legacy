@@ -10,7 +10,7 @@ define(function () {
         },
         log: function (msg, once) {
             // report the error to whatever error handling is in place (in this case, just dump to the console)
-            if (!once || reported.indexOf(msg) === -1) {
+            if (!once || -1 === reported.indexOf(msg)) {
                 window.document.getElementById("log").innerHTML = msg;
             }
             if (once) {
@@ -19,7 +19,7 @@ define(function () {
             return null;
         },
         error: function (msg, once) {
-            if (!once || reported.indexOf(msg) === -1) {
+            if (!once || -1 === reported.indexOf(msg)) {
                 console.error(msg);
             }
             if (once) {

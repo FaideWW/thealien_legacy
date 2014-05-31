@@ -13,7 +13,7 @@ define(['underscore', 'alien/logging'], function (_, Log) {
 
             options = options || {};
 
-            if (typeof id !== "string") {
+            if ('string' !== typeof id) {
                 options = id || {};
                 id = null;
             }
@@ -26,7 +26,7 @@ define(['underscore', 'alien/logging'], function (_, Log) {
                 id = options.id;
             }
             if (id) {
-                if (entity_ids.indexOf(id) !== -1) {
+                if (-1 !== entity_ids.indexOf(id)) {
                     return Log.error("Entity with that id already exists");
                 }
                 this.id = id;
@@ -34,7 +34,7 @@ define(['underscore', 'alien/logging'], function (_, Log) {
                 do {
                     id = "entity_" + id_counter;
                     id_counter += 1;
-                } while (entity_ids.indexOf(id) !== -1);
+                } while (-1 !== entity_ids.indexOf(id));
                 this.id = id;
             }
             entity_ids.push(this.id);
@@ -42,7 +42,7 @@ define(['underscore', 'alien/logging'], function (_, Log) {
             this.isStatic = false;
 
             _.each(options, function (component, name) {
-                if (name === "id") {
+                if ('id' === name) {
                     return;
                 }
                 this.addComponent(component, name);

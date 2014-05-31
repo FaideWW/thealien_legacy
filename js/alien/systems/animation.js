@@ -16,9 +16,9 @@ define(['underscore', 'alien/systems/messaging', 'alien/logging'], function (_, 
             });
         },
         step: function (scene, dt) {
+            var animated = scene.getAllWith('animatable');
             /* Fetch messages */
             Messaging.fetch('animation');
-            var animated = scene.getAllWith('animatable');
             _.each(animated, function (entity) {
                 /*
                 Determine active animation.
@@ -30,7 +30,7 @@ define(['underscore', 'alien/systems/messaging', 'alien/logging'], function (_, 
                     return anim.priority;
                 })),
                     animation = entity.animatable.animations[entity.animatable.activeAnimation],
-                    frametime = (typeof animation.framerate === 'function') ? 1000 / animation.framerate.call(entity, dt) : 1000 / animation.framerate,
+                    frametime = ('function' === typeof animation.framerate) ? 1000 / animation.framerate.call(entity, dt) : 1000 / animation.framerate,
                     new_animation = false;
                 if (!active) {
                     this.setAnimation(entity, entity.animatable.defaultAnimation);
@@ -45,7 +45,7 @@ define(['underscore', 'alien/systems/messaging', 'alien/logging'], function (_, 
                     /* Switch to next frame */
                     animation.currentFrame = (animation.loops) ? (animation.currentFrame + 1) % animation.frames.length
                                                                : Math.min(animation.currentFrame + 1, animation.frames.length - 1);
-                    animation.timeSince = animation.timeSince % frametime;
+                    animation.timeSince %= frametime;
                     entity.renderable = animation.frames[animation.currentFrame];
                 }
             }, this);

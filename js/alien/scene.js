@@ -17,7 +17,7 @@ define(['underscore', 'alien/entity', 'alien/logging'], function (_, Entity, Log
              If no id is supplied, generate one.
              */
             if (id) {
-                if (scene_ids.indexOf(id) !== -1) {
+                if (-1 !== scene_ids.indexOf(id)) {
                     return Log.error("Scene with that id already exists");
                 }
                 this.id = id;
@@ -25,7 +25,7 @@ define(['underscore', 'alien/entity', 'alien/logging'], function (_, Entity, Log
                 do {
                     id = "scene_" + id_counter;
                     id_counter += 1;
-                } while (scene_ids.indexOf(id) !== -1);
+                } while (-1 !== scene_ids.indexOf(id));
                 this.id = id;
             }
             scene_ids.push(this.id);

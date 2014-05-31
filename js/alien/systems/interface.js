@@ -124,13 +124,13 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
                 /* Modifier keys */
                 Event.on(this, 'keydown', function (event_data) {
                     var kc = event_data.keyCode;
-                    if (modifier_keys[kc] === false) {
+                    if (false === modifier_keys[kc]) {
                         modifier_keys[kc] = true;
                     }
                 });
                 Event.on(this, 'keyup', function (event_data) {
                     var kc = event_data.keyCode;
-                    if (modifier_keys[kc] === true) {
+                    if (true === modifier_keys[kc]) {
                         modifier_keys[kc] = false;
                     }
                 });
@@ -143,8 +143,8 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
             bindEntityToKeys: function (e) {
                 _.each(e.keylistener.keymap, function (key) {
                     var kc, func_down, func_up;
-                    if (key.type === "key") {
-                        if (key.key === '*') {
+                    if ('key' === key.type) {
+                        if ('*' === key.key) {
                             /* Trigger on every key */
                             func_down = key.down;
                             func_up   = key.up;
@@ -168,7 +168,7 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
                         if (key.up) {
                             Event.on(e, 'keyup', func_up, null);
                         }
-                    } else if (key.type === "sequence") {
+                    } else if ('sequence' === key.type) {
                         kc = _.map(key.sequence.split(","), function (key) { return key_codes[key]; });
                         sequences.push({
                             entity:   e,
@@ -177,7 +177,7 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
                             current:  kc,
                             once:     key.once
                         });
-                    } else if (key.type === "combination") {
+                    } else if ('combination' === key.type) {
                         combos.push({
                             entity:      e,
                             combination: _.map(key.combination.split("+"), function (key) { return key_codes[key]; }),
@@ -213,7 +213,7 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
                     Event.on(e, 'keydown', function (event_data) {
                         var kc = event_data.keyCode;
                         _.each(combos, function (c) {
-                            if (c.combination.indexOf(kc) !== -1 && c.current.indexOf(kc) === -1) {
+                            if (-1 !== c.combination.indexOf(kc) && -1 === c.current.indexOf(kc)) {
                                 c.current.push(kc);
                             }
                             if (c.current.length === c.combination.length && (!c.active || !c.once)) {
@@ -225,7 +225,7 @@ define(['underscore', 'alien/systems/event'], function (_, Event) {
                     Event.on(e, 'keyup', function (event_data) {
                         var kc = event_data.keyCode;
                         _.each(combos, function (c) {
-                            if (c.combination.indexOf(kc) !== -1 && c.current.indexOf(kc) !== -1) {
+                            if (-1 !== c.combination.indexOf(kc) && -1 !== c.current.indexOf(kc)) {
                                 c.active = false;
                                 c.current.splice(c.current.indexOf(kc), 1);
                             }

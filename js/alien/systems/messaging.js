@@ -28,7 +28,7 @@ define(["underscore"], function (_) {
             },
             fetch: function (system, context) {
                 queue[system] = _.filter(queue[system], function (message) {
-                    if (!message.delay || message.delay <= 0) {
+                    if (!message.delay || 0 >= message.delay) {
                         message.cb.call(context || this, message.msg);
                         return false;
                     }
