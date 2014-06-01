@@ -32,17 +32,21 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                 initGravityEntities(scene);
             },
             interpolatedVector: function (v, dt) {
-                return v.mul(dt / 1000);
+                return M.lerp(0, v, dt / 1000);
+            },
+            interpolatedScalar: function (s, dt) {
+                return s * dt / 1000;
             },
             uninterpolatedVector: function (v, dt) {
                 return v.mul(1000 / dt);
             },
             step: function (scene, dt) {
                 /* Fetch messages */
-                Messaging.fetch('physics');
                 var entities = scene.getAllWithAllOf(['movable', 'position']);
+                Messaging.fetch('physics');
                 _.each(entities, function (e) {
-                    var m = e.movable;
+                    var m = e.movable,
+                        interpolated_velocity = this.interpolatedVector(m.velocity, dt);
                     if (0 !== m.velocity.y) {
                         m.onGround = false;
                     }
@@ -50,8 +54,14 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                         console.log(m.velocity);
                         console.log(this.interpolatedVector(m.velocity, dt));
                     }
+
+                    if (e.camera) {
+                        e.camera.position = this.performCameraDynamics(e, dt);
+                    }
+
                     /* Resolve position first, then velocity */
-                    e.position = e.position.add(this.interpolatedVector(m.velocity, dt));
+                    e.position = e.position.add(interpolated_velocity);
+
                     m.velocity = m.velocity.add(this.interpolatedVector(m.acceleration, dt));
                     if (m.hasGravity) {
                         m.velocity = m.velocity.add(this.interpolatedVector(gravity, dt));
@@ -76,7 +86,32 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                     /* Clamp velocity to MAX_V on each axis*/
                     m.velocity.x = M.clamp(m.velocity.x, -MAX_V, MAX_V);
                     m.velocity.y = M.clamp(m.velocity.y, -MAX_V, MAX_V);
+
+
+                    /* Camera dynamics */
+
                 }, this);
+            },
+            performCameraDynamics: function (e, dt) {
+                var m = e.movable,
+                    cam_to_entity,
+                    interpolation_factor;
+                if (!e.camera.position) {
+                    return e.position;
+                }
+                if (!e.camera.position.eq(e.position)) {
+                    /*
+                        Camera should
+                     */
+                    cam_to_entity = e.position.sub(e.camera.position);
+                    interpolation_factor = M.clamp(cam_to_entity.mag() / e.camera.lerpzone_radius, 0, 1);
+
+                    // normalize to use as a direction vector
+                    cam_to_entity = cam_to_entity.unt();
+                    return e.camera.position.add(cam_to_entity.mul(this.interpolatedScalar(MAX_V, dt) * interpolation_factor));
+                    //Log.toConsole(1 - ((e.camera.lerpzone_radius - e.position.sub(e.camera.position).mag()) / e.camera.lerpzone_radius));
+                    //Log.toConsole(e.camera.position);
+                }
             },
             ground: function (entity) {
                 if (entity.movable) {

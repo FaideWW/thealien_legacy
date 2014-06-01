@@ -597,9 +597,9 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                         })
                     });
 
-                return (1 === _.filter(poly_lines, function (line) {
+                return 1 === _.filter(poly_lines, function (line) {
                     return M.withinRange(line.int(ray).t, 0, 1);
-                }).length % 2);
+                }).length % 2;
 
             },
             /**

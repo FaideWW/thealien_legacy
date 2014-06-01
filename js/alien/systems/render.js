@@ -60,18 +60,20 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
              * This method will only draw what is contained in the camera's view window, and
              *  output only to the camera object's designated output window
              *
-             * @param camera
+             * @param camera_entity
              * @param renderables
              */
-            drawCamera: function (camera, map, renderables) {
-                var cam_scale_x, cam_scale_y, cam_space_x, cam_space_y;
+            drawCamera: function (camera_entity, map, renderables) {
+                var cam_pos, cam_scale_x, cam_scale_y, cam_space_x, cam_space_y;
                 /* clear the entire canvas (might be some performance increase in tracking changed regions */
                 default_ctx.save();
+                cam_pos = camera_entity.camera.position || camera_entity.position;//.add(camera_entity.camera.position_offset);
                 /* Transform to camera-space */
-                cam_scale_x = camera.camera.output.half_width  / camera.camera.view.half_width;
-                cam_scale_y = camera.camera.output.half_height / camera.camera.view.half_height;
-                cam_space_x = ((camera.camera.output.half_width  / 2) - camera.position.x);
-                cam_space_y = ((camera.camera.output.half_height / 2) - camera.position.y);
+                cam_scale_x = camera_entity.camera.output.half_width  / camera_entity.camera.view.half_width;
+                cam_scale_y = camera_entity.camera.output.half_height / camera_entity.camera.view.half_height;
+                cam_space_x = ((camera_entity.camera.output.half_width  / 2) - cam_pos.x);
+                cam_space_y = ((camera_entity.camera.output.half_height / 2) - cam_pos.y);
+
                 default_ctx.scale(cam_scale_x, cam_scale_y);
 
                 default_ctx.translate(cam_space_x, cam_space_y);

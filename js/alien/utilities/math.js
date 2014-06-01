@@ -435,6 +435,11 @@ define(["underscore"], function (_) {
             },
             sign: function (val) {
                 return (0 < val) ? 1 : -1;
+            },
+            // linear interpolation ("lerp")
+            lerp: function (start, end, t) {
+                start = start || new this.Vector();
+                return start.add(end.sub(start).mul(t));
             }
         };
 
