@@ -26,23 +26,18 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                     return renderable_tileset;
                 }, {});
             },
-            /**
-             *
-             * @param mapdata : Array - an array of strings representing each row of tiles in the map
-             * @param tilemap : Object - mapping of characters in the map data to the tiles in the tileset
-             */
-            generateMapData = function (mapdata, tilemap) {
+            generateMapData = function (mapdata, tilemap, player_spawn_char) {
                 return _.map(mapdata, function (row) {
                     return _.map(row.split(''), function (tile) {
-                        return tilemap[tile] || null;
+                        return tilemap[tile] || (tile === player_spawn_char ? tile : null);
                     });
                 });
             },
-            generateCollisionData = function (map, tw, th) {
+            generateCollisionData = function (map, tw, th, player_spawn_char) {
                 return _.map(map, function (row, y) {
                     return _.map(row, function (tile, x) {
                         var t = null;
-                        if (tile) {
+                        if (tile && tile !== player_spawn_char) {
 
                             t = {
                                 collidable: CollidableFactory.createAABB(tw / 2, th / 2),
@@ -130,7 +125,24 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                 return collidables;
 
                 /* Check vertical adjacents next */
+            },
+            determinePlayerSpawn = function (mapdata, tw, th, player_spawn_char) {
+                var c = mapdata.length,
+                    y,
+                    x;
+                for (y = 0; y < c; y += 1) {
+                    x = mapdata[y].indexOf(player_spawn_char);
+                    if (-1 !== x) {
+                        mapdata[y][x] = null;
+                        break;
+                    }
+                }
+                return (0 <= x) ? new M.Vector({
+                    x: tw * x + tw / 2,
+                    y: th * y + th / 2
+                }) : new M.Vector();
             };
+
         function Map(options) {
             if (!(this instanceof Map)) {
                 return new Map(options);
@@ -145,9 +157,10 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
             this.background       = options.background;
             this.background_image = options.background_image || null;
             this.tilemap          = options.tilemap;
-            this.mapdata          = generateMapData(options.mapdata, this.tilemap);
-            this.collisionData    = generateCollisionData(this.mapdata, this.tile_width, this.tile_height);
-            this.collidables      = _.compact(_.flatten(this.collisionData));
+            this.mapdata          = generateMapData(options.mapdata, this.tilemap, options.player_spawn);
+            this.collision_data   = generateCollisionData(this.mapdata, this.tile_width, this.tile_height, options.player_spawn);
+            this.player_spawn     = determinePlayerSpawn(this.mapdata, this.tile_width, this.tile_height, options.player_spawn);
+            this.collidables      = _.compact(_.flatten(this.collision_data));
             this.subset           = reduceGeometry(this.collidables);
         }
 

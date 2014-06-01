@@ -126,6 +126,12 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                             }
                         });
                     }
+                    /* Change player spawn location */
+                    if (this.scenes[this.activeScene].entities.hasOwnProperty('player') && this.scenes[this.activeScene].map) {
+                        this.scenes[this.activeScene].entities.player.position = this.scenes[this.activeScene].map.player_spawn;
+                        console.log(this.scenes[this.activeScene].entities.player.position);
+                    }
+
                     return this;
                 },
                 run: function () {
