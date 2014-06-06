@@ -420,13 +420,15 @@ define(["underscore"], function (_) {
 
             },
 
-            rangeOverlaps: function (min1, max1, min2, max2) {
-                return min1 < max2 && min2 < max1;
+            rangeOverlaps: function (min1, max1, min2, max2, tolerance) {
+                tolerance = tolerance || 0;
+                return (max2 - min1) > tolerance && (max1 - min2) > tolerance;
             },
 
             clamp: function (val, min, max) {
                 return m.max(min, m.min(val, max));
             },
+            //average two vectors
             average: function (p1, p2) {
                 return new this.Vector({
                     x: (p1.x + p2.x) / 2,
@@ -440,7 +442,7 @@ define(["underscore"], function (_) {
             lerp: function (start, end, t) {
                 start = start || new this.Vector();
                 return start.add(end.sub(start).mul(t));
-            }
+            },
         };
 
         return Math;

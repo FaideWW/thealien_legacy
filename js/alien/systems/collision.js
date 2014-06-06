@@ -119,6 +119,8 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                 collisions,
                 final_v;
 
+            console.log('moving entities', moving_entities);
+
             _.each(moving_entities, function (entity) {
                 var interpolated_velocity, velocity_trace, dist, aabb, decay;
                 interpolated_velocity = Physics.interpolatedVector(entity.movable.velocity, dt);
@@ -127,6 +129,7 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                     position:   M.average(entity.position, entity.position.add(interpolated_velocity))
                 };
                 Messaging.enqueue('render', new Message(velocity_trace, function (vt) {
+                    console.log('draw velocity trace');
                     this.draw(vt.position, RenderableFactory.createRenderRectangle(vt.collidable.half_width * 2,
                                                                                    vt.collidable.half_height * 2,
                                                                                    null,
@@ -151,7 +154,6 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                         aabb = this.componentMethods.circleToAABB(entity.collidable);
                     }
                     dist = this.collisionMethods.shortestDistanceTo(collisions[0].other.position, entity.position, collisions[0].other.collidable, aabb);
-                    console.log(dist);
                     if (dist.magsqrd() < interpolated_velocity.magsqrd()) {
                         if (0 === dist.x) {
                             decay = dist.y / Math.abs(interpolated_velocity.y);
@@ -170,7 +172,10 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                         new_v:  final_v
                     }, function (manifold) {
                         manifold.entity.movable.velocity = manifold.new_v;
+                        console.log('new v', manifold.entity.movable.velocity);
                     }));
+                } else {
+                    console.log('no collisions');
                 }
             }, this);
 
@@ -204,7 +209,6 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                             return dot.dot;
                         }).index;
                     };
-
                 if (collider.collidable.type !== undefined && other.collidable.type !== undefined) {
                     /*
                      Each collider type is mapped to an integer, so that we can sum the two types and determine the
@@ -545,6 +549,9 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                     min2,
                     max2,
                     penetration_depth;
+                    if (poly1.hook || poly2.hook) {
+                        console.log('testing new poly');
+                    }
                 for (i = 0; i < l; i += 1) {
                     projections1 = _.map(poly1.getPoints(offset), mapProject, normals[i]);
                     projections2 = _.map(poly2.getPoints(), mapProject, normals[i]);

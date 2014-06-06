@@ -39,18 +39,9 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
                 default_ctx.restore();
                 this.drawCamera(camera, scene.map, renderables);
             },
-            drawMap: function (map) {
-                _.each(map.mapdata, function (row, y) {
-                    _.each(row, function (tile, x) {
-                        var tile_pos;
-                        if (tile) {
-                            tile_pos = {
-                                x: (x * map.tile_width) + (map.tile_width / 2),
-                                y: (y * map.tile_height) + (map.tile_height / 2)
-                            };
-                            Render.methods[map.tileset[tile].method](default_ctx, tile_pos, map.tileset[tile]);
-                        }
-                    });
+            drawMap: function (renderables) {
+                _.each(renderables, function (r) {
+                    Render.methods[r.renderable.method](default_ctx, r.position, r.renderable);
                 });
             },
             /**
@@ -79,7 +70,7 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
                 default_ctx.translate(cam_space_x, cam_space_y);
 
                 /* Draw the map first */
-                Render.drawMap(map);
+                Render.drawMap(map.getRenderables());
 
 
                 _.each(renderables, function (r) {

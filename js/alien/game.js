@@ -123,6 +123,7 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                             if (this.state === states.PAUSED) {
                                 this.state = states.RUNNING;
                                 this.run();
+                                this.resumeTime = new Date().getTime();
                             }
                         });
                     }
@@ -165,6 +166,10 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
                 step: function (t) {
                     if (this.state !== states.STOPPED) {
                         //continue to track time
+                        if (this.resumeTime) {
+                            t = this.resumeTime;
+                            this.resumeTime = undefined;
+                        }
                         var currTime = new Date().getTime(),
                             dt = currTime - t,
                             g;
@@ -189,16 +194,19 @@ define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/co
 
                                 if (5 <= this.timeSince / this.frametime) {
                                     console.log('skip');
+                                    // resolve any potential collisions
                                     Collider.speculativeContact(this.scenes[this.activeScene], dt);
+                                } else {
+                                    // don't process a skipped step
+                                    Physics.step(this.scenes[this.activeScene], dt);
+                                    Collider.step(this.scenes[this.activeScene], dt);
+                                    Physics.resolveCollision();
+                                    Messaging.step(this, dt);
+                                    Animation.step(this.scenes[this.activeScene], dt);
                                 }
                                 this.timeSince %= this.frametime;
 
-                                Physics.step(this.scenes[this.activeScene], dt);
-                                Collider.step(this.scenes[this.activeScene], dt);
-                                Physics.resolveCollision();
-                                Messaging.step(this, dt);
                             }
-                            Animation.step(this.scenes[this.activeScene], dt);
                             Render.step(this.scenes[this.activeScene], dt);
                             fps_array[fps_iterations] = dt;
                             fps_iterations = (fps_iterations + 1) % fps_max;

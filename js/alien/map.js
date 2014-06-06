@@ -26,10 +26,10 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                     return renderable_tileset;
                 }, {});
             },
-            generateMapData = function (mapdata, tilemap, player_spawn_char) {
+            generateMapData = function (mapdata, tilemap) {
                 return _.map(mapdata, function (row) {
                     return _.map(row.split(''), function (tile) {
-                        return tilemap[tile] || (tile === player_spawn_char ? tile : null);
+                        return tilemap[tile] || ((tile.length && ' ' !== tile[0]) ? tile : null);
                     });
                 });
             },
@@ -37,7 +37,7 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                 return _.map(map, function (row, y) {
                     return _.map(row, function (tile, x) {
                         var t = null;
-                        if (tile && tile !== player_spawn_char) {
+                        if (tile &&  1 < tile.length) {
 
                             t = {
                                 collidable: CollidableFactory.createAABB(tw / 2, th / 2),
@@ -139,8 +139,86 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                 }
                 return (0 <= x) ? new M.Vector({
                     x: tw * x + tw / 2,
-                    y: th * y + th / 2
+                    y: (th * y + th / 2)
                 }) : new M.Vector();
+            },
+            generateSlopes = function (mapdata, tw, th, slopeTile) {
+                // find strings of horizontally adjacent slope tiles
+                // procedurally digest tiles until all slopes have been found
+                var y,
+                    x,
+                    row,
+                    slopePoly,
+                    slopeBottom = -1,
+                    slopeTop = -1,
+                    slopeHalfWidth,
+                    height = mapdata.length,
+                    slopes = [];
+                for (y = 0; y < height; y += 1) {
+                    row = mapdata[y];
+                    for (x = 0; x < row.length; x += 1) {
+                        if (row[x] === slopeTile) {
+                            if (-1 === slopeBottom) {
+                                slopeBottom = x;
+                                console.group('new slope');
+                            }
+                            slopeTop = x;
+                        } else if (-1 < slopeTop && -1 < slopeBottom) {
+                            // extend the slope to the end of the tile
+                            slopeTop += 1;
+                            // assume the ramp bottom is on the left unless there's a wall directly to the left of the ramp
+                            if (0 < slopeBottom && row[slopeBottom - 1]) {
+                                console.log(row[slopeBottom - 1]);
+                                // XOR swap voodoo
+                                slopeBottom ^= slopeTop;
+                                slopeTop    ^= slopeBottom;
+                                slopeBottom ^= slopeTop;
+                            }
+
+                            // the sign is important here; a slope with the bottom on the right will have a negative half-width
+                            slopeHalfWidth = (slopeTop - slopeBottom) / 2;
+
+                            console.log('bottom', slopeBottom);
+                            console.log('top', slopeTop);
+
+                            slopePoly = new M.Polygon({
+                                points: [
+                                    new M.Vector({ x: -slopeHalfWidth * tw, y: th / 2 }), // bottom vertex
+                                    new M.Vector({ x: slopeHalfWidth * tw,    y: -th / 2 }),       // top vertex
+                                    new M.Vector({ x: slopeHalfWidth * tw,    y: th / 2 })  // bottom corner
+                                ]
+                            });
+                            console.log('poly', slopePoly);
+                            slopes.push({
+                                collidable: CollidableFactory.createBoundingPolygon(slopePoly),
+                                position: new M.Vector({ x: (slopeBottom + slopeHalfWidth) * tw, y: (y + 0.5) * tw }),
+                                renderable: RenderableFactory.createRenderPolygon(slopePoly, null, "rgba(0,0,0,1)")
+                            });
+                            slopeBottom = -1;
+                            slopeTop = -1;
+                            console.groupEnd();
+                        }
+                    }
+                }
+                console.log('slopes');
+                console.log(slopes);
+                return slopes;
+            },
+            generateRenderableList = function (mapdata, tileset, tw, th) {
+                return _.compact(_.flatten(_.map(mapdata, function (row, y) {
+                    return _.map(row, function (tile, x) {
+                        if (tile && 1 < tile.length) {
+                            return {
+                                position: new M.Vector({
+                                    x: (x * tw) + (tw / 2),
+                                    y: (y * th) + (th / 2)
+                                }),
+                                renderable: tileset[tile]
+                            };
+                        }
+                        return false;
+                    });
+                })));
             };
 
         function Map(options) {
@@ -151,21 +229,28 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
             if (!options.tile_width || !options.tile_height) {
                 return Log.error("Map must have a tile width and tile height", true);
             }
-            this.tile_width       = options.tile_width;
-            this.tile_height      = options.tile_height;
-            this.tileset          = createTileset(options.tileset, this.tile_width, this.tile_height);
-            this.background       = options.background;
-            this.background_image = options.background_image || null;
-            this.tilemap          = options.tilemap;
-            this.mapdata          = generateMapData(options.mapdata, this.tilemap, options.player_spawn);
-            this.collision_data   = generateCollisionData(this.mapdata, this.tile_width, this.tile_height, options.player_spawn);
-            this.player_spawn     = determinePlayerSpawn(this.mapdata, this.tile_width, this.tile_height, options.player_spawn);
-            this.collidables      = _.compact(_.flatten(this.collision_data));
-            this.subset           = reduceGeometry(this.collidables);
+            console.log(options.slopetile);
+            this.tile_width         = options.tile_width;
+            this.tile_height        = options.tile_height;
+            this.tileset            = createTileset(options.tileset, this.tile_width, this.tile_height);
+            this.background         = options.background;
+            this.background_image   = options.background_image || null;
+            this.tilemap            = options.tilemap;
+            this.mapdata            = generateMapData(options.mapdata, this.tilemap);
+            this.slopes             = generateSlopes(this.mapdata, this.tile_width, this.tile_height, options.slopetile);
+            this.collision_data     = generateCollisionData(this.mapdata, this.tile_width, this.tile_height, options.player_spawn);
+            this.player_spawn       = determinePlayerSpawn(this.mapdata, this.tile_width, this.tile_height, options.player_spawn);
+            this.collidables        = _.compact(_.flatten(this.collision_data));
+            this.collidables_subset = reduceGeometry(this.collidables).concat(this.slopes);
+            this.renderables        = generateRenderableList(this.mapdata, this.tileset, this.tile_width, this.tile_height).concat(this.slopes);
         }
 
         Map.prototype.getCollidables = function () {
-            return this.subset;
+            return this.collidables_subset;
+        };
+
+        Map.prototype.getRenderables = function () {
+            return this.renderables;
         };
 
         return Map;

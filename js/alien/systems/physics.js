@@ -12,7 +12,6 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
             ground_friction     = 0.5,
             initGravityEntities = function (scene) {
                 var entities = scene.getAllWithAllOf(['collidable', 'movable']);
-                console.log(entities);
                 _.each(entities, function (entity) {
                     Event.on(entity, 'collide', function (manifold) {
                         if (manifold.other.isStatic
@@ -45,27 +44,21 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                 var entities = scene.getAllWithAllOf(['movable', 'position']);
                 Messaging.fetch('physics');
                 _.each(entities, function (e) {
-                    var m = e.movable,
-                        interpolated_velocity = this.interpolatedVector(m.velocity, dt);
+                    var m = e.movable;
                     if (0 !== m.velocity.y) {
                         m.onGround = false;
-                    }
-                    if (1000 < dt && 'player' === e.id) {
-                        console.log(m.velocity);
-                        console.log(this.interpolatedVector(m.velocity, dt));
                     }
 
                     if (e.camera) {
                         e.camera.position = this.performCameraDynamics(e, dt);
                     }
 
-                    /* Resolve position first, then velocity */
-                    e.position = e.position.add(interpolated_velocity);
-
                     m.velocity = m.velocity.add(this.interpolatedVector(m.acceleration, dt));
                     if (m.hasGravity) {
                         m.velocity = m.velocity.add(this.interpolatedVector(gravity, dt));
                     }
+                    /* Resolve position first, then velocity */
+                    e.position = e.position.add(this.interpolatedVector(m.velocity, dt));
 
                     if (m.onGround) {
                         if (1 > Math.abs(m.velocity.x)) {
