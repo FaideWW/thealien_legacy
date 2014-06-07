@@ -20,9 +20,12 @@ require(['alien/alien'], function (alien) {
         key_map = [
             cn.createKeyBinding('w', function (event, mod) {
                 /* up keydown */
-                this.movable.jumping = true;
-                this.movable.onGround = false;
-                this.movable.velocity.y = -200;
+                if (this.movable.jump < 2) {
+                    this.movable.jumping = true;
+                    this.movable.onGround = false;
+                    this.movable.velocity.y = -200;
+                    this.movable.jump += 1;
+                }
             }, function () {}, true),
             cn.createKeyBinding('a', function (event, mod) {
                 /* left keydown */
@@ -436,7 +439,7 @@ require(['alien/alien'], function (alien) {
                 "#              -######-                 #",
                 "#             -########-                #",
                 "# p          -##########-               #",
-                "#___________##############______________#"
+                "#____________############_______________#"
             ]
         }),
         s = new alien.Scene(null, map, e);

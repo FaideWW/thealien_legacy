@@ -192,7 +192,8 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                             slopes.push({
                                 collidable: CollidableFactory.createBoundingPolygon(slopePoly),
                                 position: new M.Vector({ x: (slopeBottom + slopeHalfWidth) * tw, y: (y + 0.5) * tw }),
-                                renderable: RenderableFactory.createRenderPolygon(slopePoly, null, "rgba(0,0,0,1)")
+                                renderable: RenderableFactory.createRenderPolygon(slopePoly, null, "rgba(0,0,0,1)"),
+                                isStatic: true
                             });
                             slopeBottom = -1;
                             slopeTop = -1;

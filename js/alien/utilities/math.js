@@ -4,7 +4,7 @@
 define(["underscore"], function (_) {
     'use strict';
     var AlienMath = (function (m) {
-        var Math = {
+        var AlienMath = {
             Matrix: (function () {
                 function Matrix(m) {
                     return m || [
@@ -30,7 +30,7 @@ define(["underscore"], function (_) {
                         ]);
                     },
                     translate: function (vector_x, vector_y) {
-                        if (vector_x instanceof Math.Vector) {
+                        if (vector_x instanceof AlienMath.Vector) {
                             vector_y = vector_x.y;
                             vector_x = vector_x.x;
                         }
@@ -41,7 +41,7 @@ define(["underscore"], function (_) {
                         return this;
                     },
                     scale: function (scale_x, scale_y) {
-                        if (scale_x instanceof Math.Vector) {
+                        if (scale_x instanceof AlienMath.Vector) {
                             scale_y = scale_x.y;
                             scale_x = scale_x.x;
                         }
@@ -196,9 +196,9 @@ define(["underscore"], function (_) {
                     majorAxis: function () {
                         var axis;
                         if (m.abs(this.x) > m.abs(this.y)) {
-                            axis = new Vector({ x: Math.sign(this.x), y: 0 });
+                            axis = new Vector({ x: AlienMath.sign(this.x), y: 0 });
                         } else {
-                            axis = new Vector({ x: 0, y: Math.sign(this.y) });
+                            axis = new Vector({ x: 0, y: AlienMath.sign(this.y) });
                         }
                         return axis;
                     },
@@ -223,8 +223,8 @@ define(["underscore"], function (_) {
                     options = options || {};
 
                     //ensure this.start and this.end are Vectors
-                    this.start = (options.start) ? (options.start instanceof Math.Vector) ? options.start : new Math.Vector(options.start) : new Math.Vector();
-                    this.end = (options.end) ? (options.end instanceof Math.Vector) ? options.end : new Math.Vector(options.end) : (options instanceof Math.Vector) ? options : new Math.Vector(options);
+                    this.start = (options.start) ? (options.start instanceof AlienMath.Vector) ? options.start : new AlienMath.Vector(options.start) : new AlienMath.Vector();
+                    this.end = (options.end) ? (options.end instanceof AlienMath.Vector) ? options.end : new AlienMath.Vector(options.end) : (options instanceof AlienMath.Vector) ? options : new AlienMath.Vector(options);
 
                     //back-references are common
                     this.poly = options.poly || null;
@@ -289,19 +289,19 @@ define(["underscore"], function (_) {
 
                     options = options || {};
                     this.points = (options.length) ? options : options.points || [];
-                    this.points = _.map(this.points, function (p) { return (p instanceof this.Vector) ? p : new this.Vector(p); }, Math);
+                    this.points = _.map(this.points, function (p) { return (p instanceof this.Vector) ? p : new this.Vector(p); }, AlienMath);
                 }
 
                 Polygon.prototype = {
                     toLines: function (offset) {
-                        offset = offset || new Math.Vector();
+                        offset = offset || new AlienMath.Vector();
                         var i, j, l = this.points.length, lines = [];
                         for (i = 0; i < l; i += 1) {
                             j = i + 1;
                             if (j >= l) {
                                 j = 0;
                             }
-                            lines.push(new Math.Line({
+                            lines.push(new AlienMath.Line({
                                 start: this.points[i].add(offset),
                                 end: this.points[j].add(offset),
                                 poly: this
@@ -348,7 +348,7 @@ define(["underscore"], function (_) {
                                     x: p.x * cos - p.y * sin,
                                     y: p.x * sin + p.y * cos
                                 });
-                            }, Math)
+                            }, AlienMath)
                         });
                     },
                     scale: function (scalar) {
@@ -397,7 +397,7 @@ define(["underscore"], function (_) {
                             i,
                             radius = isSideLength ? (size / m.sqrt(2 - (2 * m.cos(2 * m.PI / sides)))) : size;
                         for (i = 0; i < sides; i += 1) {
-                            points.push(new Math.Vector({
+                            points.push(new AlienMath.Vector({
                                 x: radius * m.cos(2 * m.PI * (i / sides)),
                                 y: radius * m.sin(2 * m.PI * (i / sides))
                             }));
@@ -442,10 +442,32 @@ define(["underscore"], function (_) {
             lerp: function (start, end, t) {
                 start = start || new this.Vector();
                 return start.add(end.sub(start).mul(t));
-            },
+            }
         };
 
-        return Math;
+        AlienMath.directions = (function (){
+            // cardinal vectors
+            var n = new AlienMath.Vector({x:  0, y: -1}),
+                e = new AlienMath.Vector({x:  1, y:  0}),
+                s = new AlienMath.Vector({x:  0, y:  1}),
+                w = new AlienMath.Vector({x: -1, y:  0}),
+                nw = n.add(w).unt(),
+                ne = n.add(e).unt(),
+                sw = s.add(w).unt(),
+                se = s.add(e).unt();
+            return {
+                NORTH: n,
+                EAST:  e,
+                SOUTH: s,
+                WEST:  w,
+                NORTHWEST: nw,
+                NORTHEAST: ne,
+                SOUTHWEST: sw,
+                SOUTHEAST: se
+            };
+        }());
+
+        return AlienMath;
     }(Math));
 
     return AlienMath;

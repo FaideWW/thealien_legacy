@@ -11,7 +11,8 @@ define(['underscore', 'alien/utilities/math'], function (_, M) {
                     velocity:     velocity || new M.Vector(),
                     acceleration: acceleration || new M.Vector(),
                     hasGravity:   hasGravity || false,
-                    onGround:     false
+                    onGround:     false,
+                    jump:         0
                 };
             }
         };

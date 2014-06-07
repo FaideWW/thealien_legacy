@@ -15,10 +15,19 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                 _.each(entities, function (entity) {
                     Event.on(entity, 'collide', function (manifold) {
                         if (manifold.other.isStatic
-                                && (0.0001 > 1 - manifold.manifold.unt().dot(new M.Vector({x: 0, y: -1})))
-                                && 0 <= this.movable.velocity.y) {
+                                // 45 degree angle is the maximum
+                                && (0.5 > 1 - manifold.manifold.unt().dot(M.directions.NORTH))
+                                //if the entity is moving into the "ground"
+                                && 0.001 >= manifold.manifold.unt().dot(this.movable.velocity.unt())) {
                             PhysicsSystem.ground(this);
                             this.movable.jumping = false;
+                            console.log('is on ground');
+                        } else {
+                            console.group('colliding, but not with ground');
+                            console.log('manifold', manifold.manifold.unt());
+                            console.log('velocity', this.movable.velocity.unt());
+                            console.log('dot', manifold.manifold.unt().dot(this.movable.velocity.unt()));
+                            console.groupEnd();
                         }
                     });
                 });
@@ -110,6 +119,7 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                 if (entity.movable) {
                     entity.movable.onGround = true;
                     entity.movable.velocity.y = 0;
+                    entity.movable.jump = 0;
                 }
             },
             resolveCollision: function () {
