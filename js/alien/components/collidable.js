@@ -29,10 +29,10 @@ define(['underscore', 'alien/utilities/math'], function (_, M) {
                     half_width: half_width,
                     half_height: half_height,
                     /* Collidable faces wind clockwise from WEST to SOUTH */
-                    faces: [0, 0, 0, 0]
+                    faces: [1, 1, 1, 1]
                 };
             },
-            createBoundingPolygon: function (poly, hook) {
+            createBoundingPolygon: function (poly, faces) {
                 var p;
                 if (poly instanceof M.Polygon) {
                     p = new M.Polygon(poly);
@@ -42,9 +42,8 @@ define(['underscore', 'alien/utilities/math'], function (_, M) {
                     p = new M.Polygon(poly);
                 }
                 /* Collidable faces wind clockwise in the order determined by the points */
-                p.faces = _.map(p.points, function () { return 0; });
+                p.faces = faces || _.map(p.points, function () { return 1; });
                 p.type = collidables.POLYGON;
-                p.hook = hook;
                 return p;
             }
         };

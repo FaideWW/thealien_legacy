@@ -33,8 +33,8 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                     });
                 });
             },
-            generateCollisionData = function (map, tw, th, player_spawn_char) {
-                return _.map(map, function (row, y) {
+            generateCollisionData = function (map, tw, th, slopes) {
+                var data = _.map(map, function (row, y) {
                     return _.map(row, function (tile, x) {
                         var t = null;
                         if (tile &&  1 < tile.length) {
@@ -51,6 +51,14 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                         return t;
                     });
                 });
+                _.each(slopes, function (slopeTile) {
+                    //determine x and y positions
+                    var x = Math.floor(slopeTile.position.x / tw),
+                        y = Math.floor(slopeTile.position.y / th);
+                    console.log('slope at', x, y);
+                    this[y][x] = slopeTile;
+                }, data);
+                return data;
             },
             /**
              * The purpose of this method is to reduce the number of collidable surfaces.
@@ -142,13 +150,42 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                     y: (th * y + th / 2)
                 }) : new M.Vector();
             },
+            generateSingleSlopeTiles = function (slopeTop, slopeBottom, tw, th) {
+                var polys = [],
+                    i,
+                    l = Math.abs(slopeTop - slopeBottom),
+                    slope = th / (l * tw),
+                    hw = tw / 2,
+                    hh = th / 2;
+                //the first polygon has 3 faces; the rest have 4
+
+                polys.push(new M.Polygon({
+                    points: [
+                        new M.Vector({x: -hw, y: hh}),
+                        new M.Vector({x: hw, y: hh - (slope * th)}),
+                        new M.Vector({x: hw, y: hh})
+                    ]
+                }));
+
+                for (i = 1; i < l; i += 1) {
+                    polys.push(new M.Polygon({
+                        points: [
+                            new M.Vector({x: -hw, y: hh - ((slope * i) * th)}),
+                            new M.Vector({x:  hw, y: hh - ((slope * (i + 1)) * th)}),
+                            new M.Vector({x:  hw, y: hh}),
+                            new M.Vector({x: -hw, y: hh})
+                        ]
+                    }));
+                }
+                return polys;
+            },
             generateSlopes = function (mapdata, tw, th, slopeTile) {
                 // find strings of horizontally adjacent slope tiles
                 // procedurally digest tiles until all slopes have been found
                 var y,
                     x,
                     row,
-                    slopePoly,
+                    slopePolys,
                     slopeBottom = -1,
                     slopeTop = -1,
                     slopeHalfWidth,
@@ -160,7 +197,6 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                         if (row[x] === slopeTile) {
                             if (-1 === slopeBottom) {
                                 slopeBottom = x;
-                                console.group('new slope');
                             }
                             slopeTop = x;
                         } else if (-1 < slopeTop && -1 < slopeBottom) {
@@ -168,7 +204,6 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                             slopeTop += 1;
                             // assume the ramp bottom is on the left unless there's a wall directly to the left of the ramp
                             if (0 < slopeBottom && row[slopeBottom - 1]) {
-                                console.log(row[slopeBottom - 1]);
                                 // XOR swap voodoo
                                 slopeBottom ^= slopeTop;
                                 slopeTop    ^= slopeBottom;
@@ -178,31 +213,19 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                             // the sign is important here; a slope with the bottom on the right will have a negative half-width
                             slopeHalfWidth = (slopeTop - slopeBottom) / 2;
 
-                            console.log('bottom', slopeBottom);
-                            console.log('top', slopeTop);
-
-                            slopePoly = new M.Polygon({
-                                points: [
-                                    new M.Vector({ x: -slopeHalfWidth * tw, y: th / 2 }), // bottom vertex
-                                    new M.Vector({ x: slopeHalfWidth * tw,    y: -th / 2 }),       // top vertex
-                                    new M.Vector({ x: slopeHalfWidth * tw,    y: th / 2 })  // bottom corner
-                                ]
-                            });
-                            console.log('poly', slopePoly);
-                            slopes.push({
-                                collidable: CollidableFactory.createBoundingPolygon(slopePoly),
-                                position: new M.Vector({ x: (slopeBottom + slopeHalfWidth) * tw, y: (y + 0.5) * tw }),
-                                renderable: RenderableFactory.createRenderPolygon(slopePoly, null, "rgba(0,0,0,1)"),
-                                isStatic: true
-                            });
+                            slopePolys = generateSingleSlopeTiles(slopeTop, slopeBottom, tw, th);
+                            _.each(slopePolys, function (poly, i) {
+                                this.push({
+                                    collidable: CollidableFactory.createBoundingPolygon(poly),
+                                    position: new M.Vector({x: (Math.min(slopeBottom, slopeTop) + i + 0.5) * tw, y: (y + 0.5) * th }),
+                                    renderable: RenderableFactory.createRenderPolygon(poly, null, "rgba(0,0,0,1)")
+                                });
+                            }, slopes);
                             slopeBottom = -1;
                             slopeTop = -1;
-                            console.groupEnd();
                         }
                     }
                 }
-                console.log('slopes');
-                console.log(slopes);
                 return slopes;
             },
             generateRenderableList = function (mapdata, tileset, tw, th) {
@@ -220,6 +243,105 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
                         return false;
                     });
                 })));
+            },
+            disableInnerFaces = function (collidables, tw, th) {
+                var y,
+                    x,
+                    height = collidables.length,
+                    width,
+                    aabbToPoly = Collision.componentMethods.aabbToPoly,
+                    this_tile,
+                    other_tile,
+                    shared_edge;
+                for (y = 0; y < height; y += 1) {
+                    width = collidables[y].length;
+                    for (x = 0; x < width; x += 1) {
+//                        if (7 === y && 11 === x) {
+//                            debugger;
+//                        }
+                        if (null !== collidables[y][x]) {
+                            shared_edge = null;
+                            this_tile = collidables[y][x].collidable;
+                            console.group('tile at <' + x, y + '>');
+                            if (0 < x && null !== collidables[y][x - 1]) {
+                                // left neighbor
+                                other_tile = collidables[y][x - 1].collidable;
+                                if (this_tile.type === CollidableFactory.collidables.AABB) {
+                                    this_tile = aabbToPoly(this_tile);
+                                }
+                                if (other_tile.type === CollidableFactory.collidables.AABB) {
+                                    other_tile = aabbToPoly(other_tile);
+                                }
+                                shared_edge = this_tile.sharedEdge(other_tile, M.directions.WEST.mul(tw));
+                                if (shared_edge) {
+                                    console.log('shares a face with its west neighbor (shared_edge:', shared_edge, ')');
+                                    // disable west-most face
+                                    collidables[y][x].collidable.faces[shared_edge.this_index] = 0;
+                                    collidables[y][x - 1].collidable.faces[shared_edge.other_index] = 0;
+                                }
+                            }
+                            if (0 < y && null !== collidables[y - 1][x]) {
+                                // up neighbor
+                                other_tile = collidables[y - 1][x].collidable;
+                                if (this_tile.type === CollidableFactory.collidables.AABB) {
+                                    this_tile = aabbToPoly(this_tile);
+                                }
+                                if (other_tile.type === CollidableFactory.collidables.AABB) {
+                                    other_tile = aabbToPoly(other_tile);
+                                }
+                                shared_edge = this_tile.sharedEdge(other_tile, M.directions.NORTH.mul(th));
+                                if (shared_edge) {
+                                    console.log('shares a face with its north neighbor (shared_edge:', shared_edge, ')');
+                                    // disable north-most face
+                                    collidables[y][x].collidable.faces[shared_edge.this_index] = 0;
+                                    collidables[y - 1][x].collidable.faces[shared_edge.other_index] = 0;
+                                }
+                            }
+                            if (width - 1 > x && null !== collidables[y][x + 1]) {
+                                // right neighbor
+                                other_tile = collidables[y][x + 1].collidable;
+                                if (this_tile.type === CollidableFactory.collidables.AABB) {
+                                    this_tile = aabbToPoly(this_tile);
+                                }
+                                if (other_tile.type === CollidableFactory.collidables.AABB) {
+                                    other_tile = aabbToPoly(other_tile);
+                                }
+                                shared_edge = this_tile.sharedEdge(other_tile, M.directions.EAST.mul(tw));
+                                if (shared_edge) {
+                                    console.log('shares a face with its east neighbor (shared_edge:', shared_edge, ')');
+                                    // disable east-most face
+                                    collidables[y][x].collidable.faces[shared_edge.this_index] = 0;
+                                    collidables[y][x + 1].collidable.faces[shared_edge.other_index] = 0;
+                                }
+                            }
+                            if (height - 1 > y && null !== collidables[y + 1][x]) {
+                                // down neighbor
+                                other_tile = collidables[y + 1][x].collidable;
+                                if (this_tile.type === CollidableFactory.collidables.AABB) {
+                                    this_tile = aabbToPoly(this_tile);
+                                }
+                                if (other_tile.type === CollidableFactory.collidables.AABB) {
+                                    other_tile = aabbToPoly(other_tile);
+                                }
+                                shared_edge = this_tile.sharedEdge(other_tile, M.directions.SOUTH.mul(th));
+                                if (shared_edge) {
+                                    console.log('shares a face with its south neighbor (shared_edge:', shared_edge, ')');
+                                    // disable south-most face
+                                    collidables[y][x].collidable.faces[shared_edge.this_index] = 0;
+                                    collidables[y + 1][x].collidable.faces[shared_edge.other_index] = 0;
+                                }
+                            }
+                            if (_.every(collidables[y][x].collidable.faces, function (face) { return 0 === face; })) {
+                                // if the tile is surrounded by other tiles, it doesn't need to be considered during collision
+                                console.log('tile is surrounded; deleting collidable');
+                                collidables[y][x] = null;
+                            }
+                            console.groupEnd();
+                        }
+                    }
+                }
+                console.log(collidables);
+                return collidables;
             };
 
         function Map(options) {
@@ -239,15 +361,16 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
             this.tilemap            = options.tilemap;
             this.mapdata            = generateMapData(options.mapdata, this.tilemap);
             this.slopes             = generateSlopes(this.mapdata, this.tile_width, this.tile_height, options.slopetile);
-            this.collision_data     = generateCollisionData(this.mapdata, this.tile_width, this.tile_height, options.player_spawn);
+            this.collision_data     = disableInnerFaces(generateCollisionData(this.mapdata, this.tile_width, this.tile_height, this.slopes), this.tile_width, this.tile_height);
             this.player_spawn       = determinePlayerSpawn(this.mapdata, this.tile_width, this.tile_height, options.player_spawn);
+
+
             this.collidables        = _.compact(_.flatten(this.collision_data));
-            this.collidables_subset = reduceGeometry(this.collidables).concat(this.slopes);
             this.renderables        = generateRenderableList(this.mapdata, this.tileset, this.tile_width, this.tile_height).concat(this.slopes);
         }
 
         Map.prototype.getCollidables = function () {
-            return this.collidables_subset;
+            return this.collidables;
         };
 
         Map.prototype.getRenderables = function () {

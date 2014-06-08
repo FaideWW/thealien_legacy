@@ -549,9 +549,6 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                     min2,
                     max2,
                     penetration_depth;
-                    if (poly1.hook || poly2.hook) {
-                        console.log('testing new poly');
-                    }
                 for (i = 0; i < l; i += 1) {
                     projections1 = _.map(poly1.getPoints(offset), mapProject, normals[i]);
                     projections2 = _.map(poly2.getPoints(), mapProject, normals[i]);
@@ -689,16 +686,16 @@ define(['underscore', 'alien/utilities/math', 'alien/components/collidable', 'al
                         y: -aabb.half_height
                     }),
                     new M.Vector({
-                        x: -aabb.half_width,
-                        y: aabb.half_height
-                    }),
-                    new M.Vector({
-                        x: aabb.half_width,
-                        y: aabb.half_height
-                    }),
-                    new M.Vector({
                         x: aabb.half_width,
                         y: -aabb.half_height
+                    }),
+                    new M.Vector({
+                        x: aabb.half_width,
+                        y: aabb.half_height
+                    }),
+                    new M.Vector({
+                        x: -aabb.half_width,
+                        y: aabb.half_height
                     })
                 ]);
             },
