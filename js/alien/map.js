@@ -134,6 +134,10 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
 
                 /* Check vertical adjacents next */
             },
+//            reduceGeometry = function(collidables) {
+//                //find shared edges that are both disabled faces
+//
+//            },
             determinePlayerSpawn = function (mapdata, tw, th, player_spawn_char) {
                 var c = mapdata.length,
                     y,
@@ -363,14 +367,13 @@ define(['underscore', 'alien/logging', 'alien/components/renderable',
             this.slopes             = generateSlopes(this.mapdata, this.tile_width, this.tile_height, options.slopetile);
             this.collision_data     = disableInnerFaces(generateCollisionData(this.mapdata, this.tile_width, this.tile_height, this.slopes), this.tile_width, this.tile_height);
             this.player_spawn       = determinePlayerSpawn(this.mapdata, this.tile_width, this.tile_height, options.player_spawn);
-
-
             this.collidables        = _.compact(_.flatten(this.collision_data));
+            this.reduced_geometry   = reduceGeometry(this.collidables);
             this.renderables        = generateRenderableList(this.mapdata, this.tileset, this.tile_width, this.tile_height).concat(this.slopes);
         }
 
         Map.prototype.getCollidables = function () {
-            return this.collidables;
+            return this.reduced_geometry;
         };
 
         Map.prototype.getRenderables = function () {
