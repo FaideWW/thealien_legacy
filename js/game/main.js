@@ -48,6 +48,95 @@ require(['alien/alien'], function (alien) {
             function () {}
         ),
         framerate = 15,
+        robot_animations = an.createAnimationSet("img/robot.png", {
+            idle_right: {
+                frames: [
+                    an.createFrame(34, 625, 144 - 34, 757 - 625),
+                    an.createFrame(159, 624, 269 - 159, 757 - 624),
+                    an.createFrame(275, 626, 384 - 275, 757 - 626),
+                    an.createFrame(417, 626, 527 - 417, 757 - 626),
+                    an.createFrame(534, 627, 643 - 534, 757 - 627),
+                    an.createFrame(650, 627, 758 - 650, 757 - 627),
+                    an.createFrame(785, 627, 893 - 785, 757 - 627),
+                    an.createFrame(1045, 628, 1154 - 1045, 757 - 628)
+                ],
+                predicate: function () {
+                    return (this.movable.onGround && this.movable.facingRight && this.movable.velocity.x === 0 && !this.movable.crouching);
+
+                },
+                options: {
+                    framerate: 24
+                }
+            },
+            walk_right: {
+                frames: [
+                    an.createFrame(20, 0, 130, 130),
+                    an.createFrame(135, 0, 246 - 135, 130),
+                    an.createFrame(248, 1, 359 - 248, 131 - 1),
+                    an.createFrame(360, 1, 470 - 360, 131 - 1),
+                    an.createFrame(478, 2, 589 - 478, 131 - 2),
+                    an.createFrame(592, 0, 699 - 592, 131 - 0),
+                    an.createFrame(707, 0, 814 - 707, 132 - 0),
+                    an.createFrame(814, 4, 918 - 814, 135 - 4),
+                    an.createFrame(926, 0, 1026 - 926, 136 - 0),
+                    an.createFrame(1042, 1, 1139 - 1042, 137 - 1),
+                    an.createFrame(1153, 0, 1250 - 1153, 136 - 0),
+                    an.createFrame(1262, 1, 1358 - 1262, 137 - 1),
+                    an.createFrame(1368, 2, 1465 - 1368, 138 - 2),
+                    an.createFrame(1470, 1, 1569 - 1470, 138 - 1),
+                    an.createFrame(1572, 0, 1674 - 1572, 130 - 0),
+                    an.createFrame(1676, 6, 1770 - 1676, 139 - 6),
+                    an.createFrame(1774, 5, 1869 - 1774, 139 - 5),
+                    an.createFrame(1870, 6, 1972 - 1870, 138 - 6),
+                    an.createFrame(1976, 0, 2082 - 1976, 138 - 0),
+                    an.createFrame(20, 173, 128 - 20, 301 - 173),
+                    an.createFrame(136, 173, 244 - 136, 300 - 173),
+                    an.createFrame(249, 173, 357 - 249, 300 - 173),
+                    an.createFrame(363, 173, 470 - 363, 301 - 173),
+                    an.createFrame(363, 173, 470 - 363, 301 - 173),
+                    an.createFrame(476, 173, 584 - 476, 300 - 173),
+                    an.createFrame(590, 173, 697 - 590, 300 - 173),
+                    an.createFrame(700, 173, 807 - 700, 301 - 173),
+                    an.createFrame(808, 171, 910 - 808, 301 - 171),
+                    an.createFrame(924, 172, 1026 - 924, 302 - 172),
+                    an.createFrame(1035, 172, 1137 - 1035, 302 - 172),
+                    an.createFrame(1146, 170, 1249 - 1146, 300 - 170),
+                    an.createFrame(1257, 172, 1369 - 1257, 302 - 172),
+                    an.createFrame(1376, 170, 1471 - 1376, 300 - 170),
+                    an.createFrame(1490, 170, 1580 - 1490, 300 - 170),
+                    an.createFrame(1587, 169, 1676 - 1587, 299 - 169),
+                    an.createFrame(1695, 169, 1784 - 1695, 301 - 169),
+                    an.createFrame(1806, 168, 1896 - 1806, 299 - 168),
+                    an.createFrame(1918, 173, 2007 - 1918, 304 - 173),
+                    an.createFrame(2030, 173, 2119 - 2030, 304 - 173),
+                    an.createFrame(38, 347, 127 - 38, 481 - 347),
+                    an.createFrame(149, 347, 243 - 149, 481 - 347),
+                    an.createFrame(253, 347, 350 - 253, 481 - 347),
+                    an.createFrame(352, 347, 453 - 352, 480 - 347),
+                    an.createFrame(475, 348, 571 - 475, 481 - 348),
+                    an.createFrame(598, 347, 692 - 598, 480 - 347),
+                    an.createFrame(718, 347, 812 - 718, 481 - 347),
+                    an.createFrame(822, 346, 918 - 822, 481 - 346),
+                    an.createFrame(922, 346, 1021 - 922, 480 - 346),
+                    an.createFrame(1037, 344, 1139 - 1037, 479 - 344),
+                    an.createFrame(1142, 345, 1248 - 1142, 476 - 345),
+                    an.createFrame(1252, 343, 1363 - 1252, 475 - 343),
+                    an.createFrame(1367, 346, 1477 - 1367, 474 - 346),
+                    an.createFrame(1485, 346, 1595 - 1485, 474 - 346),
+                    an.createFrame(1608, 347, 1720 - 1608, 475 - 347),
+                    an.createFrame(1736, 347, 1848 - 1736, 475 - 347),
+                    an.createFrame(1851, 347, 1963 - 1851, 475 - 347),
+                    an.createFrame(1970, 348, 2083 - 1970, 475 - 348)
+                ],
+                predicate: function () {
+                    return this.movable.onGround && (this.movable.facingRight && (this.movable.velocity.x > 0 && !this.movable.running));
+
+                },
+                options: {
+                    framerate: 24
+                }
+            }
+        }, "idle_right"),
         player_animations = an.createAnimationSet("img/kirby.png", {
             idle_right: {
                 frames: [
@@ -225,33 +314,21 @@ require(['alien/alien'], function (alien) {
         e = [
             new alien.Entity({
                 id: "player",
-                animatable: player_animations,
-                camera: cm.createCamera(canvas.width / 2, canvas.height / 2, canvas.width / 4, canvas.height / 4),
-                collidable: cl.createBoundingPolygon(polygon.rotate(Math.PI / 4)),
+                animatable: robot_animations,
+                //camera: cm.createCamera(canvas.width / 2, canvas.height / 2, canvas.width / 2, canvas.height / 2),
+                collidable: cl.createAABB(107 / 2, 132 / 2),
                 movable: m.createMovable(true),
                 keylistener: cn.createKeyListener(key_map),
                 mouselistener: cn.createMouseListener(mouse_map),
                 position: new am.Vector({x: 205, y: 205}),
                 transformable: t.createTransformable(null, null, null)
-            }),
-            new alien.Entity({
-                collidable: cl.createBoundingPolygon(polygon),
-                movable: m.createMovable(),
-                position: new am.Vector({x: 140, y: 50}),
-                renderable: r.createRenderPolygon(polygon, "rgba(0,0,0,1)", "rgba(255,255,0,1)")
-            }),
-            new alien.Entity({
-                collidable: cl.createBoundingCircle(radius),
-                movable: m.createMovable(),
-                position: new am.Vector({x: 205, y: 165}),
-                renderable: r.createRenderCircle(radius, null, "rgba(100,100,100,1)")
             })
         ],
         map = new alien.Map({
             tile_width: 20,
             tile_height: 20,
             tileset: {
-                tilesheet: "img/tileset.png",
+                //tilesheet: "img/tileset.png",
                 tiles: {
                     GROUND: {
                         x: 0,
@@ -267,31 +344,31 @@ require(['alien/alien'], function (alien) {
                     }
                 }
             },
-            background: "rgba(100,255,255,1)",
+            background: "rgba(255,255,255,1)",
             tilemap: {
                 "_": 'GROUND',
                 "#": 'WALL'
             },
             mapdata: [
-                "####################",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#                  #",
-                "#__________________#"
+                "######################################################################",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#                                                                    #",
+                "#____________________________________________________________________#"
             ]
         }),
         s = new alien.Scene(null, map, e);

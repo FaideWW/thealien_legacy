@@ -26,7 +26,7 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
                 /* Fetch messages */
                 Messaging.fetch('render');
                 var renderables = scene.getAllWithAllOf(['renderable', 'position']),
-                    camera      = scene.getAllWithAllOf(['camera', 'position'])[0];
+                    camera      = scene.getAllWithAllOf(['camera', 'position'])[0] || null;
 
                 default_ctx.clearRect(0, 0, ctx_width, ctx_height);
                 /* If there's more than one entity with a camera, choose the first one in the list */
@@ -63,16 +63,19 @@ define(["underscore", "alien/logging", "alien/systems/messaging"], function (_, 
              */
             drawCamera: function (camera, map, renderables) {
                 var cam_scale_x, cam_scale_y, cam_space_x, cam_space_y;
-                /* clear the entire canvas (might be some performance increase in tracking changed regions */
-                default_ctx.save();
-                /* Transform to camera-space */
-                cam_scale_x = camera.camera.output.half_width  / camera.camera.view.half_width;
-                cam_scale_y = camera.camera.output.half_height / camera.camera.view.half_height;
-                cam_space_x = ((camera.camera.output.half_width  / 2) - camera.position.x);
-                cam_space_y = ((camera.camera.output.half_height / 2) - camera.position.y);
-                default_ctx.scale(cam_scale_x, cam_scale_y);
+                if (camera) {
+                    /* clear the entire canvas (might be some performance increase in tracking changed regions */
+                    default_ctx.save();
+                    /* Transform to camera-space */
+                    cam_scale_x = camera.camera.output.half_width  / camera.camera.view.half_width;
+                    cam_scale_y = camera.camera.output.half_height / camera.camera.view.half_height;
+                    cam_space_x = ((camera.camera.output.half_width  / 2) - camera.position.x);
+                    cam_space_y = ((camera.camera.output.half_height / 2) - camera.position.y);
+                    default_ctx.scale(cam_scale_x, cam_scale_y);
 
-                default_ctx.translate(cam_space_x, cam_space_y);
+                    default_ctx.translate(cam_space_x, cam_space_y);
+                }
+                
 
                 /* Draw the map first */
                 Render.drawMap(map);
