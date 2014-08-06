@@ -1,384 +1,70 @@
-define(["../global", "../math", "../components/collidable", "../entity"], function(Global, AlienMath, Collidable, Entity) {
-
-    var renderable = (function() {
-        'use strict';
-
-        var renderable = {
-            DEFAULT_COLOR: "rgba(0,0,0,1)",
-            /**
-             * renderable.Polygon
-             * - color : String - the color to use when filling the polygon
-             * - points : [AlienMath.Vector] - the series of points
-             *                                  describing the polygon
-             *
-             * A closed 2D surface. 
-             *
-             * renderable.Polygon.draw ( args : Object )
-             *     - creates a closed path in the rendering context and fills
-             *       it with Polygon.color
-             *
-             * renderable.Polygon.getBoundingBox (  ) 
-             *     - returns the smallest collidable.AABB containing
-             *       the entire polygon
-             *
-             * todo
-             * - allow textures (may need to be a separate component)
-             * 
-             */
-             Polygon: (function() {
-                'use strict';
-
-                function Polygon(args) {
-                    // enforces new
-                    if (!(this instanceof Polygon)) {
-                        return new Polygon(args);
-                    }
-                    args = args || {};
-                    this.color = args.color || this.DEFAULT_COLOR;
-                    this.points = Global.deepClone(args.points) || [
-                    new AlienMath.Vector()
-                    ];
-                }
-
-                Polygon.prototype.draw = function(args) {
-                    var p = args.position || new AlienMath.Vector(),
-                    c = args.context,
-                    i;
-                    c.fillStyle = this.color;
-                    c.beginPath();
-                    c.moveTo(p.x + this.points[0].x, p.y + this.points[0].y);
-                    for (i = 1; i < this.points.length; i += 1) {
-                        c.lineTo(p.x + this.points[i].x, p.y + this.points[i].y);
-                    }
-                    c.closePath();
-                    c.fill();
+/**
+ * Created by faide on 2014-04-11.
+ */
+define(['alien/systems/render'], function (Render) {
+    'use strict';
+    var imageCache = {};
+    var RenderableFactory = (function () {
+        return {
+            createRenderRectangle: function (w, h, strokeStyle, fillStyle) {
+                return {
+                    method: 'drawRect',
+                    w:      (w + 0.5) | 0,
+                    h:      (h + 0.5) | 0,
+                    stroke: strokeStyle, //optional, will be ignored during rendering if undefined
+                    fill:   fillStyle    //optional, will be ignored during rendering if undefined
                 };
-
-                Polygon.prototype.getBoundingBox = function() {
-                    var maxx = AlienMath.max(this.points, 'x'),
-                    maxy = AlienMath.max(this.points, 'y'),
-                    hw = (maxx - AlienMath.min(this.points, 'x')) / 2,
-                    hh = (maxy - AlienMath.min(this.points, 'y')) / 2,
-                    origin = new AlienMath.Vector({
-                        x: maxx - hw,
-                        y: maxy - hh
-                    });
-                    return new Collidable.AABB({
-                        half_width: hw,
-                        half_height: hh,
-                        origin: origin
-                    });
+            },
+            createRenderPolygon: function (polygon, strokeStyle, fillStyle) {
+                return {
+                    method: 'drawPolygon',
+                    poly:   polygon,
+                    stroke: strokeStyle, //optional, will be ignored during rendering if undefined
+                    fill:   fillStyle    //optional, will be ignored during rendering if undefined
                 };
-
-                Polygon.prototype.clone = function() {
-                    return new Polygon(this);
+            },
+            createRenderCircle: function (radius, strokeStyle, fillStyle) {
+                return {
+                    method: 'drawCircle',
+                    radius: (radius + 0.5) | 0,
+                    stroke: strokeStyle, //optional, will be ignored during rendering if undefined
+                    fill:   fillStyle    //optional, will be ignored during rendering if undefined
                 };
-
-                return Polygon;
-
-            }()),
-            Circle: (function() {
-                'use strict';
-
-                function Circle(args) {
-                    // enforces new
-                    if (!(this instanceof Circle)) {
-                        return new Circle(args);
-                    }
-                    args = args || {};
-                    this.color = args.color || "rgba(0,0,0,1)";
-                    this.fillColor = args.fillColor || "rgba(255,0,255,1)";
-                    this.radius = args.radius || 50;
-                    this.filled = args.filled || false;
-                }
-
-                Circle.prototype.draw = function(args) {
-                    var p = args.position || new AlienMath.Vector(),
-                    c = args.context;
-
-                    c.strokeStyle = this.color;
-                    c.fillStyle = this.fillColor;
-                    c.moveTo(p.x, p.y);
-                    c.beginPath();
-                    c.arc(p.x, p.y, this.radius, 0, (Math.PI * 2), false);
-                    if (this.filled) {
-                        c.fill();
-                    } else {
-                        c.stroke();
-                    }
-                    c.closePath();
+            },
+            createRenderLine: function (vector, strokeStyle, fillStyle) {
+                return {
+                    method: 'drawLine',
+                    x:      vector.x,
+                    y:      vector.y,
+                    stroke: strokeStyle,
+                    fill:   fillStyle
                 };
-
-                Circle.prototype.getBoundingBox = function() {
-                    return new Collidable.AABB({
-                        half_width: this.radius,
-                        half_height: this.radius,
-                        origin: new AlienMath.Vector()
-                    });
+            },
+            createRenderImage: function (spritesheet, x, y, width, height, r_width, r_height) {
+                var renderable;
+                if (!imageCache.hasOwnProperty(spritesheet)) {
+                    imageCache[spritesheet] = {};
+                    imageCache[spritesheet].image = new Image();
+                    imageCache[spritesheet].image.src = spritesheet;
+                    imageCache[spritesheet].image.onload = function () {
+                        console.log('img ' + spritesheet + ' ready');
+                        imageCache[spritesheet].ready = true;
+                    };
                 }
-
-                Circle.prototype.clone = function(args) {
-                    return new Circle(this);
+                renderable = {
+                    method: 'drawImage',
+                    spritesheet: imageCache[spritesheet],
+                    x:           (x + 0.5) | 0,
+                    y:           (y + 0.5) | 0,
+                    width:       (width + 0.5) | 0,
+                    height:      (height + 0.5) | 0,
+                    r_width:     ((r_width + 0.5) | 0) || ((width + 0.5) | 0),
+                    r_height:    ((r_height + 0.5) | 0) || ((height + 0.5) | 0)
                 };
-
-                return Circle;
-
-            }()),
-    /**
-     * renderable.Text
-     * - color : String - color of the text
-     * - font : String - css-formatted string for the font and font-size
-     * - text : String - the text to display
-     *
-     * renderable.Text.draw ( args : Object ) 
-     *     - uses the rendering context's fillText to draw a string to the screen
-     *
-     * renderable.Text.getBoundingBox ( )
-     *     - same as renderable.Polygon.getBoundingBox
-     *
-     * todo
-     * - figure out getBoundingBox
-     */
-             Text: (function() {
-                'use strict';
-
-                function Text(args) {
-                    // enforces new
-                    if (!(this instanceof Text)) {
-                        return new Text(args);
-                    }
-                    args = args || {};
-                    this.color = args.color || this.DEFAULT_COLOR;
-                    this.font = args.font || "normal 18px sans-serif";
-                    this.text = args.text || "";
-                }
-
-                Text.prototype.draw = function(args) {
-                    var p = args.position || new AlienMath.Vector(),
-                    c = args.context;
-                    c.font = this.font;
-                    c.fillStyle = this.color;
-                    var t = '';
-                    if (typeof this.text === 'function') {
-                        t = this.text();
-                    } else {
-                        t = this.text;
-                    }
-                    c.fillText(t, p.x, p.y);
-                }
-
-                Text.prototype.getBoundingBox = function() {
-                    //TODO: implement
-                    return new Collidable.AABB({
-                        half_width: 0,
-                        half_height: 0,
-                        origin: new AlienMath.Vector()
-                    });
-                }
-
-                Text.prototype.clone = function() {
-                    return new Text(this);
-                };
-
-                return Text;
-
-            }()),
-
-    /**
-     * renderable.Line
-     * - source : Entity - first anchor for the Line
-     * - dest : Entity | 'mouse' - second anchor for the Line
-     * - color : String - color of the line
-     * - linewidth : Number - the width of the line being drawn
-     *
-     * renderable.Line.prototype.draw ( args : Object )
-     *     - uses the rendering context's lineTo to draw a line from
-     *       Line.source.getWorldSpacePosition() to Line.dest.getWorldSpacePosition().
-     *       if the source or destination is 'mouse', substitute it for
-     *       the mouse entity in the scene.
-     *
-     * renderable.Line.getBoundingBox (  )
-     *     - same as renderable.Polygon.getBoundingBox
-     *
-     * todo
-     * - replacing 'mouse' is a little hacky, find a more elegant solution
-     * - implement getBoundingBox()
-     */
-             Line: (function() {
-                'use strict';
-
-                function Line(args) {
-                    // enforces new
-                    if (!(this instanceof Line)) {
-                        return new Line(args);
-                    }
-                    args = args || {};
-                    if (!args.hasOwnProperty('source') || !args.hasOwnProperty('dest')) {
-                        console.error('Line requires a source and destination');
-                        return null;
-                    }
-
-                    this.source = args.source;
-                    this.dest = args.dest;
-                    this.color = args.color || this.DEFAULT_COLOR;
-                    this.linewidth = args.linewidth || 1;
-                }
-
-                Line.prototype.draw = function(args) {
-                    var c = args.context;
-
-                    var source_pos, dest_pos;
-                    
-                    if (this.source === 'mouse') {
-                        this.source = _.scene.mouse;
-                    }
-                    if (this.dest === 'mouse') {
-                        this.dest = _.scene.mouse;
-                    }
-
-                    if (this.source instanceof Entity) {
-                        source_pos = this.source.getWorldSpacePosition();
-                    } else {
-                        source_pos = this.source;
-                    }
-                    if (this.dest instanceof Entity) {
-                        dest_pos = this.dest.getWorldSpacePosition();
-                    } else {
-                        dest_pos = this.dest;
-                    }
-
-                    c.fillStyle = this.color;
-                    c.lineWidth = this.linewidth;
-                    c.beginPath();
-                    c.moveTo(source_pos.x, source_pos.y);
-                    c.lineTo(dest_pos.x, dest_pos.y);
-                    c.closePath();
-                    c.stroke();
-                };
-
-                Line.prototype.getBoundingBox = function() {
-                    //TODO: implement
-                    return new Collidable.AABB({
-                        half_width: 0,
-                        half_height: 0,
-                        origin: new AlienMath.Vector()
-                    });
-                }
-
-                Line.prototype.clone = function() {
-                    return new Line(this);
-                };
-
-                return Line;
-
-            }()),
-
-    /**
-     * renderable.Sprite
-     * - src : String - the URL to the sprite
-     * - width : Number - the width of the sprite, in px
-     * - height : Number - the height of the sprite, in px
-     *
-     * renderable.Sprite.prototype.draw ( args : Object )
-     *     - uses the rendering context's drawImage to render 
-     *       the sprite
-     *
-     * renderable.Sprite.prototype.getBoundingBox (  )
-     *     - same as renderable.Polygon.prototype.getBoundingBox()
-     *
-     * todo
-     * - spritesheet/animation functionality
-     */
-             Sprite: (function() {
-                'use strict';
-
-                function Sprite(args) {
-                    // enforces new
-                    if (!(this instanceof Sprite)) {
-                        return new Sprite(args);
-                    }
-                    args = args || {};
-                    if (!args.hasOwnProperty('src')) {
-                        console.error("Sprite requires a sprite");
-                        return null;
-                    }
-                    this.img = new Image();
-                    this.img.loaded = false;
-                    this.img.onload = function() { this.loaded = true; }
-                    this.img.src = args.src;
-                    this.src = args.src;
-                    this.width = args.width || null;
-                    this.height = args.height || null;
-                }
-
-                Sprite.prototype.draw = function(args) {
-                    if (this.img.loaded) {
-                        var c = args.context,
-                        p = args.position,
-                        w = (this.width || this.img.width),
-                        h =(this.height || this.img.height),
-                        img_position = p.sub(new AlienMath.Vector({
-                            x: w / 2,
-                            y: h / 2
-                        }));
-                        c.drawImage(this.img, 
-                            img_position.x, 
-                            img_position.y,
-                            w,
-                            h);
-                    }
-                }
-
-                Sprite.prototype.getBoundingBox = function() {
-                    return new Collidable.AABB({
-                        half_width: this.width / 2,
-                        half_height: this.height / 2,
-                        origin: new AlienMath.Vector()
-                    });
-                }
-
-                Sprite.prototype.clone = function() {
-                    return new Sprite(this);
-                }
-
-                return Sprite;
-
-            }()),
-
-            Vector: (function() {
-                'use strict';
-
-                function Vector(args) {
-                    // enforces new
-                    if (!(this instanceof Vector)) {
-                        return new Vector(args);
-                    }
-                    args = args || {};
-                    this.vec = args.vector || new AlienMath.Vector();
-                    if (this.vec.mag() !== 1) {
-                        this.vec = this.vec.unt();
-                    }
-                    this.scale = args.scale || 1;
-                    this.color = args.color || this.DEFAULT_COLOR;
-                    this.linewidth = args.linewidth || 1;
-                }
-
-                Vector.prototype.draw = function(args) {
-                    var c = args.context,
-                    p = args.position;
-                    c.fillStyle = this.color;
-                    c.lineWidth = this.linewidth;
-                    c.beginPath();
-                };
-
-                return Vector;
-
-            }())
+                return renderable;
+            }
         };
-
-        return renderable;
-
     }());
-    
-    return renderable;
+
+    return RenderableFactory;
 });

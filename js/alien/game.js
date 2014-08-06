@@ -1,100 +1,226 @@
-define(["./global"], function(Global) {
-    /**
-     * alien.Game
-     * - canvas : HTMLElement - rendering canvas
-     * - timer : Number - time elapsed since the game has begun running
-     * - running : Boolean - whether or not the game is current running
-     * - frametime : Number - the time to elapse between timesteps
-     *
-     * This is the main engine object which contains the list of scenes,
-     * entities and module pointers.  The webpage initializes this object 
-     * and through it begins and pauses the game loop.
-     *
-     * The main game loop currently loops through all systems in 
-     *  alien.systems, and if they contain an update() method, calls it
-     *  providing the time since the last iteration of the loop, and itself
-     *
-     * 
-     *  
-     * 
-     */
-    window.requestNextTick = function() {
-        return (
-            window.requestAnimationTick ||
-            window.webkitRequestAnimationTick ||
-            window.mozRequestAnimationTick ||
-            window.oRequestAnimationTick ||
-            window.msRequestAnimationTick ||
-            function(callback) {
-                window.setTimeout(callback, 20);
-            }
-        );
-    }();
-
-    var Game = (function() {
-        'use strict';
-
-        Game.default_properties = {
-            systems: []
-        };
-
-        function Game(options) {
-            // enforces new
-            if (!(this instanceof Game)) {
-                return new Game(opions);
-            }
-            options = options || {};
-
-            if (!options.hasOwnProperty('canvas')) {
-                console.error('No canvas element defined in options.');
-            }
-            this.canvas = options['canvas'];
-            this.timer = 0;
-            this.running = false;
-            this.frametime = 1000 / (options.fps || 60);
-            this.systems = [];
-            var i;
-            for (i in  Game.default_properties) {
-                if (Game.default_properties.hasOwnProperty(i)) {
-                    this[i] = Game.default_properties[i];
+define(['underscore', 'alien/logging', 'alien/systems/render', 'alien/systems/collision', 'alien/systems/messaging',
+        'alien/systems/event', 'alien/systems/interface', 'alien/systems/physics',
+        'alien/systems/animation', 'alien/utilities/math',
+        'alien/components/renderable'], function (_, Log, Render, Collider, Messaging, Event, UI, Physics, Animation, M, RF) {
+    'use strict';
+    var root = window,
+        requestNextFrame = (function () {
+            return (root.requestAnimationFrame ||
+                root.webkitRequestAnimationFrame ||
+                root.mozRequestAnimationFrame ||
+                root.oRequestAnimationFrame ||
+                root.msRequestAnimationFrame ||
+                function (cb) {
+                    root.setTimeout(cb, 1000 / 60);
                 }
-            }
-        }
+                );
+        }()),
+//        time = function () {
+//            return (new Date()).getTime();
+//        },
+        states = {
+            STOPPED: 0,
+            RUNNING: 1,
+            PAUSED:  2
+        },
+        supportedEvents = [
+            'click',
+            'mousedown',
+            'mouseup',
+            'mousemove',
+            'keydown',
+            'keyup',
+            'blur',
+            'focus'
+        ],
+        fps_array = [],
+        fps_iterations = 0,
+        fps_max   = 300,
+        Game = (function () {
 
-        Game.prototype.run = function() {
-            if (!this.running) {
-                this.running = true;
-                this.step(this, new Date().getTime());
-            }
-        };
+            /**
+             * required options
+             *  canvas - the canvas DOM element
+             *
+             * possible options
+             *  fps - how many game loop iterations should run per second [default: 60]
+             *  scenes - a list of scenes in the game (these can be loaded later as well)
+             *
+             */
+            function Game(options) {
 
-        Game.prototype.step = function(t, last_tick) {
-            if (t.running) {
-                var d = new Date().getTime(),
-                    s,
-                    i = t.scene.entities.length - 1;
-                for (s in t.systems) {
-                    if (t.systems[s].update) {
-                        t.systems[s].update(d - last_tick, t);
+                //enforces the use of new
+                if (!(this instanceof Game)) {
+                    return new Game(options);
+                }
+
+                options = options || {};
+
+                if (!options.canvas) {
+                    return Log.log('No canvas specified');
+                }
+
+                if (!options.canvas.getContext) {
+                    return Log.log('Canvas element has no context');
+                }
+                this.id            = "__GAME";
+                this.canvasContext = options.canvas.getContext('2d');
+                this.fps = options.fps || 60;
+                this.frametime = 1000 / this.fps;
+                this.autopause = options.autopause || false;
+                this.timeSince = 0;
+                this.totalTime = 0;
+
+                this.scenes = {};
+                if (options.scenes) {
+                    if (options.scenes.length) {
+                        _.each(options.scenes, function (scene) {
+                            this.addScene(scene);
+                        }, this);
+                    } else {
+                        this.scenes = options.scenes;
                     }
                 }
-                for (;i >= 0; i--) {
-                    t.scene.entities[i].trigger('update', {
-                        dt: (d - last_tick)
-                    });
-                }
-                t.timeoutID = window.setTimeout(t.step, 0, t, d);
-            }
-        };
 
-        Game.prototype.stop = function() {
-            if (this.running) {
-                this.running = false;
-                window.clearTimeout(this.timeoutID);
+                this.activeScene = null;
+
+                this.state = states.STOPPED;
+                this.canvas_width = options.canvas.width;
+                this.canvas_height = options.canvas.height;
+
             }
-        };
-        
-        return Game;
-    }());
+
+            Game.prototype = {
+                addScene: function (scene) {
+                    this.scenes[scene.id] = scene;
+                    return this;
+                },
+                removeScene: function (scene_id) {
+                    this.scenes[scene_id] = null;
+                    return this;
+                },
+                loadScene: function (scene_id) {
+                    this.activeScene = scene_id;
+
+                    Render.init(this.canvasContext, this.canvas_width, this.canvas_height);
+                    Messaging.init();
+                    Event.init(supportedEvents);
+                    UI.init(this.scenes[scene_id].getAllWithOneOf(['keylistener', 'mouselistener']));
+                    Physics.init(this.scenes[scene_id]);
+                    Animation.init(this.scenes[scene_id]);
+
+                    /* Enable pause when the window loses focus */
+                    if (this.autopause) {
+                        Event.on(this, 'blur', function () {
+                            if (this.state === states.RUNNING) {
+                                this.state = states.PAUSED;
+                                this.pause();
+                                Render.draw(new M.Vector({x: this.canvas_width / 2, y: this.canvas_height / 2}), RF.createRenderRectangle(this.canvas_width, this.canvas_height, null, "rgba(0,0,0,0.5)"));
+                                Log.log("Paused");
+                            }
+                        });
+                        Event.on(this, 'focus', function () {
+                            if (this.state === states.PAUSED) {
+                                this.state = states.RUNNING;
+                                this.run();
+                                this.resumeTime = new Date().getTime();
+                            }
+                        });
+                    }
+                    /* Change player spawn location */
+                    if (this.scenes[this.activeScene].entities.hasOwnProperty('player') && this.scenes[this.activeScene].map) {
+                        this.scenes[this.activeScene].entities.player.position = this.scenes[this.activeScene].map.player_spawn;
+                        console.log(this.scenes[this.activeScene].entities.player.position);
+                    }
+
+                    return this;
+                },
+                run: function () {
+                    if (!this.activeScene) {
+                        return Log.log("No scene loaded");
+                    }
+                    if (this.state !== states.RUNNING) {
+                        if (this.state === states.STOPPED) {
+                            this.state = states.RUNNING;
+                            this.step(new Date().getTime());
+                        } else {
+                            this.state = states.RUNNING;
+                        }
+                    }
+                },
+                pause: function () {
+                    if (this.state === states.RUNNING) {
+                        this.state = states.PAUSED;
+                        console.log('paused');
+                    }
+                },
+                stop: function () {
+                    if (this.state !== states.STOPPED) {
+                        this.state = states.STOPPED;
+                        root.clearTimeout(this.loopID);
+                        Log.log('stopped');
+                        Log.clearLog();
+                    }
+                },
+
+                step: function (t) {
+                    if (this.state !== states.STOPPED) {
+                        //continue to track time
+                        if (this.resumeTime) {
+                            t = this.resumeTime;
+                            this.resumeTime = undefined;
+                        }
+                        var currTime = new Date().getTime(),
+                            dt = currTime - t,
+                            g;
+
+                        if (this.state === states.RUNNING) {
+                            //main game loop
+                            this.timeSince += dt;
+                            this.totalTime += dt;
+                            if (this.timeSince >= this.frametime) {
+                                /*
+                                Check for pause-delay hacks/glitches
+
+                                 If the delay between steps is greater than five expected frame iterations, there is a
+                                 high probability that unexpected behavior will occur when the logic resumes.  In this
+                                 scenario, we need to perform more expensive contingency operations.  These include:
+
+                                    Continuous sweeping collision detection
+                                    ...
+                                 */
+                                Event.step(this.scenes[this.activeScene], dt);
+
+
+                                if (5 <= this.timeSince / this.frametime) {
+                                    console.log('skip');
+                                    // resolve any potential collisions
+                                    Collider.speculativeContact(this.scenes[this.activeScene], dt);
+                                } else {
+                                    // don't process a skipped step
+                                    Physics.step(this.scenes[this.activeScene], dt);
+                                    Collider.step(this.scenes[this.activeScene], dt);
+                                    Physics.resolveCollision();
+                                    Messaging.step(this, dt);
+                                    Animation.step(this.scenes[this.activeScene], dt);
+                                }
+                                this.timeSince %= this.frametime;
+
+                            }
+                            Render.step(this.scenes[this.activeScene], dt);
+                            fps_array[fps_iterations] = dt;
+                            fps_iterations = (fps_iterations + 1) % fps_max;
+                            Log.fps((1000 * fps_array.length / _.reduce(fps_array, function (sum, n) { return n + sum; }, 0)));
+                            Log.log(this.scenes[this.activeScene].entities.player.movable.velocity.toString());
+                        }
+                        g = this;
+                        this.loopID = requestNextFrame(function () { g.step(currTime); });
+                    }
+                }
+            };
+
+            return Game;
+        }());
+
     return Game;
 });

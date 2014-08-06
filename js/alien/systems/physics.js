@@ -1,194 +1,151 @@
-define(["../math", "../systems/collision", "../entity", "../game"], function(AlienMath, CollisionSystem, Entity, Game) {
-    /**
-     * alien.systems.PhysicsSystem
-     *
-     * properties
-     * ~ gravity : AlienMath.Vector - simulated acceleration due to gravity
-     * ~ update_freq : Number - period between updates, in ms
-     * ~ time_since_last_update - time elapsed since last update, in ms
-     * 
-     * methods
-     * ~ PhysicsSystem.update  ( dt : Number, g : alien.Game )
-     *     - on the timestep interval, performs physics updates on all entities
-     *       in the current scene, then performs collision detection on the scene.
-     *
-     * ~ PhysicsSystem.doCollision ( s : alien.Scene )
-     *     - tests the collision of all objects against each other.  If two objects
-     *       are colliding, send a 'collide' event to both entities with the following
-     *       data:
-     *       collision : AlienMath.Vector - the penetration axis and depth returned by 
-     *                                       CollisionSystem.  This data
-     *                                       is mirrored for the second entity.
-     *       entity : alien.Entity         - the other Entity involved in the collision.
-     *
-     * ~ PhysicsSystem.testCollision ( e1 : alien.Entity, e2 : alien.Entity )
-     *     - returns the result of a collision check among two alien.Entity objects.
-     *       This is a wrapper function for CollisionSystem.collide()
-     *
-     * ~ PhysicsSystem.testGroundCollision ( e1 : alien.Entity, s : alien.Scene )
-     *     - Tests whether or not an entity is currently positioned on top of another
-     *       alien.Entity in the scene.
-     *
-     * PhysicsSystem represents the simulation of Newtonian physics on the world.  
-     *  This includes velocty, acceleration and collision, but does not include 
-     *  momentum, elasticity or discrete mass (objects can either have a mass or have
-     *  no mass).
-     *
-     * PhysicsSystem attaches the following to the Entity prototype:
-     * alien.Entity.prototype.physicsUpdate( dt : Number )
-     *     - performs arithmetic updates to position, velocity and acceleration
-     *       (position += velocity, velocity += acceleration, acceleration += gravity^)
-     *     - also checks if the Entity is on the ground and whether or not it should
-     *       be affected by gravity.
-     *     ^ This operation is only performed if: 
-     *         - the Entity has mass
-     *         - the Entity is not currently on the ground (Entity.on_ground)
-     *
-     * Attached to Entity.default_properties are the following:
-     * - velocity : AlienMath.Vector - change in position in pixels per second
-     * - acceleration : AlienMath.Vector - change in velocity in pixels per second
-     * - massless : Boolean - whether or not the Entity is affected by gravity
-     * - on_ground : Boolean - whether or not the Entity has an object directly 
-     *                         beneath it preventing further positive y movement
-     * - isStatic : Boolean - whether or not the Entity is part of the static level 
-     *                            geometry
-     *
-     * todo
-     * - discrete mass values
-     * - variable gravity
-     * - friction (maybe)
-     * - momentum preservation
-     * 
-     */
+/**
+ * Created by faide on 2014-04-23.
+ */
 
-    var PhysicsSystem = (function() {
-        'use strict';
-
-        var gravity = new AlienMath.Vector({
-            y: 9 //9 px*s^(-2)
-        }), 
-            update_freq = 1000 / 60,
-            time_since_last_update = 0;
-
-        var PhysicsSystem = {
-            update: function(dt, g) {
-                
-                CollisionSystem.numTests = 0; 
-                time_since_last_update += dt;
-                if (time_since_last_update >= update_freq) {
-
-                    for (var i = 0; i < g.scene.entities.length; i += 1) {
-                        if (g.scene.entities[i].on_ground) {
-                            //check if still on ground
-
-                            // debugger;
-                            g.scene.entities[i].position.y += 1;
-                            if (!this.testGroundCollision(g.scene.entities[i], g.scene)) {
-                                g.scene.entities[i].on_ground = false;
-                            }
-                            g.scene.entities[i].position.y -= 1;
+define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/event',
+        'alien/systems/messaging'], function (_, M, Log, Event, Messaging) {
+    "use strict";
+    var PhysicsSystem = (function () {
+        var MAX_V               = 240,
+            gravity             = new M.Vector({x: 0, y: 400}),
+            air_friction        = 0.95,
+            ground_friction     = 0.5,
+            initGravityEntities = function (scene) {
+                var entities = scene.getAllWithAllOf(['collidable', 'movable']);
+                _.each(entities, function (entity) {
+                    Event.on(entity, 'collide', function (manifold) {
+                        if (manifold.other.isStatic
+                                // 45 degree angle is the maximum
+                                && (0.5 > 1 - manifold.manifold.unt().dot(M.directions.NORTH))
+                                //if the entity is moving into the "ground"
+                                && 0.001 >= manifold.manifold.unt().dot(this.movable.velocity.unt())) {
+                            PhysicsSystem.ground(this);
+                            this.movable.jumping = false;
+                            console.log('is on ground');
+                        } else {
+                            console.group('colliding, but not with ground');
+                            console.log('manifold', manifold.manifold.unt());
+                            console.log('velocity', this.movable.velocity.unt());
+                            console.log('dot', manifold.manifold.unt().dot(this.movable.velocity.unt()));
+                            console.groupEnd();
                         }
-                        g.scene.entities[i].physicsUpdate(dt);
+                    });
+                });
+            };
+
+        return {
+            id: "__PHYSICS",
+            MAX_V: MAX_V,
+            init: function (scene) {
+                initGravityEntities(scene);
+            },
+            interpolatedVector: function (v, dt) {
+                return M.lerp(0, v, dt / 1000);
+            },
+            interpolatedScalar: function (s, dt) {
+                return s * dt / 1000;
+            },
+            uninterpolatedVector: function (v, dt) {
+                return v.mul(1000 / dt);
+            },
+            step: function (scene, dt) {
+                /* Fetch messages */
+                var entities = scene.getAllWithAllOf(['movable', 'position']);
+                Messaging.fetch('physics');
+                _.each(entities, function (e) {
+                    var m = e.movable;
+                    if (0 !== m.velocity.y) {
+                        m.onGround = false;
                     }
 
-                    this.doCollision(g.scene);
-                    time_since_last_update = 0;
-                }
-            },
-            doCollision: function(s) {
-                var collision;
-                for (var i = 0; i < s.entities.length; i += 1) {
-                    for (var j = i+1; j < s.entities.length; j += 1) {
-                        collision = this.testCollision(s.entities[i], s.entities[j]);
-                        if (collision !== 0) {
-                            CollisionSystem.numTests++;
-                            console.log('collision between ' + i + ', ' + j);
-                            s.entities[i].trigger('collide', {
-                                collision: collision,
-                                entity: s.entities[j]
-                            });
-                            s.entities[j].trigger('collide', {
-                                collision: collision.mul(-1),
-                                entity: s.entities[i]
-                            });
+                    if (e.camera) {
+                        e.camera.position = this.performCameraDynamics(e, dt);
+                    }
+
+                    m.velocity = m.velocity.add(this.interpolatedVector(m.acceleration, dt));
+                    if (m.hasGravity) {
+                        m.velocity = m.velocity.add(this.interpolatedVector(gravity, dt));
+                    }
+                    /* Resolve position first, then velocity */
+                    e.position = e.position.add(this.interpolatedVector(m.velocity, dt));
+
+                    if (m.onGround) {
+                        if (1 > Math.abs(m.velocity.x)) {
+                            m.velocity.x = 0;
+                        }
+                        if (!(m.movingRight || m.movingLeft)) {
+                            m.velocity = m.velocity.mul(ground_friction);
+                        }
+                    } else {
+                        if (1 > Math.abs(m.velocity.x)) {
+                            m.velocity.x = 0;
+                        }
+                        if (!(m.movingRight || m.movingLeft)) {
+                            m.velocity.x *= air_friction;
                         }
                     }
+
+                    /* Clamp velocity to MAX_V on each axis*/
+                    m.velocity.x = M.clamp(m.velocity.x, -MAX_V, MAX_V);
+                    m.velocity.y = M.clamp(m.velocity.y, -MAX_V, MAX_V);
+
+
+                    /* Camera dynamics */
+
+                }, this);
+            },
+            performCameraDynamics: function (e, dt) {
+                var m = e.movable,
+                    cam_to_entity,
+                    interpolation_factor;
+                if (!e.camera.position) {
+                    return e.position;
+                }
+                if (!e.camera.position.eq(e.position)) {
+                    /*
+                        Camera should
+                     */
+                    cam_to_entity = e.position.sub(e.camera.position);
+                    interpolation_factor = M.clamp(cam_to_entity.mag() / e.camera.lerpzone_radius, 0, 1);
+
+                    // normalize to use as a direction vector
+                    cam_to_entity = cam_to_entity.unt();
+                    return e.camera.position.add(cam_to_entity.mul(this.interpolatedScalar(MAX_V, dt) * interpolation_factor));
+                    //Log.toConsole(1 - ((e.camera.lerpzone_radius - e.position.sub(e.camera.position).mag()) / e.camera.lerpzone_radius));
+                    //Log.toConsole(e.camera.position);
                 }
             },
-            testCollision: function(e1, e2) {
-                return CollisionSystem.collide(e1, e2);
+            ground: function (entity) {
+                if (entity.movable) {
+                    entity.movable.onGround = true;
+                    entity.movable.velocity.y = 0;
+                    entity.movable.jump = 0;
+                }
             },
-            testGroundCollision: function(e1, s) {
-                for (var i = 0; i < s.entities.length; i += 1) {
-                    if (s.entities[i] === e1) {
-                        continue;
-                    }
-                    var c = this.testCollision(e1, s.entities[i]);
-                    if (c !== 0 && c.y > 0) {
-                        return true;
-                    }
+            resolveCollision: function () {
+                Messaging.fetch('collisionresolution');
+            },
+            impulse: function (entity, vector) {
+                if (entity.movable) {
+                    entity.movable.velocity = entity.movable.velocity.add(vector);
                 }
-                return false;
-            }
-        }
-
-        Entity.default_properties.velocity = new AlienMath.Vector();
-        Entity.default_properties.acceleration = new AlienMath.Vector();
-        Entity.default_properties.massless = true;
-        Entity.default_properties.on_ground = false;
-        Entity.default_properties.orientation = new AlienMath.Vector();
-        Entity.default_properties.last_pos = new AlienMath.Vector();
-        Entity.default_properties.curr_pos = new AlienMath.Vector();
-
-        Entity.prototype.physicsUpdate = function(dt) {
-            this.setPosition(this.position.add(this.velocity.mul(dt / 1000)));
-            this.velocity = this.velocity.add(this.acceleration.mul(dt / 1000));
-
-            if (this.on_ground) {
-                this.acceleration.y = 0;
-                this.velocity.y = 0;
-            }
-
-            if (!this.massless && !this.on_ground) {
-                this.acceleration = this.acceleration.add(gravity.mul(1000 / dt));
-            }
-
-            this.last_pos = this.curr_pos;
-            this.curr_pos = this.getPosition();
-
-        };
-
-        Entity.prototype.determineVelocity = function() {
-            if (this.velocity.mag() === 0) {
-                if (!this.curr_pos.eq(this.last_pos)) {
-                    var x = this.last_pos.sub(this.curr_pos);
-                    return x.mul(update_freq);
+            },
+            shift: function (entity, vector) {
+                if (entity.position) {
+                    entity.position = entity.position.add(vector);
                 }
-            } 
-            return this.velocity;
-        }
-
-        Entity.prototype.setVelocity = function(v) {
-            if (this.velocity !== v) {
-                this.velocity = v;
+            },
+            flatten: function (entity, normal) {
+                if (entity.movable) {
+                    entity.movable.velocity = entity.movable.velocity.sub(entity.movable.velocity.vectorProject(normal));
+                }
+            },
+            bounce: function (entity, normal) {
+                if (entity.movable) {
+                    entity.movable.velocity = entity.movable.velocity.normalReflect(normal);
+                }
             }
-        }
-
-        Entity.prototype.getOrientation = function() {
-            return this.orientation;
         };
-
-        Entity.prototype.setOrientation = function(or) {
-            this.orientation = or;
-            return this;
-        }
-
-        Game.default_properties.systems.push(PhysicsSystem);
-        
-
-
-        return PhysicsSystem;
-
     }());
     return PhysicsSystem;
 });

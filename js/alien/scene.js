@@ -1,195 +1,97 @@
-define(["./entity", "./bsp", "./math", "./game", "./global"], function(Entity, BSP, AlienMath, Game, Global) {
-
-
-    /**
-     * alien.Scene
-     * 
-     * The scene is the container for a unique group of entities and
-     *  positions representing a particular game level or state.
-     *
-     * When the scene is initialized, or entities are added, they are
-     * sorted by z-value for the rendering order.
-     *
-     * Scenes are similar in structure to Entities in that they operate
-     * as containers, and their functionality can be extended by modules.
-     *
-     * alien.Scene.prototype.sort ( entities : [alien.Entity] )
-     *     - sorts entities by their position.z using a stable quicksort
-     *
-     * alien.Scene.prototype.addEntity ( entity : alien.Entity ) 
-     *     - adds the entity to Scene.entities and sorts the list
-     *
-     * alien.Scene.prototype.find ( entity : alien.Entity ) 
-     *     - returns the current index of entity in Scene.entities
-     *
-     * alien.Scene.prototype.removeEntity ( entity : alien.Entity | Number )
-     *     - removes the designated Entity from Scene.entities
-     *
-     * alien.Scene.prototype.update ( dt : Number ) 
-     *     - propagates an update event to all Entities in Scene.entities
-     *
-     * Scene adds position and parent to the Entity.default_properties list.
-     *  It also adds getWorldSpacePosition to the Entity prototype, as well as attaching
-     *  setScene to alien.Game.prototype.
-     *
-     * todo
-     *  - properly index entities for faster search and removal
-     *  - possibly implement BSP trees for Entity storage, which
-     *    can then be used for both rendering and collision
-     * 
-     */
-
-    var Scene = (function() {
-        'use strict';
-
-        function createCollisionTree(entities) {
-            var polys = [];
-            for (var e in entities) {
-                if (entities[e].collidable === undefined || !entities[e].isStatic) {
-                    continue;
-                }
-                polys.concat(entities[e].collidable.getVectors());
-            }
-            return BSP.build(polys);
-        }
-
-        Scene.default_properties = {};
-
-        function Scene(properties) {
-            // enforces new
+/**
+ * Created by faide on 2014-04-11.
+ */
+define(['underscore', 'alien/entity', 'alien/logging'], function (_, Entity, Log) {
+    'use strict';
+    var Scene = (function () {
+        var id_counter = 0,
+            scene_ids = [];
+        function Scene(id, map, entities) {
             if (!(this instanceof Scene)) {
-                return new Scene(properties);
-            }
-            // constructor body
-            properties = properties || {};
-            
-            for (k in Scene.default_properties) {
-                if (Scene.default_properties.hasOwnProperty(k)) {
-                    this[k] = Global.deepClone(Scene.default_properties[k]);
-                }
+                return new Scene(id, entities);
             }
 
-            this.entities = [];
-            this.collision_tree = null;
-            for (var k in properties) {
-                if (properties.hasOwnProperty(k)) {
-                    this[k] = properties[k];
+            /*
+             If an id is supplied (i.e. not a falsey value)
+             and the id supplied is already in use, throw an error.
+             If no id is supplied, generate one.
+             */
+            if (id) {
+                if (-1 !== scene_ids.indexOf(id)) {
+                    return Log.error("Scene with that id already exists");
                 }
+                this.id = id;
+            } else {
+                do {
+                    id = "scene_" + id_counter;
+                    id_counter += 1;
+                } while (-1 !== scene_ids.indexOf(id));
+                this.id = id;
             }
-
-            //bind mouse entity
-            this.mouse = new Entity({
-            });
-            this.mouse.on('mousemove', function(e, data) {
-                e.setPosition(new AlienMath.Vector({
-                    x: data.event.offsetX,
-                    y: data.event.offsetY
-                }));
-            });
-
-            this.entities.push(this.mouse);
-
-            if (this.entities.length > 0) {
-                this.entities = this.sort(this.entities);
-            }
-        }
-
-            Scene.prototype.extend = function(extension) {
-                for (var k in extension) {
-                    if (extension.hasOwnProperty(k)) {
-                        this[k] = extension[k];
+            scene_ids.push(this.id);
+            this.entities = {};
+            if (entities) {
+                if (entities.length) {
+                    var i, l = entities.length;
+                    for (i = 0; i < l; i += 1) {
+                        this.entities[entities[i].id] = entities[i];
                     }
-                }
-            };
-
-            Scene.prototype.sort = function(entities) {
-                if (entities.length < 2) {
-                    return entities;
-                }
-                var l = entities.length,
-                p = Math.floor(entities.length / 2),
-                pivot = entities[p],
-                lower = [],
-                higher = [];
-
-                for (var k = 0; k < entities.length; k++) {
-                    if (k === p) {
-                        continue;
-                    }
-
-                    if (entities[k].getWorldSpacePosition().z <= pivot.getWorldSpacePosition().z) {
-                        lower.push(entities[k]);
-                    } else {
-                        higher.push(entities[k]);
-                    }
-
-                }
-                return this.sort(lower).concat([pivot], this.sort(higher));
-            };
-
-            Scene.prototype.addEntity = function(entity) {
-                this.entities.push(entity);
-                this.entities = this.sort(this.entities);
-                var index = this.find(entity);
-                return index;
-            };
-
-            //this is a deceptively expensive operation (O(n)) for large scenes, 
-            //so use it sparingly.  maybe rewrite later to accept entity indexing
-            Scene.prototype.find = function(entity) {
-                for (var k = 0; k < this.entities.length; k++) {
-                    if (this.entities[k] === entity) {
-                        return k;
-                    }
-                }
-                return -1;
-            };
-
-            Scene.prototype.removeEntity = function(entity) {
-                //debugger;
-                if (typeof entity === 'number') {
-                    //the entity is an index
-                    if (entity === -1) {
-                        //find() returned empty, i.e. the entity is not in the array
-                        return null;
-                    }
-                    return this.entities.splice(entity,1);
                 } else {
-                    return this.removeEntity(this.find(entity));
+                    this.entities = entities;
                 }
-            };
-
-            Scene.prototype.update = function(dt) {
-                for (var k = 0; k < this.entities.length; k++) {
-                    this.entities[k].trigger('update', dt);
-                }
-            };
-
-        //extend Entity prototype for requisite properties
-        Entity.default_properties.position = new AlienMath.Vector();
-        Entity.default_properties.parent = null;
-        Entity.default_properties.isStatic = false;
-
-        Entity.prototype.getWorldSpacePosition = function() {
-            return (this.parent === null) ? this.position : this.parent.getWorldSpacePosition().add(this.position);
-        };
-
-        Entity.prototype.getPosition = function() {
-            return this.position;
+            }
+            this.map = map;
         }
 
-
-        Entity.prototype.setPosition = function(p) {
-            this.position = p;
-        };
-
-        Game.prototype.setScene = function(scene) {
-            this.scene = scene;
-            return this.scene;
+        Scene.prototype = {
+            addEntity: function (e) {
+                this.entities[e.id] = e;
+                return this;
+            },
+            destroy: function () {
+                scene_ids.splice(scene_ids.indexOf(this.id), 1);
+            },
+            removeEntity: function (e_id) {
+                if (e_id instanceof Entity) {
+                    e_id = e_id.id;
+                }
+                this.entities[e_id] = undefined;
+                return this;
+            },
+            getEntities: function () {
+                return _.values(this.entities);
+            },
+            getComponents: function (component_name) {
+                /* returns a list of components from all entities in the scene.  skips entities that do not have that component */
+                return _.reject(this.getComponentsInPlace(component_name), _.isUndefined);
+            },
+            getComponentsInPlace: function (component_name) {
+                /* same as above, but leaves undefined values in place to preserve order (for combining multiple component lists) */
+                return _.pluck(this.entities, component_name);
+            },
+            getAllWith: function (component) {
+                return _.filter(this.entities, function (entity) {
+                    return _.has(entity, component);
+                });
+            },
+            getAllWithAllOf: function (components) {
+                return _.filter(this.entities, function (entity) {
+                    return _.every(components, function (component) {
+                        return _.has(this, component);
+                    }, entity);
+                });
+            },
+            getAllWithOneOf: function (components) {
+                return _.filter(this.entities, function (entity) {
+                    return _.some(components, function (component) {
+                        return _.has(this, component);
+                    }, entity);
+                });
+            }
         };
 
         return Scene;
-
     }());
+
     return Scene;
 });

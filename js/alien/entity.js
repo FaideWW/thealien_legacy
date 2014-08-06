@@ -1,68 +1,73 @@
-define(["./global"], function(Global) {
-    /**
-     * Entity
-     *
-     * The container for any object which have a representation within
-     *  the game.
-     * ~ Entity.prototype.extend ( module : Object )
-     *     - appends a particular entity with a suite of functionality
-     *       provided by module
-     *
-     * ~ Entity.prototype.set ( property : String, value : ? )
-     *     - sets the pre-existing value of a variable to the new value.
-     *
-     * Entities by themselves have no functionality. The real power of Entities 
-     *  exists within the prototype; alien modules extend Entity.prototype with 
-     *  functions that are made available to all Entities.  In addition, 
-     *  Entity.default_properties contains a list of all variables that 
-     *  should exist when an Entity is initialized, in order for a module to 
-     *  properly carry out its functionality.
-     *
-     * todo
-     *  - TBD
-     * 
-     */
+/**
+ * Created by faide on 2014-04-11.
+ */
+define(['underscore', 'alien/logging'], function (_, Log) {
+    'use strict';
     var Entity = (function () {
-        'use strict';
-
-        Entity.default_properties = {};
-        var global_id = 0;
-
-        function Entity(properties) {
-            // enforces new
+        var id_counter = 0,
+            entity_ids = [];
+        function Entity(id, options) {
             if (!(this instanceof Entity)) {
-                return new Entity(properties);
+                return new Entity(options);
             }
-            properties = properties || {};
-            var k;
-            for (k in Entity.default_properties) {
-                if (Entity.default_properties.hasOwnProperty(k)) {
-                    this[k] = Global.deepClone(Entity.default_properties[k]);
+
+            options = options || {};
+
+            if ('string' !== typeof id) {
+                options = id || {};
+                id = null;
+            }
+            /*
+             If an id is supplied (i.e. not a falsey value)
+             and the id supplied is already in use, throw an error.
+             If no id is supplied, generate one.
+             */
+            if (options.id) {
+                id = options.id;
+            }
+            if (id) {
+                if (-1 !== entity_ids.indexOf(id)) {
+                    return Log.error("Entity with that id already exists");
                 }
-            }
-            for (k in properties) {
-                if (properties.hasOwnProperty(k)) {
-                    this[k] = properties[k];
-                }
-            }
-            this.g_id = global_id++;
-            if (properties.name) {
-                this.name = properties.name;
+                this.id = id;
             } else {
-                this.name = this.g_id;
+                do {
+                    id = "entity_" + id_counter;
+                    id_counter += 1;
+                } while (-1 !== entity_ids.indexOf(id));
+                this.id = id;
             }
+            entity_ids.push(this.id);
+
+            this.isStatic = false;
+
+            _.each(options, function (component, name) {
+                if ('id' === name) {
+                    return;
+                }
+                this.addComponent(component, name);
+            }, this);
         }
 
-        Entity.prototype.extend = Global.extend;
-
-        Entity.prototype.set = function(property, value) {
-            this[property] = value;
-            return this;
+        Entity.prototype = {
+            addComponent: function (component, id) {
+                this[id] = component;
+                return this;
+            },
+            removeComponent: function (id) {
+                this[id] = undefined;
+                return this;
+            },
+            destroy: function () {
+                /*
+                    Removes the id from the id list
+                 */
+                entity_ids = entity_ids.splice(entity_ids.indexOf(this.id), 1);
+            }
         };
 
-
         return Entity;
-
     }());
+
     return Entity;
 });
