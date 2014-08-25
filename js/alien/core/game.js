@@ -25,7 +25,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
         this.__currentComponentBit = 1;
 
         //protected
-        this._components = {};
+        this._componentFlags = {};
         this._loopphases = [];
 
         //public
@@ -46,17 +46,17 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
 
     Game.prototype = {
         registerComponent: function (componentName) {
-            if (this._components.hasOwnProperty(componentName)) {
+            if (this._componentFlags.hasOwnProperty(componentName)) {
                 console.error('Attempt to register component of same name', componentName);
-                return this._components[componentName];
+                return this._componentFlags[componentName];
             }
             if (this.__currentComponentBit === 1 << 31) {
                 console.error('Maximum components registered');
                 return 0;
             }
-            this._components[componentName] = this.currentComponentBit;
+            this._componentFlags[componentName] = this.currentComponentBit;
             this.currentComponentBit = this.currentComponentBit << 1;
-            return this._components[componentName];
+            return this._componentFlags[componentName];
         },
 
         addSystem: function(system, loopphase) {
