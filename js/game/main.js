@@ -16,8 +16,9 @@ requirejs(['alien/alien'], function (alien) {
     window.game = new alien.Game({
         canvas: "gameCanvas"
     });
-//        scene1 = new alien.Scene();
-//
-//    game.addScene(scene1);
+
+    window.scene1 = new alien.Scene();
+
+    game.addScene(window.scene1, "scene1");
 
 });

@@ -76,9 +76,6 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          * @type {Object.<string,Array<System>>}
          */
         this.systems = {};
-
-        InputManager.init(this.ctx.canvas);
-
         /**
          * @type {boolean}
          * @private
@@ -88,16 +85,26 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
         options = options || {};
 
         // load canvas from options
-        if (options.canvas && typeof options.canvas === "string") {
-            this.ctx = document.getElementById(options.canvas).getContext('2d');
+        if (options.canvas) {
+            if (typeof options.canvas === "string") {
+                this.ctx = document.getElementById(options.canvas).getContext('2d');
+            } else {
+                this.ctx = options.canvas.getContext('2d');
+            }
         } else {
-            this.ctx = options.canvas.getContext('2d');
+            console.error('No canvas specified');
         }
+
 
         // load loopphases from options
         if (options.loopphases && options.loopphases.length) {
             this._loopphases = options.loopphases;
         }
+
+
+        // init input manager
+        InputManager.init(this.ctx.canvas);
+
     }
 
 

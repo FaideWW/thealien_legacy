@@ -1,10 +1,11 @@
 /**
  * Created by faide on 2014-03-10.
  */
-define(['core/game'],
-    function (game) {
-        'use strict';
+'use strict';
+define(['core/game', 'core/scene'],
+    function (game, scene) {
         return {
-            Game: game
+            Game: game,
+            Scene: scene
         };
     });
