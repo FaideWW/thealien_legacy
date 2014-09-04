@@ -1,5 +1,16 @@
+'use strict';
+
 define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
 
+    /**
+     * TODO: remove these when they're implemented for real
+     *
+     * @typedef {} Scene
+     * @typedef {} System
+     */
+
+
+    // find requestNextFrame if available, or just default to a 60fps timeout
     var nextFrame = window.requestAnimationFrame ||
                     window.mozRequestAnimationFrame ||
                     window.webkitRequestAnimationFrame ||
@@ -8,36 +19,82 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
                         return window.setTimeout(cb, 1000 / 60);
                     };
 
+    /**
+     * Creates a new Game instance using the specified options.
+     *
+     * A Game instance consists of the following modules:
+     *  - A Component registry
+     *  - An ordered list of loopphases
+     *  - A scene index (indexed by identifier)
+     *  - A system index (lists of systems indexed by loopphase)
+     *
+     * Games also hold reference to a rendering context (defined by the options),
+     * an input processor, a message manager, and its internal state (running, paused, stopped)
+     *
+     * @param {Object}        options
+     * @param {Object|string} options.canvas        the html canvas element, or its id
+     * @param {Array<string>} options.loopphases    a list of loopphases to iterate through
+     * @returns {Game}
+     * @constructor
+     */
     function Game(options) {
         if (!(this instanceof Game)) {
             return new Game(options);
         }
 
+        /**
+         * @type {Object}
+         */
+        this.ctx = {};
+
+
+        /**
+         * @type {number}
+         * @private
+         */
+        this._currentComponentBit = 1;
+
+        /**
+         * @type {Object.<string,number>}
+         * @private
+         */
+        this._componentFlags = {};
+
+        /**
+         *
+         * @type {Array<string>}
+         * @private
+         */
+        this._loopphases = [];
+
+        /**
+         * @type {Object.<string,Scene>}
+         */
+        this.scenes  = {};
+
+        /**
+         * @type {Object.<string,Array<System>>}
+         */
+        this.systems = {};
+
+        InputManager.init(this.ctx.canvas);
+
+        /**
+         * @type {boolean}
+         * @private
+         */
+        this.__running = false;
+
         options = options || {};
+
+        // load canvas from options
         if (options.canvas && typeof options.canvas === "string") {
             this.ctx = document.getElementById(options.canvas).getContext('2d');
         } else {
             this.ctx = options.canvas.getContext('2d');
         }
 
-
-        //private
-        this.__currentComponentBit = 1;
-
-        //protected
-        this._componentFlags = {};
-        this._loopphases = [];
-
-        //public
-        this.scenes  = [];
-        this.systems = {};
-
-        InputManager.init(this.ctx.canvas);
-
-        this.__running = false;
-
-
-        // load from options
+        // load loopphases from options
         if (options.loopphases && options.loopphases.length) {
             this._loopphases = options.loopphases;
         }
@@ -45,12 +102,19 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
 
 
     Game.prototype = {
+        /**
+         * Adds a component type to the component registry, returning the component's
+         * registry key
+         *
+         * @param {string} componentName  the name of the component being registered
+         * @returns {number}              the registered key for that component
+         */
         registerComponent: function (componentName) {
             if (this._componentFlags.hasOwnProperty(componentName)) {
                 console.error('Attempt to register component of same name', componentName);
                 return this._componentFlags[componentName];
             }
-            if (this.__currentComponentBit === 1 << 31) {
+            if (this._currentComponentBit === 1 << 31) {
                 console.error('Maximum components registered');
                 return 0;
             }
@@ -59,6 +123,11 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
             return this._componentFlags[componentName];
         },
 
+        /**
+         * Appends a system to the execution list for the specified loopphase
+         * @param {System} system      the system to execute
+         * @param {string} loopphase   the phase of the game loop where the system should be called
+         */
         addSystem: function(system, loopphase) {
             if (!this.systems.hasOwnProperty(loopphase)) {
                 this.systems[loopphase] = [];
@@ -66,18 +135,39 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
             this.systems[loopphase].push(system);
         },
 
+        /**
+         * Inserts a new loopphase at the index.  The loopphases after the insertion are
+         * moved one step back in the execution order
+         *
+         * @param {number} index        the position in the execution order
+         * @param {string} name         the name of the loopphase
+         * @returns {Array.<string>}    the new loopphase list
+         */
         addLoopphase: function (index, name) {
             this._loopphases.splice(index, 0, name);
             return this._loopphases;
         },
 
-        addScene: function (scene) {
-            if (!scene.msg) {
-                scene.msg = Messenger;
+        /**
+         * Adds a scene to the scene dictionary
+         *
+         * @param {Scene}  scene    the scene to add
+         * @param {string} name     the identifier of the scene
+         */
+        addScene: function (scene, name) {
+            if (this.scenes[name]) {
+                console.error('Scene with that name (' + name + ') already exists');
+            } else {
+                if (!scene.msg) {
+                    scene.msg = Messenger;
+                }
+                this.scenes[name] = scene;
             }
-            this.scenes.push(scene);
         },
 
+        /**
+         * Begins the execution of the game loop
+         */
         run: function () {
             if (!this.__running) {
                 this.__running = true;
@@ -85,12 +175,20 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
             }
         },
 
+        /**
+         * Halts the execution of the game loop
+         */
         stop: function () {
             if (this.__running) {
                 this.__running = false;
             }
         },
 
+        /**
+         * Iterates the game loop once, then recursively calls itself (based on
+         * nextFrame as defined above)
+         * @param {number} time     the timestamp of the last step() call
+         */
         step: function(time) {
             var currTime, g, dt;
 

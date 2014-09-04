@@ -13,13 +13,11 @@ requirejs.config({
 
 requirejs(['alien/alien'], function (alien) {
 
-    var game = new alien.Game({
+    window.game = new alien.Game({
         canvas: "gameCanvas"
     });
 //        scene1 = new alien.Scene();
 //
 //    game.addScene(scene1);
-
-    window.game = game;
 
 });

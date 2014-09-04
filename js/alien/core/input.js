@@ -1,10 +1,12 @@
 /**
  * Created by faide on 2014-08-11.
  */
+'use strict';
+
 define([], function () {
-    'use strict';
     var keyCodes, state, InputManager, key, keyDown, keyUp, mouseDown, mouseUp, mouseMove, _queue;
 
+    /** @type {Object.<string,string>} */
     keyCodes = {
         8:"Backspace",
         9:"Tab",
@@ -108,6 +110,7 @@ define([], function () {
         222:"'"
     };
 
+    /** @typedef {{keys: {}, mouse: boolean, mouseX: number, mouseY: number}} InputState */
     state = {
         keys: {},
         mouse: false,
@@ -115,6 +118,10 @@ define([], function () {
         mouseY: 0
     };
 
+    /**
+     * @type {Array<function>}
+     * @private
+     */
     _queue = [];
 
     for (key in keyCodes) {
@@ -123,30 +130,62 @@ define([], function () {
         }
     }
 
+    /**
+     * Sets a key's state to true (pressed)
+     *
+     * @param {Object} event            The event object
+     * @param {number} event.keyCode    The key being pressed
+     */
     keyDown = function (event) {
         state.keys[event.keyCode] = true;
     };
 
+    /**
+     * Sets a key's state to false (not pressed)
+     *
+     * @param {Object} event            The event object
+     * @param {number} event.keyCode    The key being released
+     */
     keyUp = function (event) {
         state.keys[event.keyCode] = false;
     };
 
+    /**
+     * Sets the left mouse button state to true (pressed)
+     */
     mouseDown = function () {
         state.mouse = true;
     };
 
+    /**
+     * Sets the left mouse button state to false (not pressed)
+     */
     mouseUp = function () {
         state.mouse = false;
     };
 
+    /**
+     * Sets the mouse position state
+     *
+     * @param {Object} event         The event object
+     * @param {number} event.layerX  The mouse's x position
+     * @param {number} event.layerY  The mouse's y position
+     */
     mouseMove = function (event) {
         state.mouseX = event.layerX;
         state.mouseY = event.layerY;
     };
 
-
+    /**
+     * @typedef {{_queue: Array<function>, init: function, processInput: function, State: InputState}} InputManager
+     */
     InputManager = {
         _queue: _queue,
+        /**
+         * Initializes the event handlers for the specified canvas
+         *
+         * @param {Object} canvas  The DOM object to bind event handlers to
+         */
         init: function (canvas) {
             var canvas_handlers, window_handlers, eventName;
 
@@ -163,8 +202,10 @@ define([], function () {
 
             for (eventName in canvas_handlers) {
                 if (canvas_handlers.hasOwnProperty(eventName)) {
+                    // IIFE to create a closure context for each event handler
                     (function (handler) {
                         canvas.addEventListener(eventName, function (e) {
+                            // push the event to the queue
                             _queue.push(handler.bind(this, e));
                         });
                     }(canvas_handlers[eventName]));
@@ -172,14 +213,19 @@ define([], function () {
             }
             for (eventName in window_handlers) {
                 if (window_handlers.hasOwnProperty(eventName)) {
+                    // IIFE to create a closure context for each event handler
                     (function (handler) {
                         window.addEventListener(eventName, function (e) {
+                            // push the event to the queue
                             _queue.push(handler.bind(this, e));
                         });
                     }(window_handlers[eventName]));
                 }
             }
         },
+        /**
+         * Digest all event activity in the queue
+         */
         processInput: function () {
             while (_queue.length) {
                 _queue.pop()();
