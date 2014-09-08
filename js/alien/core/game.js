@@ -128,10 +128,11 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          * Adds a component type to the component registry, returning the component's
          * registry key
          *
+         * @param {Component} component   the component being registered
          * @param {string} componentName  the name of the component being registered
          * @returns {number}              the registered key for that component
          */
-        registerComponent: function (componentName) {
+        registerComponent: function (component, componentName) {
             if (this._componentFlags.hasOwnProperty(componentName)) {
                 console.error('Attempt to register component of same name', componentName);
                 return this._componentFlags[componentName];
@@ -142,6 +143,10 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
             }
             this._componentFlags[componentName] = this._currentComponentBit;
             this._currentComponentBit = this._currentComponentBit << 1;
+
+            //set the flag on the component (this is the only reason we need the component as a parameter)
+            component.flag = this._componentFlags[componentName];
+
             return this._componentFlags[componentName];
         },
 

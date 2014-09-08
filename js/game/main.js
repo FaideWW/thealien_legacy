@@ -21,10 +21,10 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         canvas: "gameCanvas"
     });
 
-    renderable.flag = window.game.registerComponent("renderable");
-    position.flag   = window.game.registerComponent("position");
-
+    window.game.registerComponent(renderable, "renderable");
     e1.addComponent(renderable.flag, renderable);
+
+    window.game.registerComponent(position, "position");
     e1.addComponent(position.flag, position);
 
     window.scene1 = new alien.Scene({
