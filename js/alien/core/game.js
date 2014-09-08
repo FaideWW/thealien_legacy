@@ -196,6 +196,9 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
                     if (!scene.input) {
                         scene.input = InputManager.State;
                     }
+                    if (!scene.renderTarget) {
+                        scene.renderTarget = this.ctx;
+                    }
                     this.scenes[name] = scene;
                 }
             }
@@ -260,7 +263,9 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
                 for (i = 0; i < l; i += 1) {
                     m = this.systems[this._loopphases[i]].length;
                     for (j = 0; j < m; j += 1) {
-                        this.systems[this._loopphases[i]][j].step(this.activeScene, dt);
+                        if (this.systems[this._loopphases[i]][j].__initialized) {
+                            this.systems[this._loopphases[i]][j].step(this.activeScene, dt);
+                        }
                     }
                 }
             }

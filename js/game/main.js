@@ -14,8 +14,11 @@ requirejs.config({
 requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien, c, s) {
 
     var e1         = new alien.Entity(),
-        renderable = new c.renderable(),
-        position   = new c.position();
+        renderable = new c.square_renderable(),
+        position   = new c.position({
+            x: 50,
+            y: 50
+        });
 
     window.game = new alien.Game({
         canvas: "gameCanvas"
@@ -33,7 +36,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
 
     game.addScene(window.scene1, "scene1");
     game.addLoopphase(0, "render");
-    game.addSystem(s.render_system, "render");
+    game.addSystem(s.square_render_system, "render");
 
     game.setActiveScene("scene1");
 

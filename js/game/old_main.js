@@ -394,13 +394,13 @@ require(['alien/alien'], function (alien) {
                 collidable: cl.createBoundingPolygon(polygon),
                 movable: m.createMovable(),
                 position: new am.Vector({x: 140, y: 50}),
-                renderable: r.createRenderPolygon(polygon, "rgba(0,0,0,1)", "rgba(255,255,0,1)")
+                square_renderable: r.createRenderPolygon(polygon, "rgba(0,0,0,1)", "rgba(255,255,0,1)")
             }),
             new alien.Entity({
                 collidable: cl.createBoundingCircle(radius),
                 movable: m.createMovable(),
                 position: new am.Vector({x: 205, y: 165}),
-                renderable: r.createRenderCircle(radius, null, "rgba(100,100,100,1)")
+                square_renderable: r.createRenderCircle(radius, null, "rgba(100,100,100,1)")
             })
         ],
         map = new alien.Map({

@@ -19,6 +19,7 @@ define([], function () {
         // declare references to singletons; they will be initialized when attached to a game
         this.msg = null;
         this.input = null;
+        this.renderTarget = null;
 
         options = options || {};
 

@@ -5,16 +5,20 @@
 'use strict';
 
 define([], function () {
-    var Renderable = (function () {
-            function Renderable(options) {
-                if (!(this instanceof Renderable)) {
-                    return new Renderable(options);
+    var SquareRenderable = (function () {
+            function SquareRenderable(options) {
+                if (!(this instanceof SquareRenderable)) {
+                    return new SquareRenderable(options);
                 }
                 options = options || {};
-                this.isRenderable = true;
+                this.type   = "square";
+                this.width  = options.width  || 50;
+                this.height = options.height || 50;
+                this.fill   = options.fill   || "rgba( 0,255, 0, 1 )";
+                this.stroke = options.stroke || "rgba( 0,  0, 0, 1 )";
             }
 
-            return Renderable;
+            return SquareRenderable;
         }()),
         Position = (function () {
             function Position(options) {
@@ -22,7 +26,8 @@ define([], function () {
                     return new Position(options);
                 }
                 options = options || {};
-                this.isPosition = true;
+                this.x = options.x || 0;
+                this.y = options.y || 0;
             }
 
             return Position;
@@ -30,7 +35,7 @@ define([], function () {
 
 
     return {
-        renderable: Renderable,
+        square_renderable: SquareRenderable,
         position: Position
     };
 });
