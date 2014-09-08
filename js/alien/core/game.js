@@ -5,8 +5,8 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
     /**
      * TODO: remove these when they're implemented for real
      *
-     * @typedef {} Scene
-     * @typedef {} System
+     * @typedef {Object} Scene
+     * @typedef {Object} System
      */
 
 
@@ -76,11 +76,26 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          * @type {Object.<string,Array<System>>}
          */
         this.systems = {};
+
+        /**
+         * @type {Scene}
+         */
+        this.activeScene = null;
+
+
         /**
          * @type {boolean}
          * @private
          */
         this.__running = false;
+
+
+        /**
+         * dirty flag to watch for new systems added during execution
+         * @type {boolean}
+         * @private
+         */
+        this.__uninitialized_systems = true;
 
         options = options || {};
 
@@ -125,8 +140,8 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
                 console.error('Maximum components registered');
                 return 0;
             }
-            this._componentFlags[componentName] = this.currentComponentBit;
-            this.currentComponentBit = this.currentComponentBit << 1;
+            this._componentFlags[componentName] = this._currentComponentBit;
+            this._currentComponentBit = this._currentComponentBit << 1;
             return this._componentFlags[componentName];
         },
 
@@ -139,6 +154,8 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
             if (!this.systems.hasOwnProperty(loopphase)) {
                 this.systems[loopphase] = [];
             }
+            this.__uninitialized_systems = true;
+            system.__initialized = false;
             this.systems[loopphase].push(system);
         },
 
@@ -162,13 +179,20 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          * @param {string} name     the identifier of the scene
          */
         addScene: function (scene, name) {
-            if (this.scenes[name]) {
-                console.error('Scene with that name (' + name + ') already exists');
+            if (!name) {
+                console.error('Scene must have a name');
             } else {
-                if (!scene.msg) {
-                    scene.msg = Messenger;
+                if (this.scenes[name]) {
+                    console.error('Scene with that name (' + name + ') already exists');
+                } else {
+                    if (!scene.msg) {
+                        scene.msg = Messenger;
+                    }
+                    if (!scene.input) {
+                        scene.input = InputManager.State;
+                    }
+                    this.scenes[name] = scene;
                 }
-                this.scenes[name] = scene;
             }
         },
 
@@ -179,6 +203,19 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
             if (!this.__running) {
                 this.__running = true;
                 this.step(0);
+            }
+        },
+
+        /**
+         * Sets the active scene
+         * @param {string} name  The name of the scene
+         */
+        setActiveScene: function (name) {
+            if (!this.scenes[name]) {
+                console.error('Scene (' + name + ') does not exist');
+            } else {
+                this.activeScene = this.scenes[name];
+                this.__uninitialized_systems = true;
             }
         },
 
@@ -197,21 +234,53 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          * @param {number} time     the timestamp of the last step() call
          */
         step: function(time) {
-            var currTime, g, dt;
+            var currTime, game, dt, i, j, l, m;
 
             currTime = new Date().getTime();
-            g = this;
+            game = this;
 
+            // Execute a game step
             if (time !== 0) {
+
+                //dirty uninitialized system check
+                while (this.__uninitialized_systems) {
+                    this.initializeNewSystems();
+                }
+
                 dt = currTime - time;
 
                 InputManager.processInput();
+
+                l = this._loopphases.length;
+                for (i = 0; i < l; i += 1) {
+                    m = this.systems[this._loopphases[i]].length;
+                    for (j = 0; j < m; j += 1) {
+                        this.systems[this._loopphases[i]][j].step(this.activeScene, dt);
+                    }
+                }
             }
             console.log('step');
 
             if (this.__running) {
-                nextFrame(this.step.bind(g, currTime));
+                nextFrame(this.step.bind(game, currTime));
             }
+        },
+
+        initializeNewSystems: function () {
+            var i, j, l, m, loopphase, system;
+            l = this._loopphases.length;
+            for (i = 0; i < l; i += 1) {
+                loopphase = this._loopphases[i];
+                m = this.systems[loopphase].length;
+                for (j = 0; j < m; j += 1) {
+                    system = this.systems[loopphase][j];
+                    if (!system.__initialized) {
+                        system.init(this.activeScene, this._componentFlags);
+                        system.__initialized = true;
+                    }
+                }
+            }
+            this.__uninitialized_systems = false;
         }
     };
 

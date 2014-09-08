@@ -4,16 +4,27 @@
 'use strict';
 
 define([], function () {
+
+    /** @typedef {} TileMap */
+
     /**
      * Creates a new Scene object based on the provided options
-     * @param {Object}        options           The options object
-     * @param {Array<Entity>} options.entities  A list of entities that are present in the scene
+     * @param {Object}        options             The options object
+     * @param {Array<Entity>} options.entities    A list of entities that are present in the scene
+     * @param {TileMap}       [options.tilemap]   An optional tilemap object
      * @constructor
      */
     function Scene(options) {
+
+        // declare references to singletons; they will be initialized when attached to a game
+        this.msg = null;
+        this.input = null;
+
         options = options || {};
 
         this.entities = options.entities || [];
+
+        this.tilemap = options.tilemap || null;
     }
 
     return Scene;
