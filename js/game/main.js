@@ -16,9 +16,11 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     var e1         = new alien.Entity(),
         renderable = new c.square_renderable(),
         position   = new c.position({
-            x: 50,
+            x: 100,
             y: 50
-        });
+        }),
+        rotation   = new c.rotation(),
+        translation = new c.translation();
 
     window.game = new alien.Game({
         canvas: "gameCanvas"
@@ -30,13 +32,21 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     window.game.registerComponent(position, "position");
     e1.addComponent(position.flag, position);
 
+    window.game.registerComponent(rotation, "rotation");
+    e1.addComponent(rotation.flag, rotation);
+
+    window.game.registerComponent(translation, "translation");
+    e1.addComponent(translation.flag, translation);
+
     window.scene1 = new alien.Scene({
         entities: [e1]
     });
 
     game.addScene(window.scene1, "scene1");
-    game.addLoopphase(0, "render");
-    game.addSystem(s.square_render_system, "render");
+    game.addLoopphase(0, "event");
+    game.addLoopphase(1, "render");
+    game.addSystem(s.orbit_system, "event");
+    game.addSystem(s.render_system, "render");
 
     game.setActiveScene("scene1");
 

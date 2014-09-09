@@ -31,11 +31,38 @@ define([], function () {
             }
 
             return Position;
+        }()),
+        Rotation = (function () {
+            function Rotation(options) {
+                if (!(this instanceof Rotation)) {
+                    return new Rotation(options);
+                }
+
+                options = options || {};
+                this.angle = options.angle || 0;
+            }
+
+            return Rotation;
+        }()),
+        Translation = (function () {
+            function Translation(options) {
+                if (!(this instanceof Translation)) {
+                    return new Translation(options);
+                }
+
+                options = options || {};
+                this.x = options.x || 0;
+                this.y = options.y || 0;
+            }
+
+            return Translation;
         }());
 
 
     return {
         square_renderable: SquareRenderable,
-        position: Position
+        position: Position,
+        rotation: Rotation,
+        translation: Translation
     };
 });
