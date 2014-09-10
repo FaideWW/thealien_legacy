@@ -382,7 +382,7 @@ require(['alien/alien'], function (alien) {
             new alien.Entity({
                 id: "player",
                 animatable: player_animations,
-                camera: cm.createCamera(canvas.width / 2, canvas.height / 2, canvas.width / 4, canvas.height / 4, canvas.height / 4),
+                camera: cm.createCamera(canvas.half_width / 2, canvas.height / 2, canvas.half_width / 4, canvas.height / 4, canvas.height / 4),
                 collidable: cl.createBoundingPolygon(polygon.rotate(Math.PI / 4)),
                 movable: m.createMovable(true),
                 keylistener: cn.createKeyListener(key_map),

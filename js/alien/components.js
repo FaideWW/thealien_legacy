@@ -12,10 +12,10 @@ define([], function () {
                 }
                 options = options || {};
                 this.type   = "square";
-                this.width  = options.width  || 50;
-                this.height = options.height || 50;
-                this.fill   = options.fill   || "rgba( 0,255, 0, 1 )";
-                this.stroke = options.stroke || "rgba( 0,  0, 0, 1 )";
+                this.half_width  = options.half_width  || 25;
+                this.half_height = options.half_height || 25;
+                this.fill        = options.fill   || "rgba( 0,255, 0, 1 )";
+                this.stroke      = options.stroke || "rgba( 0,  0, 0, 1 )";
             }
 
             return SquareRenderable;

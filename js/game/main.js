@@ -17,7 +17,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         renderable = new c.square_renderable(),
         position   = new c.position({
             x: 100,
-            y: 50
+            y: 100
         }),
         rotation   = new c.rotation(),
         translation = new c.translation();

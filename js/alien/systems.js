@@ -23,9 +23,9 @@ define([], function () {
                 };
 
                 if (_flags.rotation && rotation) {
-                    render_target.translate(world_pos.x + renderable.width / 2, world_pos.y + renderable.height / 2);
+                    render_target.translate(world_pos.x, world_pos.y);
                     render_target.rotate(rotation.angle);
-                    render_target.translate(-(world_pos.x + renderable.width / 2), -(world_pos.y + renderable.height / 2));
+                    render_target.translate(-(world_pos.x), -(world_pos.y));
                 }
 
                 render_target.translate(world_pos.x, world_pos.y);
@@ -36,7 +36,8 @@ define([], function () {
 
 
                 render_target.beginPath();
-                render_target.rect(0, 0, renderable.width, renderable.height);
+                render_target.rect(-renderable.half_width, -renderable.half_height,
+                                    renderable.half_width * 2,  renderable.half_height * 2);
                 render_target.fill();
                 render_target.stroke();
             }
@@ -67,7 +68,7 @@ define([], function () {
             step: function (scene) {
 
                 if (render_target) {
-                    render_target.clearRect(0, 0, render_target.canvas.width, render_target.canvas.height);
+                    render_target.clearRect(0, 0, render_target.canvas.half_width, render_target.canvas.height);
                 }
 
                 scene.each(function (entity) {
@@ -135,7 +136,7 @@ define([], function () {
                     }
 
                     if (scene.renderTarget) {
-                        canvas_width  = scene.renderTarget.canvas.width;
+                        canvas_width  = scene.renderTarget.canvas.half_width;
                         canvas_height = scene.renderTarget.canvas.height;
                     } else {
                         console.error('No render target specified; cannot check bounds');

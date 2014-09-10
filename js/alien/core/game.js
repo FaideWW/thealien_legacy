@@ -174,6 +174,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          */
         addLoopphase: function (index, name) {
             this._loopphases.splice(index, 0, name);
+            this.systems[name] = [];
             return this._loopphases;
         },
 
