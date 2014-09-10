@@ -4,19 +4,16 @@
 
 define([], function () {
     var RenderSystem = (function () {
-        var lock            = 0,
-            renderableFlag  = 0,
-            positionFlag    = 0,
-            rotationFlag    = 0,
-            translationFlag = 0,
+        var _flags         = null,
+            lock           = 0,
             render_target  = null,
             drawRect;
 
         drawRect = function (entity) {
-            var position    = entity.components[positionFlag],
-                renderable  = entity.components[renderableFlag],
-                rotation    = entity.components[rotationFlag],
-                translation = entity.components[translationFlag],
+            var position    = entity.components[_flags.position],
+                renderable  = entity.components[_flags.renderable],
+                rotation    = entity.components[_flags.rotation],
+                translation = entity.components[_flags.translation],
                 world_pos;
             if (render_target) {
 
@@ -25,7 +22,7 @@ define([], function () {
                     y: position.y + ((translation) ? translation.y : 0)
                 };
 
-                if (rotationFlag && rotation) {
+                if (_flags.rotation && rotation) {
                     render_target.translate(world_pos.x + renderable.width / 2, world_pos.y + renderable.height / 2);
                     render_target.rotate(rotation.angle);
                     render_target.translate(-(world_pos.x + renderable.width / 2), -(world_pos.y + renderable.height / 2));
@@ -48,16 +45,16 @@ define([], function () {
 
         return {
             init: function (scene, flags) {
-                if (flags.renderable && flags.position) {
+                // store a local copy of flags
+                _flags = flags;
+                if (_flags.renderable && _flags.position) {
                     // required components
-                    renderableFlag = flags.renderable;
-                    positionFlag   = flags.position;
-                    lock |= renderableFlag;
-                    lock |= positionFlag;
+                    lock |= _flags.renderable;
+                    lock |= _flags.position;
 
-                    // optional components
-                    rotationFlag   = flags.rotation;
-                    translationFlag = flags.translation;
+                    // optional components:
+                    // rotation
+                    // translation
                 } else {
                     console.error("Required components are not registered");
                 }
@@ -82,13 +79,13 @@ define([], function () {
                         console.group('drawing');
 
                         render_target.save();
-                        if (entity.components[renderableFlag].type === "square") {
+                        if (entity.components[_flags.renderable].type === "square") {
                             drawRect(entity);
                         }
                         render_target.restore();
 
-                        console.log('square_renderable', entity.components[renderableFlag]);
-                        console.log('position',   entity.components[positionFlag]);
+                        console.log('square_renderable', entity.components[_flags.renderable]);
+                        console.log('position',   entity.components[_flags.position]);
                         console.groupEnd();
                     }
                 }
@@ -98,18 +95,16 @@ define([], function () {
     }()),
         OrbitSystem = (function () {
             var lock            = 0,
-                translationFlag = 0,
-                rotationFlag    = 0,
+                _flags          = null,
                 period          = 1000,
                 radius          = 100,
                 current_time    = 0;
             return {
                 init: function (scene, flags) {
-                    if (flags.translation && flags.rotation) {
-                        translationFlag = flags.translation;
-                        rotationFlag = flags.rotation;
-                        lock |= translationFlag;
-                        lock |= rotationFlag;
+                    _flags = flags;
+                    if (_flags.translation && _flags.rotation) {
+                        lock |= _flags.translation;
+                        lock |= _flags.rotation;
                     } else {
                         console.error("Required components are not registered");
                     }
@@ -120,8 +115,8 @@ define([], function () {
                     for (i = 0; i < scene.entities.length; i += 1) {
                         entity = scene.entities[i];
                         if (entity.key & lock === lock) {
-                            rotation = entity.components[rotationFlag];
-                            translation = entity.components[translationFlag];
+                            rotation = entity.components[_flags.rotation];
+                            translation = entity.components[_flags.translation];
                             current_time = (current_time + dt) % period;
                             interpolation = current_time / period;
 
@@ -136,6 +131,33 @@ define([], function () {
                     }
 
                     console.groupEnd();
+                }
+            }
+        }()),
+        BoundarySystem = (function () {
+            var _flags = null,
+                lock   = 0,
+                canvas_width = 0,
+                canvas_height = 0;
+            return {
+                init: function (scene, flags) {
+                    _flags = flags;
+                    if (_flags.collidable && _flags.position) {
+                        lock |= _flags.collidable;
+                        lock |= _flags.position;
+                    } else {
+                        console.error('Required components are not registered');
+                    }
+
+                    if (scene.renderTarget) {
+                        canvas_width  = scene.renderTarget.canvas.width;
+                        canvas_height = scene.renderTarget.canvas.height;
+                    } else {
+                        console.error('No render target specified; cannot check bounds');
+                    }
+                },
+                step: function (scene, dt) {
+
                 }
             }
         }());

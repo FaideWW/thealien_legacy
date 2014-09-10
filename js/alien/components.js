@@ -56,6 +56,19 @@ define([], function () {
             }
 
             return Translation;
+        }()),
+        Collidable = (function () {
+            function Collidable(options) {
+                if (!(this instanceof Collidable)) {
+                    return new Collidable(options);
+                }
+
+                options = options || {};
+                this.half_width  = options.half_width  || 0;
+                this.half_height = options.half_height || 0;
+            }
+
+            return Collidable;
         }());
 
 
