@@ -269,7 +269,6 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
                     }
                 }
             }
-            console.log('step');
 
             if (this.__running) {
                 nextFrame(this.step.bind(game, currTime));

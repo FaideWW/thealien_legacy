@@ -65,30 +65,21 @@ define([], function () {
                 }
             },
             step: function (scene) {
-                var entity, i;
 
                 if (render_target) {
-                    console.log('clearing');
                     render_target.clearRect(0, 0, render_target.canvas.width, render_target.canvas.height);
                 }
 
-                for (i = 0; i < scene.entities.length; i += 1) {
-                    entity = scene.entities[i];
-                    if (entity.key & lock === lock) {
-                        //draw this
-                        console.group('drawing');
+                scene.each(function (entity) {
+                    //draw this
 
-                        render_target.save();
-                        if (entity.components[_flags.renderable].type === "square") {
-                            drawRect(entity);
-                        }
-                        render_target.restore();
-
-                        console.log('square_renderable', entity.components[_flags.renderable]);
-                        console.log('position',   entity.components[_flags.position]);
-                        console.groupEnd();
+                    render_target.save();
+                    if (entity.components[_flags.renderable].type === "square") {
+                        drawRect(entity);
                     }
-                }
+                    render_target.restore();
+
+                }, lock, this);
             }
 
         }
@@ -110,27 +101,21 @@ define([], function () {
                     }
                 },
                 step: function (scene, dt) {
-                    console.group('orbiting');
-                    var i, entity, interpolation, rotation, translation;
-                    for (i = 0; i < scene.entities.length; i += 1) {
-                        entity = scene.entities[i];
-                        if (entity.key & lock === lock) {
-                            rotation = entity.components[_flags.rotation];
-                            translation = entity.components[_flags.translation];
-                            current_time = (current_time + dt) % period;
-                            interpolation = current_time / period;
+                    var interpolation, rotation, translation;
 
-                            rotation.angle = (Math.PI * 2) * interpolation;
+                    scene.each(function (entity) {
+                        rotation = entity.components[_flags.rotation];
+                        translation = entity.components[_flags.translation];
+                        current_time = (current_time + dt) % period;
+                        interpolation = current_time / period;
 
-                            translation.x = Math.cos(rotation.angle) * radius;
-                            translation.y = Math.sin(rotation.angle) * radius;
+                        rotation.angle = (Math.PI * 2) * interpolation;
 
-                            console.log('rotation angle', rotation.angle);
-                            console.log('position', translation.x, translation.y);
-                        }
-                    }
+                        translation.x = Math.cos(rotation.angle) * radius;
+                        translation.y = Math.sin(rotation.angle) * radius;
 
-                    console.groupEnd();
+                    }, lock, this);
+
                 }
             }
         }()),
@@ -157,7 +142,9 @@ define([], function () {
                     }
                 },
                 step: function (scene, dt) {
+                    scene.each(function (entity) {
 
+                    }, lock, this);
                 }
             }
         }());
