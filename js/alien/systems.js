@@ -209,12 +209,43 @@ define([], function () {
                     }, lock, this);
                 }
             }
+        }()),
+        ControlSystem = (function () {
+            var _flags = null,
+                lock   = 0;
+
+            return {
+                init: function (scene, flags) {
+                    _flags = flags;
+                    console.log(flags);
+                    if (_flags.controller && _flags.position) {
+                        lock |= flags.controller;
+                        lock |= flags.position;
+                    } else {
+                        console.error('Required components not registered');
+                    }
+                },
+                step: function (scene, dt) {
+                    scene.each(function (entity) {
+                        var controller = entity.components[_flags.controller],
+                            position   = entity.components[_flags.position],
+                            mouse      = {
+                                x: scene.input.mouseX,
+                                y: scene.input.mouseY
+                            };
+                        if (controller.type === "paddle") {
+                            position.y = mouse.y;
+                        }
+                    }, lock, this);
+                }
+            }
         }());
 
     return {
         render_system: RenderSystem,
         orbit_system:  OrbitSystem,
         boundary_system: BoundarySystem,
-        physics_system: PhysicsSystem
+        physics_system: PhysicsSystem,
+        control_system: ControlSystem
     };
 });

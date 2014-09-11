@@ -21,15 +21,17 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         }),
         rotation    = new c.rotation(),
         translation = new c.translation(),
-        orbital     = new c.orbital(),
         collidable  = new c.collidable({
             half_width:  renderable.half_width,
             half_height: renderable.half_height
         }),
         velocity    = new c.velocity({
-            x: 100,
-            y: 100
-        });
+            x: 0,
+            y: 50
+        }),
+        controller      = new c.paddle_controller();
+
+
 
     window.game = new alien.Game({
         canvas: "gameCanvas"
@@ -47,24 +49,27 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     window.game.registerComponent(translation, "translation");
     e1.addComponent(translation.flag, translation);
 
-    window.game.registerComponent(orbital, "orbital");
-
     window.game.registerComponent(collidable, "collidable");
     e1.addComponent(collidable.flag, collidable);
 
     window.game.registerComponent(velocity, "velocity");
     e1.addComponent(velocity.flag, velocity);
 
+    window.game.registerComponent(controller, "controller");
+    e1.addComponent(controller.flag, controller);
+
+
     window.scene1 = new alien.Scene({
         entities: [e1]
     });
 
     game.addScene(window.scene1, "scene1");
-    game.addLoopphase(0, "event");
-    game.addLoopphase(1, "physics");
-    game.addLoopphase(2, "render");
+    game.addLoopphase(0, "input");
+    game.addLoopphase(1, "event");
+    game.addLoopphase(2, "physics");
+    game.addLoopphase(3, "render");
+    game.addSystem(s.control_system, "input");
     game.addSystem(s.boundary_system, "event");
-    game.addSystem(s.orbit_system, "event");
     game.addSystem(s.physics_system, "physics");
     game.addSystem(s.render_system, "render");
 

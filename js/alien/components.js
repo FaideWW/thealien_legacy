@@ -93,6 +93,16 @@ define([], function () {
             }
 
             return Velocity;
+        }()),
+        PaddleController = (function() {
+            function PaddleController(options) {
+                if (!(this instanceof PaddleController)) {
+                    return new PaddleController(options);
+                }
+                this.type = "paddle";
+            }
+
+            return PaddleController;
         }());
 
 
@@ -103,6 +113,7 @@ define([], function () {
         translation:       Translation,
         orbital:           Orbital,
         collidable:        Collidable,
-        velocity:          Velocity
+        velocity:          Velocity,
+        paddle_controller: PaddleController
     };
 });
