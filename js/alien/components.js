@@ -57,6 +57,17 @@ define([], function () {
 
             return Translation;
         }()),
+        Orbital = (function () {
+            function Orbital(options) {
+                if (!(this instanceof Orbital)) {
+                    return new Orbital(options);
+                }
+
+                options = options || {};
+                this.radius = options.radius || 50;
+            }
+            return Orbital;
+        }()),
         Collidable = (function () {
             function Collidable(options) {
                 if (!(this instanceof Collidable)) {
@@ -69,13 +80,29 @@ define([], function () {
             }
 
             return Collidable;
+        }()),
+        Velocity = (function() {
+            function Velocity(options) {
+                if (!(this instanceof Velocity)) {
+                    return new Velocity(options);
+                }
+
+                options = options || {};
+                this.x = options.x;
+                this.y = options.y;
+            }
+
+            return Velocity;
         }());
 
 
     return {
         square_renderable: SquareRenderable,
-        position: Position,
-        rotation: Rotation,
-        translation: Translation
+        position:          Position,
+        rotation:          Rotation,
+        translation:       Translation,
+        orbital:           Orbital,
+        collidable:        Collidable,
+        velocity:          Velocity
     };
 });

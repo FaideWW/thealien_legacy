@@ -32,7 +32,7 @@ define([], function () {
         var i, entity;
         for (i = 0; i < this.entities.length; i += 1) {
             entity = this.entities[i];
-            if (entity.key & lock === lock) {
+            if ((entity.key & lock) === lock) {
                 callback.call(thisArg, entity);
             }
         }
