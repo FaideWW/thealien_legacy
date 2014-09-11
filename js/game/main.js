@@ -21,15 +21,27 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         }),
         rotation    = new c.rotation(),
         translation = new c.translation(),
-        collidable  = new c.collidable({
+        aabb_collidable  = new c.aabb_collidable({
             half_width:  renderable.half_width,
             half_height: renderable.half_height
         }),
         velocity    = new c.velocity({
             x: 0,
-            y: 50
+            y: 0
         }),
-        controller      = new c.paddle_controller();
+        p_controller      = new c.paddle_controller(),
+        m_controller      = new c.mouse_controller(),
+
+        e2 = new alien.Entity(),
+        r2 = new c.square_renderable(),
+        p2 = new c.position({
+            x: 300,
+            y: 300
+        }),
+        c2 = new c.aabb_collidable({
+            half_width: r2.half_width,
+            half_height: r2.half_height
+        });
 
 
 
@@ -38,9 +50,11 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     });
 
     window.game.registerComponent(renderable, "renderable");
+    window.game.registerComponent(r2, "renderable");
     e1.addComponent(renderable.flag , renderable);
 
     window.game.registerComponent(position, "position");
+    window.game.registerComponent(p2, "position");
     e1.addComponent(position.flag, position);
 
     window.game.registerComponent(rotation, "rotation");
@@ -49,28 +63,37 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     window.game.registerComponent(translation, "translation");
     e1.addComponent(translation.flag, translation);
 
-    window.game.registerComponent(collidable, "collidable");
-    e1.addComponent(collidable.flag, collidable);
+    window.game.registerComponent(aabb_collidable, "collidable");
+    window.game.registerComponent(c2, "collidable");
+    e1.addComponent(aabb_collidable.flag, aabb_collidable);
 
     window.game.registerComponent(velocity, "velocity");
     e1.addComponent(velocity.flag, velocity);
 
-    window.game.registerComponent(controller, "controller");
-    e1.addComponent(controller.flag, controller);
+    window.game.registerComponent(p_controller, "controller");
+    window.game.registerComponent(m_controller, "controller");
+    //e1.addComponent(p_controller.flag, p_controller);
+    e1.addComponent(m_controller.flag, m_controller);
 
+
+    e2.addComponent(r2.flag, r2);
+    e2.addComponent(p2.flag, p2);
+    e2.addComponent(c2.flag, c2);
 
     window.scene1 = new alien.Scene({
-        entities: [e1]
+        entities: [e1, e2]
     });
 
     game.addScene(window.scene1, "scene1");
     game.addLoopphase(0, "input");
     game.addLoopphase(1, "event");
     game.addLoopphase(2, "physics");
-    game.addLoopphase(3, "render");
+    game.addLoopphase(3, "collision");
+    game.addLoopphase(4, "render");
     game.addSystem(s.control_system, "input");
     game.addSystem(s.boundary_system, "event");
     game.addSystem(s.physics_system, "physics");
+    game.addSystem(s.collision_system, "collision");
     game.addSystem(s.render_system, "render");
 
     game.setActiveScene("scene1");

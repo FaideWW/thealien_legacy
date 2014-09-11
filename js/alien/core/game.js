@@ -134,7 +134,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          */
         registerComponent: function (component, componentName) {
             if (this._componentFlags.hasOwnProperty(componentName)) {
-                console.error('Attempt to register component of same name', componentName);
+                component.flag = this._componentFlags[componentName];
                 return this._componentFlags[componentName];
             }
             if (this._currentComponentBit === 1 << 31) {

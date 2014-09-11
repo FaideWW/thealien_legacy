@@ -38,5 +38,20 @@ define([], function () {
         }
     };
 
+    Scene.prototype.pairs = function (callback, lock, thisArg) {
+        var i, j, entity1, entity2;
+        for (i = 0; i < this.entities.length; i += 1) {
+            entity1 = this.entities[i];
+            if ((entity1.key & lock) === lock) {
+                for (j = i + 1; j < this.entities.length; j += 1) {
+                    entity2 = this.entities[j];
+                    if ((entity2.key & lock) === lock) {
+                        callback.call(thisArg, entity1, entity2);
+                    }
+                }
+            }
+        }
+    };
+
     return Scene;
 });

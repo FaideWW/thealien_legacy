@@ -4,87 +4,86 @@
 
 define([], function () {
     var RenderSystem = (function () {
-        var _flags         = null,
-            lock           = 0,
-            render_target  = null,
-            drawRect;
+            var _flags         = null,
+                lock           = 0,
+                render_target  = null,
+                drawRect;
 
-        drawRect = function (entity) {
-            var position    = entity.components[_flags.position],
-                renderable  = entity.components[_flags.renderable],
-                rotation    = entity.components[_flags.rotation],
-                translation = entity.components[_flags.translation],
-                world_pos;
-            if (render_target) {
-
-                world_pos = {
-                    x: position.x + ((translation) ? translation.x : 0),
-                    y: position.y + ((translation) ? translation.y : 0)
-                };
-
-                if (_flags.rotation && rotation) {
-                    render_target.translate(world_pos.x, world_pos.y);
-                    render_target.rotate(rotation.angle);
-                    render_target.translate(-(world_pos.x), -(world_pos.y));
-                }
-
-                render_target.translate(world_pos.x, world_pos.y);
-
-
-                render_target.fillStyle   = renderable.fill;
-                render_target.strokeStyle = renderable.stroke;
-
-
-                render_target.beginPath();
-                render_target.rect(-renderable.half_width, -renderable.half_height,
-                                    renderable.half_width * 2,  renderable.half_height * 2);
-                render_target.fill();
-                render_target.stroke();
-            }
-        };
-
-
-        return {
-            init: function (scene, flags) {
-                // store a local copy of flags
-                _flags = flags;
-                if (_flags.renderable && _flags.position) {
-                    // required components
-                    lock |= _flags.renderable;
-                    lock |= _flags.position;
-
-                    // optional components:
-                    // rotation
-                    // translation
-                } else {
-                    console.error("Required components are not registered");
-                }
-                if (!scene.renderTarget) {
-                    console.error('Scene has no render target');
-                } else {
-                    render_target = scene.renderTarget;
-                }
-            },
-            step: function (scene) {
-
+            drawRect = function (entity) {
+                var position    = entity.components[_flags.position],
+                    renderable  = entity.components[_flags.renderable],
+                    translation = entity.components[_flags.translation],
+                    world_pos;
                 if (render_target) {
-                    render_target.clearRect(0, 0, render_target.canvas.width, render_target.canvas.height);
+
+                    world_pos = {
+                        x: position.x + ((translation) ? translation.x : 0),
+                        y: position.y + ((translation) ? translation.y : 0)
+                    };
+
+                    if (_flags.rotation && entity.components[_flags.rotation]) {
+                        render_target.translate(world_pos.x, world_pos.y);
+                        render_target.rotate(entity.components[_flags.rotation].angle);
+                        render_target.translate(-(world_pos.x), -(world_pos.y));
+                    }
+
+                    render_target.translate(world_pos.x, world_pos.y);
+
+
+                    render_target.fillStyle   = renderable.fill;
+                    render_target.strokeStyle = renderable.stroke;
+
+
+                    render_target.beginPath();
+                    render_target.rect(-renderable.half_width, -renderable.half_height,
+                            renderable.half_width * 2,  renderable.half_height * 2);
+                    render_target.fill();
+                    render_target.stroke();
+                }
+            };
+
+
+            return {
+                init: function (scene, flags) {
+                    // store a local copy of flags
+                    _flags = flags;
+                    if (_flags.renderable && _flags.position) {
+                        // required components
+                        lock |= _flags.renderable;
+                        lock |= _flags.position;
+
+                        // optional components:
+                        // rotation
+                        // translation
+                    } else {
+                        console.error("Required components are not registered");
+                    }
+                    if (!scene.renderTarget) {
+                        console.error('Scene has no render target');
+                    } else {
+                        render_target = scene.renderTarget;
+                    }
+                },
+                step: function (scene) {
+
+                    if (render_target) {
+                        render_target.clearRect(0, 0, render_target.canvas.width, render_target.canvas.height);
+                    }
+
+                    scene.each(function (entity) {
+                        //draw this
+
+                        render_target.save();
+                        if (entity.components[_flags.renderable].type === "square") {
+                            drawRect(entity);
+                        }
+                        render_target.restore();
+
+                    }, lock, this);
                 }
 
-                scene.each(function (entity) {
-                    //draw this
-
-                    render_target.save();
-                    if (entity.components[_flags.renderable].type === "square") {
-                        drawRect(entity);
-                    }
-                    render_target.restore();
-
-                }, lock, this);
             }
-
-        }
-    }()),
+        }()),
         OrbitSystem = (function () {
             var lock            = 0,
                 _flags          = null,
@@ -157,16 +156,15 @@ define([], function () {
                             maxX = canvas_width  - minX,
                             maxY = canvas_height - minY;
 
-                        if (_flags.translation) {
+                        if (_flags.translation && entity.components[_flags.translation]) {
                             // break the reference
                             world_pos = {
                                 x: position.x + entity.components[_flags.translation].x,
-                                y: position.y + entity.components[_flags.translation].y,
+                                y: position.y + entity.components[_flags.translation].y
                             };
                         }
 
                         if (world_pos.x < minX || world_pos.x > maxX) {
-                            console.log('out of bounds: X', world_pos.x);
                             if (_flags.velocity) {
                                 entity.components[_flags.velocity].x *= -1;
                             }
@@ -174,7 +172,6 @@ define([], function () {
                         }
 
                         if (world_pos.y < minY || world_pos.y > maxY) {
-                            console.log('out of bounds: Y', world_pos.y);
                             if (_flags.velocity) {
                                 entity.components[_flags.velocity].y *= -1;
                             }
@@ -225,7 +222,7 @@ define([], function () {
                         console.error('Required components not registered');
                     }
                 },
-                step: function (scene, dt) {
+                step: function (scene) {
                     scene.each(function (entity) {
                         var controller = entity.components[_flags.controller],
                             position   = entity.components[_flags.position],
@@ -233,8 +230,59 @@ define([], function () {
                                 x: scene.input.mouseX,
                                 y: scene.input.mouseY
                             };
-                        if (controller.type === "paddle") {
-                            position.y = mouse.y;
+                        switch (controller.type) {
+                            case "paddle":
+                                position.y = mouse.y;
+                                break;
+                            case "mouse":
+                                position.x = mouse.x;
+                                position.y = mouse.y;
+                                break;
+                            default:
+                                break;
+                        }
+                    }, lock, this);
+                }
+            }
+        }()),
+        CollisionSystem = (function () {
+            var _flags = null,
+                lock   = 0,
+                aabbTest = function (pos1, pos2, aabb1, aabb2) {
+                    var aabb_sum = {
+                        half_width:  aabb1.half_width  + aabb2.half_width,
+                        half_height: aabb1.half_height + aabb2.half_height
+                    },
+                        relative_pos = {
+                        x: pos2.x - pos1.x,
+                        y: pos2.y - pos1.y
+                    };
+
+                    return ((relative_pos.x < aabb_sum.half_width  && relative_pos.x > -aabb_sum.half_width) &&
+                            (relative_pos.y < aabb_sum.half_height && relative_pos.y > -aabb_sum.half_height));
+                };
+            return {
+                init: function (scene, flags) {
+                    _flags = flags;
+                    if (_flags.position && _flags.collidable) {
+                        lock |= _flags.position;
+                        lock |= _flags.collidable;
+                    } else {
+                        console.error('Required components not registered');
+                    }
+                },
+                step: function (scene) {
+                    scene.pairs(function (entity1, entity2) {
+                        var position1 = entity1.components[_flags.position],
+                            position2 = entity2.components[_flags.position],
+                            collidable1 = entity1.components[_flags.collidable],
+                            collidable2 = entity2.components[_flags.collidable];
+
+                        if (collidable1.type === "aabb" && collidable2.type === "aabb") {
+                            if (aabbTest(position1, position2, collidable1, collidable2)) {
+                                // handle collision
+                                console.log('collision');
+                            }
                         }
                     }, lock, this);
                 }
@@ -246,6 +294,7 @@ define([], function () {
         orbit_system:  OrbitSystem,
         boundary_system: BoundarySystem,
         physics_system: PhysicsSystem,
-        control_system: ControlSystem
+        control_system: ControlSystem,
+        collision_system: CollisionSystem
     };
 });

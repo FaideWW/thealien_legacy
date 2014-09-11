@@ -68,18 +68,20 @@ define([], function () {
             }
             return Orbital;
         }()),
-        Collidable = (function () {
-            function Collidable(options) {
-                if (!(this instanceof Collidable)) {
-                    return new Collidable(options);
+        AABBCollidable = (function () {
+            function AABBCollidable(options) {
+                if (!(this instanceof AABBCollidable)) {
+                    return new AABBCollidable(options);
                 }
+
+                this.type = "aabb";
 
                 options = options || {};
                 this.half_width  = options.half_width  || 0;
                 this.half_height = options.half_height || 0;
             }
 
-            return Collidable;
+            return AABBCollidable;
         }()),
         Velocity = (function() {
             function Velocity(options) {
@@ -103,6 +105,16 @@ define([], function () {
             }
 
             return PaddleController;
+        }()),
+        MouseController = (function () {
+            function MouseController(options) {
+                if (!(this instanceof MouseController)) {
+                    return new MouseController(options);
+                }
+
+                this.type = "mouse";
+            }
+            return MouseController;
         }());
 
 
@@ -112,8 +124,9 @@ define([], function () {
         rotation:          Rotation,
         translation:       Translation,
         orbital:           Orbital,
-        collidable:        Collidable,
+        aabb_collidable:   AABBCollidable,
         velocity:          Velocity,
-        paddle_controller: PaddleController
+        paddle_controller: PaddleController,
+        mouse_controller:  MouseController
     };
 });
