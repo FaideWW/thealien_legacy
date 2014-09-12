@@ -75,10 +75,16 @@ define([], function () {
                 }
 
                 this.type = "aabb";
+                this.collidedX = false;
+                this.collidedY = false;
+                this.collided  = false;
+
+                this.collision_data = {};
 
                 options = options || {};
                 this.half_width  = options.half_width  || 0;
                 this.half_height = options.half_height || 0;
+                this.reaction = options.reaction       || "bounce";
             }
 
             return AABBCollidable;

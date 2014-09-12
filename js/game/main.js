@@ -23,12 +23,10 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         translation = new c.translation(),
         aabb_collidable  = new c.aabb_collidable({
             half_width:  renderable.half_width,
-            half_height: renderable.half_height
+            half_height: renderable.half_height,
+            reaction:    "none"
         }),
-        velocity    = new c.velocity({
-            x: 0,
-            y: 0
-        }),
+        velocity    = new c.velocity(),
         p_controller      = new c.paddle_controller(),
         m_controller      = new c.mouse_controller(),
 
@@ -41,6 +39,10 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         c2 = new c.aabb_collidable({
             half_width: r2.half_width,
             half_height: r2.half_height
+        }),
+        v2 = new c.velocity({
+            x: 50,
+            y: 50
         });
 
 
@@ -68,6 +70,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     e1.addComponent(aabb_collidable.flag, aabb_collidable);
 
     window.game.registerComponent(velocity, "velocity");
+    window.game.registerComponent(v2, "velocity");
     e1.addComponent(velocity.flag, velocity);
 
     window.game.registerComponent(p_controller, "controller");
@@ -79,6 +82,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     e2.addComponent(r2.flag, r2);
     e2.addComponent(p2.flag, p2);
     e2.addComponent(c2.flag, c2);
+    e2.addComponent(v2.flag, v2);
 
     window.scene1 = new alien.Scene({
         entities: [e1, e2]
@@ -91,7 +95,8 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     game.addLoopphase(3, "collision");
     game.addLoopphase(4, "render");
     game.addSystem(s.control_system, "input");
-    game.addSystem(s.boundary_system, "event");
+    game.addSystem(s.bounce_system, "physics");
+    game.addSystem(s.impulse_system, "physics");
     game.addSystem(s.physics_system, "physics");
     game.addSystem(s.collision_system, "collision");
     game.addSystem(s.render_system, "render");

@@ -124,65 +124,6 @@ define([], function () {
                 }
             }
         }()),
-        BoundarySystem = (function () {
-            var _flags = null,
-                lock   = 0,
-                canvas_width = 0,
-                canvas_height = 0;
-            return {
-                init: function (scene, flags) {
-                    _flags = flags;
-                    if (_flags.collidable && _flags.position) {
-                        lock |= _flags.collidable;
-                        lock |= _flags.position;
-                    } else {
-                        console.error('Required components are not registered');
-                    }
-
-                    if (scene.renderTarget) {
-                        canvas_width  = scene.renderTarget.canvas.width;
-                        canvas_height = scene.renderTarget.canvas.height;
-                    } else {
-                        console.error('No render target specified; cannot check bounds');
-                    }
-                },
-                step: function (scene) {
-                    scene.each(function (entity) {
-                        var collidable = entity.components[_flags.collidable],
-                            position   = entity.components[_flags.position],
-                            world_pos = position,
-                            minX = collidable.half_width,
-                            minY = collidable.half_height,
-                            maxX = canvas_width  - minX,
-                            maxY = canvas_height - minY;
-
-                        if (_flags.translation && entity.components[_flags.translation]) {
-                            // break the reference
-                            world_pos = {
-                                x: position.x + entity.components[_flags.translation].x,
-                                y: position.y + entity.components[_flags.translation].y
-                            };
-                        }
-
-                        if (world_pos.x < minX || world_pos.x > maxX) {
-                            if (_flags.velocity) {
-                                entity.components[_flags.velocity].x *= -1;
-                            }
-                            position.x = (world_pos.x < minX) ? minX : maxX;
-                        }
-
-                        if (world_pos.y < minY || world_pos.y > maxY) {
-                            if (_flags.velocity) {
-                                entity.components[_flags.velocity].y *= -1;
-                            }
-                            position.y = (world_pos.y < minY) ? minY : maxY;
-                        }
-
-                        console.groupEnd();
-                    }, lock, this);
-                }
-            }
-        }()),
         PhysicsSystem = (function () {
             var _flags = null,
                 lock = 0;
@@ -215,28 +156,30 @@ define([], function () {
                 init: function (scene, flags) {
                     _flags = flags;
                     console.log(flags);
-                    if (_flags.controller && _flags.position) {
+                    if (_flags.controller && _flags.position && _flags.velocity) {
                         lock |= flags.controller;
                         lock |= flags.position;
+                        lock |= flags.velocity;
                     } else {
                         console.error('Required components not registered');
                     }
                 },
-                step: function (scene) {
+                step: function (scene, dt) {
                     scene.each(function (entity) {
                         var controller = entity.components[_flags.controller],
                             position   = entity.components[_flags.position],
+                            velocity   = entity.components[_flags.velocity],
                             mouse      = {
                                 x: scene.input.mouseX,
                                 y: scene.input.mouseY
                             };
                         switch (controller.type) {
                             case "paddle":
-                                position.y = mouse.y;
+                                velocity.y = (mouse.y - position.y) / (dt / 1000);
                                 break;
                             case "mouse":
-                                position.x = mouse.x;
-                                position.y = mouse.y;
+                                velocity.x = (mouse.x - position.x) / (dt / 1000);
+                                velocity.y = (mouse.y - position.y) / (dt / 1000);
                                 break;
                             default:
                                 break;
@@ -248,18 +191,39 @@ define([], function () {
         CollisionSystem = (function () {
             var _flags = null,
                 lock   = 0,
+                scene_width = 0,
+                scene_height = 0,
                 aabbTest = function (pos1, pos2, aabb1, aabb2) {
                     var aabb_sum = {
-                        half_width:  aabb1.half_width  + aabb2.half_width,
-                        half_height: aabb1.half_height + aabb2.half_height
-                    },
+                            half_width:  aabb1.half_width  + aabb2.half_width,
+                            half_height: aabb1.half_height + aabb2.half_height
+                        },
                         relative_pos = {
-                        x: pos2.x - pos1.x,
-                        y: pos2.y - pos1.y
+                            x: pos2.x - pos1.x,
+                            y: pos2.y - pos1.y
+                        },
+                        collisionExists = (
+                            (relative_pos.x < aabb_sum.half_width  && relative_pos.x > -aabb_sum.half_width) &&
+                            (relative_pos.y < aabb_sum.half_height && relative_pos.y > -aabb_sum.half_height)
+                            ),
+                        isXCollision = (aabb_sum.half_width - Math.abs(relative_pos.x) < aabb_sum.half_height - Math.abs(relative_pos.y));
+
+                    return {
+                        x: collisionExists && isXCollision,
+                        y: collisionExists && !isXCollision
                     };
 
-                    return ((relative_pos.x < aabb_sum.half_width  && relative_pos.x > -aabb_sum.half_width) &&
-                            (relative_pos.y < aabb_sum.half_height && relative_pos.y > -aabb_sum.half_height));
+                },
+                boundaryTest = function (pos, aabb, vel) {
+                    var minX = aabb.half_width,
+                        minY = aabb.half_height,
+                        maxX = scene_width - aabb.half_width,
+                        maxY = scene_height - aabb.half_height;
+
+                    return {
+                        x: ((pos.x < minX || pos.x > maxX)),
+                        y: (pos.y < minY || pos.y > maxY)
+                    }
                 };
             return {
                 init: function (scene, flags) {
@@ -270,31 +234,135 @@ define([], function () {
                     } else {
                         console.error('Required components not registered');
                     }
+
+                    if (scene.renderTarget) {
+                        scene_width  = scene.renderTarget.canvas.width;
+                        scene_height = scene.renderTarget.canvas.height;
+                    }
                 },
                 step: function (scene) {
                     scene.pairs(function (entity1, entity2) {
                         var position1 = entity1.components[_flags.position],
                             position2 = entity2.components[_flags.position],
                             collidable1 = entity1.components[_flags.collidable],
-                            collidable2 = entity2.components[_flags.collidable];
+                            collidable2 = entity2.components[_flags.collidable],
+                            oob1 = boundaryTest(position1, collidable1),
+                            oob2 = boundaryTest(position2, collidable2),
+                            aabb_test_result = aabbTest(position1, position2, collidable1, collidable2);
 
                         if (collidable1.type === "aabb" && collidable2.type === "aabb") {
-                            if (aabbTest(position1, position2, collidable1, collidable2)) {
+                            if (oob1.x) {
+                                collidable1.collidedX = true;
+                            }
+                            if (oob1.y) {
+                                collidable1.collidedY = true;
+                            }
+
+                            if (oob2.x) {
+                                collidable2.collidedX = true;
+                            }
+                            if (oob2.y) {
+                                collidable2.collidedY = true;
+                            }
+
+                            if (aabb_test_result.x || aabb_test_result.y) {
                                 // handle collision
                                 console.log('collision');
+                                if (aabb_test_result.x) {
+                                    collidable1.collidedX = true;
+                                    collidable2.collidedX = true;
+                                }
+                                if (aabb_test_result.y) {
+                                    collidable1.collidedY = true;
+                                    collidable2.collidedY = true;
+                                }
+
+                                if (_flags.controller && _flags.velocity) {
+                                    if (entity1.components[_flags.controller] && entity1.components[_flags.velocity]) {
+                                        collidable2.collision_data.velocity = entity1.components[_flags.velocity];
+                                    }
+                                    if (entity2.components[_flags.controller] && entity2.components[_flags.velocity]) {
+                                        collidable1.collision_data.velocity = entity2.components[_flags.velocity];
+
+                                    }
+                                }
                             }
                         }
                     }, lock, this);
                 }
             }
+        }()),
+        BounceSystem = (function () {
+            var _flags = null,
+                lock   = 0;
+
+            return {
+                init: function (scene, flags) {
+                    _flags = flags;
+                    if (_flags.collidable && _flags.velocity) {
+                        lock |= _flags.collidable;
+                        lock |= _flags.velocity;
+                    } else {
+                        console.error('Required components not registered');
+                    }
+                },
+                step: function (scene) {
+                    scene.each(function (entity) {
+                        var collidable = entity.components[_flags.collidable],
+                            velocity   = entity.components[_flags.velocity];
+
+                        if ((collidable.collidedX || collidable.collidedY) && collidable.reaction === "bounce") {
+                            if (collidable.collidedX) {
+                                velocity.x *= -1;
+                                collidable.collidedX = false;
+                            }
+
+                            if (collidable.collidedY) {
+                                velocity.y *= -1;
+                                collidable.collidedY = false;
+                            }
+                        }
+                    }, lock, this);
+                }
+            };
+        }()),
+        ImpulseSystem = (function () {
+            var _flags = null,
+                lock   = 0;
+
+            return {
+                init: function (scene, flags) {
+                    _flags = flags;
+                    if (_flags.collidable && _flags.velocity) {
+                        lock |= _flags.collidable;
+                        lock |= _flags.velocity;
+                    } else {
+                        console.error('Required components not registered');
+                    }
+                },
+                step: function (scene) {
+                    scene.each(function (entity) {
+                        var collidable = entity.components[_flags.collidable],
+                            velocity   = entity.components[_flags.velocity];
+
+
+                        if ((collidable.collidedX || collidable.collidedY) && collidable.collision_data.velocity) {
+                            console.log('impulse');
+                            velocity.x += collidable.collision_data.velocity.x;
+                            velocity.y += collidable.collision_data.velocity.y;
+                        }
+                    }, lock, this);
+                }
+            };
         }());
 
     return {
-        render_system: RenderSystem,
-        orbit_system:  OrbitSystem,
-        boundary_system: BoundarySystem,
-        physics_system: PhysicsSystem,
-        control_system: ControlSystem,
-        collision_system: CollisionSystem
+        render_system:    RenderSystem,
+        orbit_system:     OrbitSystem,
+        physics_system:   PhysicsSystem,
+        control_system:   ControlSystem,
+        collision_system: CollisionSystem,
+        bounce_system:    BounceSystem,
+        impulse_system:   ImpulseSystem
     };
 });
