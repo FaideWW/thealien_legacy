@@ -228,9 +228,10 @@ define([], function () {
             return {
                 init: function (scene, flags) {
                     _flags = flags;
-                    if (_flags.position && _flags.collidable) {
+                    if (_flags.position && _flags.collidable && _flags.velocity) {
                         lock |= _flags.position;
                         lock |= _flags.collidable;
+                        lock |= _flags.velocity;
                     } else {
                         console.error('Required components not registered');
                     }
@@ -246,6 +247,8 @@ define([], function () {
                             position2 = entity2.components[_flags.position],
                             collidable1 = entity1.components[_flags.collidable],
                             collidable2 = entity2.components[_flags.collidable],
+                            velocity1   = entity1.components[_flags.velocity],
+                            velocity2   = entity2.components[_flags.velocity],
                             oob1 = boundaryTest(position1, collidable1),
                             oob2 = boundaryTest(position2, collidable2),
                             aabb_test_result = aabbTest(position1, position2, collidable1, collidable2);
@@ -277,12 +280,12 @@ define([], function () {
                                     collidable2.collidedY = true;
                                 }
 
-                                if (_flags.controller && _flags.velocity) {
-                                    if (entity1.components[_flags.controller] && entity1.components[_flags.velocity]) {
-                                        collidable2.collision_data.velocity = entity1.components[_flags.velocity];
+                                if (_flags.controller) {
+                                    if (entity1.components[_flags.controller]) {
+                                        collidable2.collision_data.velocity = velocity1;
                                     }
-                                    if (entity2.components[_flags.controller] && entity2.components[_flags.velocity]) {
-                                        collidable1.collision_data.velocity = entity2.components[_flags.velocity];
+                                    if (entity2.components[_flags.controller]) {
+                                        collidable1.collision_data.velocity = velocity2;
 
                                     }
                                 }
