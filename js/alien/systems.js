@@ -193,6 +193,20 @@ define([], function () {
                 lock   = 0,
                 scene_width = 0,
                 scene_height = 0,
+
+                betterAABBTest = function (pos1, pos2, aabb1, aabb2, vel1, vel2) {
+                    var aabb_sum = {
+                        half_width: aabb1.half_width + aabb2.half_width,
+                        half_height: aabb1.half_height + aabb2.half_height
+                    },
+                        relative_pos = {
+                            x: pos2.x - pos1.x,
+                            y: pos2.y - pos1.y
+                        };
+
+
+                },
+
                 aabbTest = function (pos1, pos2, aabb1, aabb2) {
                     var aabb_sum = {
                             half_width:  aabb1.half_width  + aabb2.half_width,
