@@ -107,7 +107,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
                 this.ctx = options.canvas.getContext('2d');
             }
         } else {
-            console.error('No canvas specified');
+            throw new Error('No canvas specified');
         }
 
 
@@ -138,8 +138,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
                 return this._componentFlags[componentName];
             }
             if (this._currentComponentBit === 1 << 31) {
-                console.error('Maximum components registered');
-                return 0;
+                throw new Error('Maximum components registered');
             }
             this._componentFlags[componentName] = this._currentComponentBit;
             this._currentComponentBit = this._currentComponentBit << 1;
@@ -186,10 +185,10 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          */
         addScene: function (scene, name) {
             if (!name) {
-                console.error('Scene must have a name');
+                throw new Error('Scene must have a name');
             } else {
                 if (this.scenes[name]) {
-                    console.error('Scene with that name (' + name + ') already exists');
+                    throw new Error('Scene with that name already exists');
                 } else {
                     if (!scene.msg) {
                         scene.msg = Messenger;
@@ -221,7 +220,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          */
         setActiveScene: function (name) {
             if (!this.scenes[name]) {
-                console.error('Scene (' + name + ') does not exist');
+                throw new Error('Scene does not exist');
             } else {
                 this.activeScene = this.scenes[name];
                 this.__uninitialized_systems = true;

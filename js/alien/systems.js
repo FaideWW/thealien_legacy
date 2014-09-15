@@ -56,10 +56,10 @@ define([], function () {
                         // rotation
                         // translation
                     } else {
-                        console.error("Required components are not registered");
+                        throw new Error('Required components not registered');
                     }
                     if (!scene.renderTarget) {
-                        console.error('Scene has no render target');
+                        throw new Error('Scene has no render target')
                     } else {
                         render_target = scene.renderTarget;
                     }
@@ -97,7 +97,7 @@ define([], function () {
                         lock |= _flags.rotation;
                         lock |= _flags.orbital;
                     } else {
-                        console.error("Required components are not registered");
+                        throw new Error('Required components not registered');
                     }
                 },
                 step: function (scene, dt) {
@@ -135,7 +135,7 @@ define([], function () {
                         lock |= _flags.position;
                         lock |= _flags.velocity;
                     } else {
-                        console.error('Required components not registered');
+                        throw new Error('Required components not registered');
                     }
                 },
                 step: function (scene, dt) {
@@ -161,7 +161,7 @@ define([], function () {
                         lock |= flags.position;
                         lock |= flags.velocity;
                     } else {
-                        console.error('Required components not registered');
+                        throw new Error('Required components not registered');
                     }
                 },
                 step: function (scene, dt) {
@@ -247,7 +247,7 @@ define([], function () {
                         lock |= _flags.collidable;
                         lock |= _flags.velocity;
                     } else {
-                        console.error('Required components not registered');
+                        throw new Error('Required components not registered');
                     }
 
                     if (scene.renderTarget) {
@@ -320,7 +320,7 @@ define([], function () {
                         lock |= _flags.collidable;
                         lock |= _flags.velocity;
                     } else {
-                        console.error('Required components not registered');
+                        throw new Error('Required components not registered');
                     }
                 },
                 step: function (scene) {
@@ -354,7 +354,7 @@ define([], function () {
                         lock |= _flags.collidable;
                         lock |= _flags.velocity;
                     } else {
-                        console.error('Required components not registered');
+                        throw new Error('Required components not registered');
                     }
                 },
                 step: function (scene) {

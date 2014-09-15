@@ -28,7 +28,7 @@
 
     // Define all of your specs here. These are RequireJS modules.
     var specs = [
-        'js/tests/gamespec'
+        'js/tests/alienspec'
     ];
 
     // Load Jasmine - This will still create all of the normal Jasmine browser globals unless `boot.js` is re-written to use the
