@@ -28,8 +28,10 @@ define([], function () {
             return new Entity(options);
         }
 
-        /** @type {number} */
-        this.id = new Date().getTime();
+        /** @type {string}
+         *    UUID generator from https://gist.github.com/gordonbrander/2230317
+         */
+        this.id = Math.random().toString(36).substr(2, 9);
         /** @type {number} */
         this.key = 0;
         /** @type {Array<Component>} */

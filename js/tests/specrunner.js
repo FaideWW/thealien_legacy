@@ -8,6 +8,7 @@
             'jasmine': 'js/vendor/jasmine/jasmine',
             'jasmine-html': 'js/vendor/jasmine/jasmine-html',
             'boot': 'js/vendor/jasmine/boot',
+            'lodash': 'js/vendor/lodash.min',
             'alien': 'js/alien',
             'core': 'js/alien/core'
         },

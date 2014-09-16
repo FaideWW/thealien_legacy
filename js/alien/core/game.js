@@ -155,8 +155,8 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          * @param {string} loopphase   the phase of the game loop where the system should be called
          */
         addSystem: function(system, loopphase) {
-            if (!this.systems.hasOwnProperty(loopphase)) {
-                this.systems[loopphase] = [];
+            if (!this.systems.hasOwnProperty(loopphase) || this._loopphases.indexOf(loopphase) === -1) {
+                throw new Error("Loopphase does not exist");
             }
             this.__uninitialized_systems = true;
             system.__initialized = false;

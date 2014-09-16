@@ -28,25 +28,27 @@ define([], function () {
         this.tilemap = options.tilemap || null;
     }
 
-    Scene.prototype.each = function(callback, lock, thisArg) {
-        var i, entity;
-        for (i = 0; i < this.entities.length; i += 1) {
-            entity = this.entities[i];
-            if ((entity.key & lock) === lock) {
-                callback.call(thisArg, entity);
+    Scene.prototype = {
+        each: function (callback, lock, thisArg) {
+            var i, entity;
+            for (i = 0; i < this.entities.length; i += 1) {
+                entity = this.entities[i];
+                if ((entity.key & lock) === lock) {
+                    callback.call(thisArg, entity);
+                }
             }
-        }
-    };
+        },
 
-    Scene.prototype.pairs = function (callback, lock, thisArg) {
-        var i, j, entity1, entity2;
-        for (i = 0; i < this.entities.length; i += 1) {
-            entity1 = this.entities[i];
-            if ((entity1.key & lock) === lock) {
-                for (j = i + 1; j < this.entities.length; j += 1) {
-                    entity2 = this.entities[j];
-                    if ((entity2.key & lock) === lock) {
-                        callback.call(thisArg, entity1, entity2);
+        pairs: function (callback, lock, thisArg) {
+            var i, j, entity1, entity2;
+            for (i = 0; i < this.entities.length; i += 1) {
+                entity1 = this.entities[i];
+                if ((entity1.key & lock) === lock) {
+                    for (j = i + 1; j < this.entities.length; j += 1) {
+                        entity2 = this.entities[j];
+                        if ((entity2.key & lock) === lock) {
+                            callback.call(thisArg, entity1, entity2);
+                        }
                     }
                 }
             }
