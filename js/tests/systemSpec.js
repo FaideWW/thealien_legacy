@@ -110,19 +110,6 @@ define(['alien/alien', 'alien/components', 'alien/systems'], function (alien, c,
             game.stop();
         });
 
-        it('should be called once per game step', function (done) {
-            spyOn(game, 'step').and.callThrough();
-            spyOn(render, 'step').and.callThrough();
-            console.log(game);
-            game.run();
-
-            setTimeout(function () {
-                game.stop();
-                expect(game.step.calls.count()).toEqual(render.step.calls.count());
-                done();
-            }, 1000);
-        });
-
         it('should save and restore an equal number of times per step', function () {
             game.step(1);
             expect(context.save.calls.count()).toEqual(context.save.calls.count());
