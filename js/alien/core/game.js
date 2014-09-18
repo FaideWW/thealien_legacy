@@ -210,7 +210,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
         run: function () {
             if (!this.__running) {
                 this.__running = true;
-                this.step(0);
+                this.step(1);
             }
         },
 
@@ -244,11 +244,16 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
         step: function(time) {
             var currTime, game, dt, i, j, l, m;
 
-            currTime = new Date().getTime();
+            currTime = time;
             game = this;
 
+
             // Execute a game step
-            if (time !== 0) {
+            if (time && time !== 0) {
+
+                // don't update the current time unless a full game step has occurred
+                //  (the previous time should carry through to the next step() call)
+                currTime = new Date().getTime();
 
                 //dirty uninitialized system check
                 while (this.__uninitialized_systems) {

@@ -64,7 +64,7 @@ define([], function () {
             if (this.key | component_flag === this.key) {
                 // inverse bitwise OR: ( key AND (NOT flag) )
                 this.key &= ~component_flag;
-                this.components[component_flag] = null;
+                this.components[component_flag] = undefined;
             }
             return this;
         }

@@ -10,6 +10,7 @@ define([], function () {
                 drawRect;
 
             drawRect = function (entity) {
+
                 var position    = entity.components[_flags.position],
                     renderable  = entity.components[_flags.renderable],
                     translation = entity.components[_flags.translation],

@@ -2,6 +2,7 @@
  * Created by faide on 14-09-15.
  */
 define(['alien/alien', 'core/input', 'lodash'], function (alien, InputManager, _) {
+
     describe('alien infrastructure', function () {
         it('should contain a Game constructor', function () {
             expect(typeof alien.Game).toBe('function')
@@ -15,10 +16,8 @@ define(['alien/alien', 'core/input', 'lodash'], function (alien, InputManager, _
             expect(typeof alien.Scene).toBe('function');
         });
     });
-
     describe('new alien.Game()', function () {
         var canvas, game;
-
 
         beforeEach(function () {
             spyOn(InputManager, 'init');
@@ -37,7 +36,7 @@ define(['alien/alien', 'core/input', 'lodash'], function (alien, InputManager, _
         it('should expect a canvas property', function () {
             expect(function () {
                 var null_game = new alien.Game();
-            }).toThrow(new Error('No canvas specified'));
+            }).toThrowError('No canvas specified');
         });
 
 
@@ -201,11 +200,13 @@ define(['alien/alien', 'core/input', 'lodash'], function (alien, InputManager, _
             game = new alien.Game({
                 canvas: canvas
             });
+            spyOn(game, 'step').and.callThrough();
+            spyOn(InputManager, 'processInput');
         });
 
         afterEach(function () {
             game.stop();
-        })
+        });
 
         it('should register components correctly', function () {
             var component1 = {
@@ -258,7 +259,7 @@ define(['alien/alien', 'core/input', 'lodash'], function (alien, InputManager, _
             };
             expect(function () {
                 game.addSystem(system, "loopphase");
-            }).toThrow(new Error("Loopphase does not exist"));
+            }).toThrowError("Loopphase does not exist");
 
         });
 
@@ -299,7 +300,7 @@ define(['alien/alien', 'core/input', 'lodash'], function (alien, InputManager, _
             var scene = new alien.Scene();
             expect(function () {
                 game.addScene(scene);
-            }).toThrow(new Error('Scene must have a name'));
+            }).toThrowError('Scene must have a name');
         });
 
         it('should not allow duplicate scene names', function () {
@@ -309,7 +310,7 @@ define(['alien/alien', 'core/input', 'lodash'], function (alien, InputManager, _
             expect(function () {
                 game.addScene(scene1, "scene");
                 game.addScene(scene2, "scene");
-            }).toThrow(new Error('Scene with that name already exists'));
+            }).toThrowError('Scene with that name already exists');
         });
 
         it('should bind references to global game systems to new scenes', function () {
@@ -322,6 +323,15 @@ define(['alien/alien', 'core/input', 'lodash'], function (alien, InputManager, _
 
         it('should support setting an active scene', function () {
             var scene = new alien.Scene();
+            game.addScene(scene, "scene");
+            game.setActiveScene("scene");
+            expect(game.activeScene).toBe(scene);
+        });
+
+        it('should not accept activating a nonexistent scene', function () {
+            expect(function () {
+                game.setActiveScene("scene");
+            }).toThrowError('Scene does not exist');
         });
 
         it('should change state when run() is called', function () {
@@ -330,22 +340,165 @@ define(['alien/alien', 'core/input', 'lodash'], function (alien, InputManager, _
             expect(game.__running).toBeTruthy();
         });
 
+        it('should call step when the state is changed', function () {
+            game.run();
+            expect(game.step).toHaveBeenCalled();
+        });
+
         it('should change state when stop() is called after run()', function () {
             game.run();
             expect(game.__running).toBeTruthy();
             game.stop();
             expect(game.__running).toBeFalsy();
-        })
+        });
+
+        it('should call step multiple times per second', function (done) {
+            game.run();
+            setTimeout(function () {
+                game.stop();
+                expect(game.step.calls.count()).toBeGreaterThan(1);
+                done();
+            }, 1000);
+        });
+
+        it('should process input once per game step', function () {
+            game.step(100);
+            expect(InputManager.processInput).toHaveBeenCalled();
+        });
+
+        it('should not process input if the delta-time does not constitute a full game step', function () {
+            game.step(0);
+            expect(InputManager.processInput).not.toHaveBeenCalled();
+        });
+
+        it('should initialize new systems during a game step', function () {
+            var system = {
+                init: function () {},
+                step: function () {}
+            };
+            spyOn(system, 'init');
+
+            game.addLoopphase(0, "loopphase");
+            game.addSystem(system, "loopphase");
+
+            expect(game.__uninitialized_systems).toBeTruthy();
+            game.step(100);
+            expect(game.__uninitialized_systems).toBeFalsy();
+            expect(system.init).toHaveBeenCalled();
+        });
+
+        it('should call system.step() on each system in the order provided', function () {
+            var system1, system2, foo;
+            game.addLoopphase(0,"loopphase1");
+            game.addLoopphase(1,"loopphase2");
+
+            // system1 sets `foo` to true, system2 sets `foo` to false
+            // if called in the correct order, `foo` should be false at the end of the step
+
+            system1 = {
+                init: function () {},
+                step: function () { foo = true; }
+            };
+            system2 = {
+                init: function () {},
+                step: function () { foo = false; }
+            };
+
+            spyOn(system1, 'step').and.callThrough();
+            spyOn(system2, 'step').and.callThrough();
+
+            foo = false;
+
+            game.addSystem(system1, "loopphase1");
+            game.addSystem(system2, "loopphase1");
+
+            game.step(100);
+
+            expect(foo).toBeFalsy();
+        });
+
     });
 
-    xdescribe('alien.Entity operation', function () {
-        var entity;
+    describe('alien.Entity operation', function () {
+        var entity, game, component1, component2;
 
         beforeEach(function () {
+            var canvas = document.createElement('canvas');
+            game = new alien.Game({
+                canvas: canvas
+            });
             entity = new alien.Entity();
+
+            component1 = {
+                foo: 'bar1'
+            };
+            component2 = {
+                foo: 'bar2'
+            };
+
+            game.registerComponent(component1, "component1");
+            game.registerComponent(component2, "component2");
         });
 
         it('should support adding components', function () {
-        })
-    })
+
+            entity.addComponent(component1.flag, component1);
+            entity.addComponent(component2.flag, component2);
+            expect(entity.key).toEqual(component1.flag | component2.flag);
+            expect(entity.components[component1.flag]).toBeDefined();
+            expect(entity.components[component2.flag]).toBeDefined();
+        });
+
+        it('should support removing components', function () {
+            entity.addComponent(component1.flag, component1);
+            entity.addComponent(component2.flag, component2);
+
+            entity.removeComponent(component1.flag);
+            expect(entity.key).toEqual(component2.flag);
+            expect(entity.components[component1.flag]).toBeUndefined();
+        });
+    });
+
+    describe('alien.Scene operation', function () {
+        var scene, game, entities;
+        beforeEach(function () {
+            var canvas, i;
+
+            canvas = document.createElement('canvas');
+
+            entities = [];
+
+            for (i = 0; i < ((Math.random() * 1000) | 0); i += 1) {
+                entities.push(new alien.Entity());
+            }
+
+            scene = new alien.Scene({
+                entities: entities
+            });
+            game = new alien.Game({
+                canvas: canvas
+            });
+            game.addScene(scene, "scene");
+        });
+
+        it('should iterate through all entities when each() is called', function () {
+            var caller = jasmine.createSpy("caller");
+            scene.each(caller, 0);
+            expect(caller.calls.count()).toEqual(entities.length);
+        });
+
+        it('should generate all unique pairs of entities when pairs() is called', function () {
+            var expected_num, caller;
+
+            // the expected number of unique pairs via the handshake problem:
+            // sum of sequence from 1 to n, n being the number of entities
+            expected_num = (entities.length * (entities.length - 1)) / 2;
+
+            caller = jasmine.createSpy("caller");
+
+            scene.pairs(caller, 0);
+
+            expect(caller.calls.count()).toEqual(expected_num);
+        });
+    });
 });
