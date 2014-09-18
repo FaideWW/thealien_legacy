@@ -133,5 +133,7 @@ define(['alien/alien', 'alien/components', 'alien/systems'], function (alien, c,
             entities = game_object.entities;
             context = game_object.context;
         });
+
+
     });
 });

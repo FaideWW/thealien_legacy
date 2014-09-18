@@ -18,7 +18,7 @@ module.exports = function(config) {
         {pattern: 'js/vendor/lodash.min.js', included: false},
         {pattern: 'js/alien/*.js', included: false},
         {pattern: 'js/alien/core/*.js', included: false},
-        {pattern: 'js/tests/alienSpec.js', included: false},
+        {pattern: 'js/tests/coreSpec.js', included: false},
         {pattern: 'js/tests/systemSpec.js', included: false},
         'js/tests/main-test.js'
     ],

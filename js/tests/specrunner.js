@@ -29,7 +29,7 @@
 
     // Define all of your specs here. These are RequireJS modules.
     var specs = [
-        'js/tests/alienSpec',
+        'js/tests/coreSpec',
         'js/tests/systemSpec'
     ];
 
