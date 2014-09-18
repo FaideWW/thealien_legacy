@@ -227,6 +227,17 @@ define(['alien/alien', 'core/input', 'lodash'], function (alien, InputManager, _
             expect(component1.flag !== component2.flag).toBeTruthy();
         });
 
+        it('should not allow more than the maximum number of components', function () {
+            var i;
+            for (i = 0; i < 31; i += 1) {
+                game.registerComponent({}, "component" + i);
+            }
+
+            expect(function () {
+                game.registerComponent({}, "tooMany");
+            }).toThrowError('Maximum components registered');
+        });
+
         it('should support adding new loopphases', function () {
             expect(game._loopphases).toEqual([]);
             game.addLoopphase(0, "loopphase2");
