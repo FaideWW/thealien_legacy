@@ -44,5 +44,13 @@ define(['alien/alien', 'alien/components', 'alien/systems'], function (alien, c,
                 expect(typeof s.step).toBe('function');
             })
         });
+
+        it('should throw an error if it requires components that aren\'t registered', function () {
+            _.each(systems, function (s) {
+                expect(function () {
+                    s.init(scene, game._componentFlags);
+                }).toThrowError('Required components not registered');
+            });
+        });
     });
 });
