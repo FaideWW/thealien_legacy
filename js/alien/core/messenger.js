@@ -23,11 +23,12 @@ define([], function () {
         },
         /**
          * Digest all messages in the target system's queue
-         * @param {string} sys   The system to resolve
+         * @param {string} sys       The system to resolve
+         * @param {Object} [thisArg] The system's calling context
          */
-        resolve: function (sys) {
+        resolve: function (sys, thisArg) {
             while (queue[sys] && queue[sys].length) {
-                queue[sys].pop()();
+                queue[sys].pop().call(thisArg);
             }
         }
     }

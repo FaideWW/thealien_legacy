@@ -140,12 +140,24 @@ define([], function () {
                     }
                 },
                 step: function (scene, dt) {
+                    // digest messages
+                    scene.msg.resolve('physics', this);
+
+                    // process entities
                     scene.each(function (entity) {
                         var position = entity.components[_flags.position],
                             velocity = entity.components[_flags.velocity];
                         position.x += velocity.x * (dt / 1000);
                         position.y += velocity.y * (dt / 1000);
                     }, lock, this);
+                },
+                // move an entity by a specified vector
+                shift: function (entity, vector) {
+                    // if the entity is being controlled, don't shift it
+                    if (!(_flags.controller && entity.components[_flags.controller])) {
+                        entity.components[_flags.position].x += vector.x;
+                        entity.components[_flags.position].y += vector.y;
+                    }
                 }
             }
         }()),
@@ -195,16 +207,32 @@ define([], function () {
                 scene_width = 0,
                 scene_height = 0,
 
-                betterAABBTest = function (pos1, pos2, aabb1, aabb2, vel1, vel2) {
+                // returns a collision manifold from the perspective of collidable1
+                betterAABBTest = function (pos1, pos2, aabb1, aabb2) {
                     var aabb_sum = {
-                        half_width: aabb1.half_width + aabb2.half_width,
-                        half_height: aabb1.half_height + aabb2.half_height
-                    },
+                            half_width: aabb1.half_width + aabb2.half_width,
+                            half_height: aabb1.half_height + aabb2.half_height
+                        },
                         relative_pos = {
                             x: pos2.x - pos1.x,
                             y: pos2.y - pos1.y
-                        };
+                        },
+                        collision_manifold = {};
 
+                    // find closest point and return the difference to it
+                    if (relative_pos.x < 0) {
+                        collision_manifold.x = aabb_sum.half_width + relative_pos.x;
+                    } else {
+                        collision_manifold.x = aabb_sum.half_width - relative_pos.x;
+                    }
+
+                    if (relative_pos.y < 0) {
+                        collision_manifold.y = aabb_sum.half_height + relative_pos.y;
+                    } else {
+                        collision_manifold.y = aabb_sum.half_height - relative_pos.y;
+                    }
+
+                    return collision_manifold;
 
                 },
 
@@ -243,10 +271,9 @@ define([], function () {
             return {
                 init: function (scene, flags) {
                     _flags = flags;
-                    if (_flags.position && _flags.collidable && _flags.velocity) {
+                    if (_flags.position && _flags.collidable) {
                         lock |= _flags.position;
                         lock |= _flags.collidable;
-                        lock |= _flags.velocity;
                     } else {
                         throw new Error('Required components not registered');
                     }
@@ -258,50 +285,69 @@ define([], function () {
                 },
                 step: function (scene) {
                     scene.pairs(function (entity1, entity2) {
-                        var position1 = entity1.components[_flags.position],
-                            position2 = entity2.components[_flags.position],
-                            collidable1 = entity1.components[_flags.collidable],
-                            collidable2 = entity2.components[_flags.collidable],
-                            velocity1   = entity1.components[_flags.velocity],
-                            velocity2   = entity2.components[_flags.velocity],
-                            oob1 = boundaryTest(position1, collidable1),
-                            oob2 = boundaryTest(position2, collidable2),
-                            aabb_test_result = aabbTest(position1, position2, collidable1, collidable2);
+                        var position1 =          entity1.components[_flags.position],
+                            position2 =          entity2.components[_flags.position],
+                            collidable1 =        entity1.components[_flags.collidable],
+                            collidable2 =        entity2.components[_flags.collidable],
+                            collision_manifold;
+
 
                         if (collidable1.type === "aabb" && collidable2.type === "aabb") {
-                            if (oob1.x) {
-                                collidable1.collidedX = true;
-                            }
-                            if (oob1.y) {
-                                collidable1.collidedY = true;
-                            }
+                            collision_manifold = betterAABBTest(position1, position2, collidable1, collidable2);
+                            console.log(collision_manifold);
 
-                            if (oob2.x) {
-                                collidable2.collidedX = true;
-                            }
-                            if (oob2.y) {
-                                collidable2.collidedY = true;
-                            }
-
-                            if (aabb_test_result.x || aabb_test_result.y) {
-                                // handle collision
-                                console.log('collision');
-                                if (aabb_test_result.x) {
-                                    collidable1.collidedX = true;
-                                    collidable2.collidedX = true;
-                                }
-                                if (aabb_test_result.y) {
-                                    collidable1.collidedY = true;
-                                    collidable2.collidedY = true;
-                                }
-
-                                if (_flags.controller) {
-                                    if (entity1.components[_flags.controller]) {
-                                        collidable2.collision_data.velocity = velocity1;
+                            if (collision_manifold.x > 0 && collision_manifold.y > 0) {
+                                if (collision_manifold.x < collision_manifold.y) {
+                                    if (position1.x < position2.x) {
+                                        // position1 shifts left, position2 shifts right
+                                        scene.msg.enqueue('physics', function () {
+                                            this.shift(entity1, {
+                                                x: -collision_manifold.x,
+                                                y: 0
+                                            });
+                                            this.shift(entity2, {
+                                                x: collision_manifold.x,
+                                                y: 0
+                                            });
+                                        });
+                                    } else {
+                                        // position1 shifts right, position2 shifts left
+                                        scene.msg.enqueue('physics', function () {
+                                            this.shift(entity1, {
+                                                x: collision_manifold.x,
+                                                y: 0
+                                            });
+                                            this.shift(entity2, {
+                                                x: -collision_manifold.x,
+                                                y: 0
+                                            });
+                                        });
                                     }
-                                    if (entity2.components[_flags.controller]) {
-                                        collidable1.collision_data.velocity = velocity2;
-
+                                } else {
+                                    if (position1.y < position2.y) {
+                                        // position1 shifts up, position2 shifts down
+                                        scene.msg.enqueue('physics', function () {
+                                            this.shift(entity1, {
+                                                x: 0,
+                                                y: -collision_manifold.y
+                                            });
+                                            this.shift(entity2, {
+                                                x: 0,
+                                                y: collision_manifold.y
+                                            });
+                                        });
+                                    } else {
+                                        // position1 shifts down, position2 shifts up
+                                        scene.msg.enqueue('physics', function () {
+                                            this.shift(entity1, {
+                                                x: 0,
+                                                y: collision_manifold.y
+                                            });
+                                            this.shift(entity2, {
+                                                x: 0,
+                                                y: -collision_manifold.y
+                                            });
+                                        });
                                     }
                                 }
                             }

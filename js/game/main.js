@@ -82,7 +82,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     e2.addComponent(r2.flag, r2);
     e2.addComponent(p2.flag, p2);
     e2.addComponent(c2.flag, c2);
-    e2.addComponent(v2.flag, v2);
+    //e2.addComponent(v2.flag, v2);
 
     window.scene1 = new alien.Scene({
         entities: [e1, e2]
