@@ -41,7 +41,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
             half_height: r2.half_height
         }),
         v2 = new c.velocity({
-            x: 50,
+            x: -50,
             y: 50
         });
 
@@ -75,14 +75,14 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
 
     window.game.registerComponent(p_controller, "controller");
     window.game.registerComponent(m_controller, "controller");
-    //e1.addComponent(p_controller.flag, p_controller);
-    e1.addComponent(m_controller.flag, m_controller);
+    e1.addComponent(p_controller.flag, p_controller);
+    //e1.addComponent(m_controller.flag, m_controller);
 
 
     e2.addComponent(r2.flag, r2);
     e2.addComponent(p2.flag, p2);
     e2.addComponent(c2.flag, c2);
-    //e2.addComponent(v2.flag, v2);
+    e2.addComponent(v2.flag, v2);
 
     window.scene1 = new alien.Scene({
         entities: [e1, e2]
@@ -100,6 +100,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     game.addSystem(s.physics_system, "physics");
     game.addSystem(s.collision_system, "collision");
     game.addSystem(s.render_system, "render");
+    game.addSystem(s.pong_boundary_system, "collision");
 
     game.setActiveScene("scene1");
 

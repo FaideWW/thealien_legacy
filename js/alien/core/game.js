@@ -210,7 +210,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
         run: function () {
             if (!this.__running) {
                 this.__running = true;
-                this.step(1);
+                this.step(new Date().getTime());
             }
         },
 
@@ -264,12 +264,15 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
 
                 InputManager.processInput();
 
-                l = this._loopphases.length;
-                for (i = 0; i < l; i += 1) {
-                    m = this.systems[this._loopphases[i]].length;
-                    for (j = 0; j < m; j += 1) {
-                        if (this.systems[this._loopphases[i]][j].__initialized) {
-                            this.systems[this._loopphases[i]][j].step(this.activeScene, dt);
+
+                if (dt > 0) {
+                    l = this._loopphases.length;
+                    for (i = 0; i < l; i += 1) {
+                        m = this.systems[this._loopphases[i]].length;
+                        for (j = 0; j < m; j += 1) {
+                            if (this.systems[this._loopphases[i]][j].__initialized) {
+                                this.systems[this._loopphases[i]][j].step(this.activeScene, dt);
+                            }
                         }
                     }
                 }
