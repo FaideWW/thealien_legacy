@@ -14,9 +14,14 @@ requirejs.config({
 requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien, c, s) {
 
     var e1          = new alien.Entity(),
-        renderable  = new c.square_renderable(),
+        renderable  = new c.square_renderable({
+            half_height: 28,
+            half_width:  4,
+            fill:        "rgba(255,255,255,1)",
+            stroke:      "rgba(255,255,255,1)"
+        }),
         position    = new c.position({
-            x: 100,
+            x: 50,
             y: 100
         }),
         rotation    = new c.rotation(),
@@ -31,7 +36,11 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         m_controller      = new c.mouse_controller(),
 
         e2 = new alien.Entity(),
-        r2 = new c.square_renderable(),
+        r2 = new c.square_renderable({
+            half_height: 10,
+            half_width: 10,
+            fill:        "rgba(255,255,255,1)"
+        }),
         p2 = new c.position({
             x: 300,
             y: 300

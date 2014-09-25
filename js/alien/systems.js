@@ -69,18 +69,21 @@ define([], function () {
 
                     if (render_target) {
                         render_target.clearRect(0, 0, render_target.canvas.width, render_target.canvas.height);
+                        render_target.fillStyle = "rgba(0,0,0,1)";
+                        render_target.fillRect( 0, 0, render_target.canvas.width, render_target.canvas.height);
+scene,
+                        scene.each(function (entity) {
+                            //draw this
+
+                            render_target.save();
+                            if (entity.components[_flags.renderable].type === "square") {
+                                drawRect(entity);
+                            }
+                            render_target.restore();
+
+                        }, lock, this);
                     }
 
-                    scene.each(function (entity) {
-                        //draw this
-
-                        render_target.save();
-                        if (entity.components[_flags.renderable].type === "square") {
-                            drawRect(entity);
-                        }
-                        render_target.restore();
-
-                    }, lock, this);
                 }
 
             }
@@ -204,7 +207,7 @@ define([], function () {
                 }
             }
         }()),
-        CollisionSystem = (function () {
+        CollisionDetectionSystem = (function () {
             var _flags = null,
                 lock   = 0,
                 scene_width = 0,
@@ -274,22 +277,22 @@ define([], function () {
                                 if (collision_manifold.x < collision_manifold.y) {
                                     if (position1.x < position2.x) {
                                         // position1 shifts left, position2 shifts right
-                                        doShift(entity1, { x: -collision_manifold.x, y: 0 });
-                                        doShift(entity2, { x: collision_manifold.x, y: 0 });
+                                        doShift(scene, entity1, { x: -collision_manifold.x, y: 0 });
+                                        doShift(scene, entity2, { x: collision_manifold.x, y: 0 });
                                     } else {
                                         // position1 shifts right, position2 shifts left
-                                        doShift(entity1, { x: collision_manifold.x, y: 0 });
-                                        doShift(entity2, { x: -collision_manifold.x, y: 0 });
+                                        doShift(scene, entity1, { x: collision_manifold.x, y: 0 });
+                                        doShift(scene, entity2, { x: -collision_manifold.x, y: 0 });
                                     }
                                 } else {
                                     if (position1.y < position2.y) {
                                         // position1 shifts up, position2 shifts down
-                                        doShift(entity1, { x: 0, y: -collision_manifold.y });
-                                        doShift(entity2, { x: 0, y: collision_manifold.y });
+                                        doShift(scene, entity1, { x: 0, y: -collision_manifold.y });
+                                        doShift(scene, entity2, { x: 0, y: collision_manifold.y });
                                     } else {
                                         // position1 shifts down, position2 shifts up
-                                        doShift(entity1, { x: 0, y: collision_manifold.y });
-                                        doShift(entity2, { x: 0, y: -collision_manifold.y });
+                                        doShift(scene, entity1, { x: 0, y: collision_manifold.y });
+                                        doShift(scene, entity2, { x: 0, y: -collision_manifold.y });
                                     }
                                 }
                             }
@@ -405,13 +408,14 @@ define([], function () {
         }());
 
     return {
-        render_system:        RenderSystem,
-        orbit_system:         OrbitSystem,
-        physics_system:       PhysicsSystem,
-        control_system:       ControlSystem,
-        collision_system:     CollisionSystem,
-        bounce_system:        BounceSystem,
-        impulse_system:       ImpulseSystem,
-        pong_boundary_system: PongBoundarySystem
+        render_system:                RenderSystem,
+        orbit_system:                 OrbitSystem,
+        physics_system:               PhysicsSystem,
+        control_system:               ControlSystem,
+        collision_system:             CollisionSystem,
+        bounce_system:                BounceSystem,
+        impulse_system:               ImpulseSystem,
+        pong_boundary_system:         PongBoundarySystem,
+        paddle_ball_collision_system: PaddleBallCollisionSystem
     };
 });

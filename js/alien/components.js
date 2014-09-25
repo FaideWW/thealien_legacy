@@ -14,8 +14,8 @@ define([], function () {
                 this.type   = "square";
                 this.half_width  = options.half_width  || 25;
                 this.half_height = options.half_height || 25;
-                this.fill        = options.fill   || "rgba( 0,255, 0, 1 )";
-                this.stroke      = options.stroke || "rgba( 0,  0, 0, 1 )";
+                this.fill        = options.fill   || null;
+                this.stroke      = options.stroke || null;
             }
 
             return SquareRenderable;
