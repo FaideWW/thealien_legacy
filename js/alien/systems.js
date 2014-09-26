@@ -191,18 +191,7 @@ scene,
                                 y: scene.input.mouseY
                             };
 
-                        position.y = mouse.y;
-//                        switch (controller.type) {
-//                            case "paddle":
-//                                velocity.y = (mouse.y - position.y) / (dt / 1000);
-//                                break;
-//                            case "mouse":
-//                                velocity.x = (mouse.x - position.x) / (dt / 1000);
-//                                velocity.y = (mouse.y - position.y) / (dt / 1000);
-//                                break;
-//                            default:
-//                                break;
-//                        }
+                        position[controller.direction] = mouse[controller.direction];
                     }, lock, this);
                 }
             }
@@ -279,20 +268,28 @@ scene,
                                         // position1 shifts left, position2 shifts right
                                         doShift(scene, entity1, { x: -collision_manifold.x, y: 0 });
                                         doShift(scene, entity2, { x: collision_manifold.x, y: 0 });
+                                        collidable1.collidedX = true;
+                                        collidable2.collidedX = true;
                                     } else {
                                         // position1 shifts right, position2 shifts left
                                         doShift(scene, entity1, { x: collision_manifold.x, y: 0 });
                                         doShift(scene, entity2, { x: -collision_manifold.x, y: 0 });
+                                        collidable1.collidedX = true;
+                                        collidable2.collidedX = true;
                                     }
                                 } else {
                                     if (position1.y < position2.y) {
                                         // position1 shifts up, position2 shifts down
                                         doShift(scene, entity1, { x: 0, y: -collision_manifold.y });
                                         doShift(scene, entity2, { x: 0, y: collision_manifold.y });
+                                        collidable1.collidedY = true;
+                                        collidable2.collidedY = true;
                                     } else {
                                         // position1 shifts down, position2 shifts up
                                         doShift(scene, entity1, { x: 0, y: collision_manifold.y });
                                         doShift(scene, entity2, { x: 0, y: -collision_manifold.y });
+                                        collidable1.collidedY = true;
+                                        collidable2.collidedY = true;
                                     }
                                 }
                             }
@@ -412,10 +409,9 @@ scene,
         orbit_system:                 OrbitSystem,
         physics_system:               PhysicsSystem,
         control_system:               ControlSystem,
-        collision_system:             CollisionSystem,
+        collision_system:             CollisionDetectionSystem,
         bounce_system:                BounceSystem,
         impulse_system:               ImpulseSystem,
-        pong_boundary_system:         PongBoundarySystem,
-        paddle_ball_collision_system: PaddleBallCollisionSystem
+        pong_boundary_system:         PongBoundarySystem
     };
 });

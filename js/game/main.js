@@ -13,8 +13,8 @@ requirejs.config({
 
 requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien, c, s) {
 
-    var e1          = new alien.Entity(),
-        renderable  = new c.square_renderable({
+    var left_paddle          = new alien.Entity(),
+        vert_renderable  = new c.square_renderable({
             half_height: 28,
             half_width:  4,
             fill:        "rgba(255,255,255,1)",
@@ -22,28 +22,30 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         }),
         position    = new c.position({
             x: 50,
-            y: 100
+            y: 50
         }),
         rotation    = new c.rotation(),
         translation = new c.translation(),
         aabb_collidable  = new c.aabb_collidable({
-            half_width:  renderable.half_width,
-            half_height: renderable.half_height,
+            half_width:  vert_renderable.half_width,
+            half_height: vert_renderable.half_height,
             reaction:    "none"
         }),
         velocity    = new c.velocity(),
-        p_controller      = new c.paddle_controller(),
-        m_controller      = new c.mouse_controller(),
+        p_y_controller      = new c.paddle_controller({
+            direction: "y"
+        }),
 
-        e2 = new alien.Entity(),
+        ball = new alien.Entity(),
         r2 = new c.square_renderable({
-            half_height: 10,
-            half_width: 10,
-            fill:        "rgba(255,255,255,1)"
+            half_height: 8,
+            half_width:  8,
+            fill:        "rgba(255,255,255,1)",
+            stroke:      "rgba(255,255,255,1)"
         }),
         p2 = new c.position({
-            x: 300,
-            y: 300
+            x: 256,
+            y: 128
         }),
         c2 = new c.aabb_collidable({
             half_width: r2.half_width,
@@ -52,6 +54,46 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         v2 = new c.velocity({
             x: -50,
             y: 50
+        }),
+        right_paddle = new alien.Entity(),
+        p3           = new c.position({
+            x: 462,
+            y: 50
+        }),
+        c3           = new c.aabb_collidable({
+            half_width:  vert_renderable.half_width,
+            half_height: vert_renderable.half_height
+        }),
+        v3           = new c.velocity(),
+        top_paddle = new alien.Entity(),
+        horiz_renderable = new c.square_renderable({
+            half_height: 4,
+            half_width: 28,
+            fill:        "rgba(255,255,255,1)",
+            stroke:      "rgba(255,255,255,1)"
+
+        }),
+        bottom_paddle = new alien.Entity(),
+        p4 = new c.position({
+            x: 256,
+            y: 50
+        }),
+        p5 = new c.position({
+            x: 256,
+            y: 462
+        }),
+        v4 = new c.velocity(),
+        v5 = new c.velocity(),
+        p_x_controller = new c.paddle_controller({
+            direction: "x"
+        }),
+        c4 = new c.aabb_collidable({
+            half_width: horiz_renderable.half_width,
+            half_height: horiz_renderable.half_height
+        }),
+        c5 = new c.aabb_collidable({
+            half_width: horiz_renderable.half_width,
+            half_height: horiz_renderable.half_height
         });
 
 
@@ -60,41 +102,63 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         canvas: "gameCanvas"
     });
 
-    window.game.registerComponent(renderable, "renderable");
-    window.game.registerComponent(r2, "renderable");
-    e1.addComponent(renderable.flag , renderable);
+    window.game.registerComponent(vert_renderable, "renderable");
+    window.game.registerComponent(r2, "renderable"),
+    window.game.registerComponent(horiz_renderable, "renderable");
+    left_paddle.addComponent(vert_renderable.flag , vert_renderable);
+    right_paddle.addComponent(vert_renderable.flag, vert_renderable);
+    top_paddle.addComponent(horiz_renderable.flag, horiz_renderable);
+    bottom_paddle.addComponent(horiz_renderable.flag, horiz_renderable);
 
     window.game.registerComponent(position, "position");
     window.game.registerComponent(p2, "position");
-    e1.addComponent(position.flag, position);
-
-    window.game.registerComponent(rotation, "rotation");
-    e1.addComponent(rotation.flag, rotation);
+    window.game.registerComponent(p3, "position");
+    window.game.registerComponent(p4, "position");
+    window.game.registerComponent(p5, "position");
+    left_paddle.addComponent(position.flag, position);
+    right_paddle.addComponent(p3.flag, p3);
+    top_paddle.addComponent(p4.flag, p4);
+    bottom_paddle.addComponent(p5.flag, p5);
 
     window.game.registerComponent(translation, "translation");
-    e1.addComponent(translation.flag, translation);
+    left_paddle.addComponent(translation.flag, translation);
 
     window.game.registerComponent(aabb_collidable, "collidable");
     window.game.registerComponent(c2, "collidable");
-    e1.addComponent(aabb_collidable.flag, aabb_collidable);
+    window.game.registerComponent(c3, "collidable");
+    window.game.registerComponent(c4, "collidable");
+    window.game.registerComponent(c5, "collidable");
+    left_paddle.addComponent(aabb_collidable.flag, aabb_collidable);
+    right_paddle.addComponent(c3.flag, c3);
+    top_paddle.addComponent(c4.flag, c4);
+    bottom_paddle.addComponent(c5.flag, c5);
 
     window.game.registerComponent(velocity, "velocity");
     window.game.registerComponent(v2, "velocity");
-    e1.addComponent(velocity.flag, velocity);
+    window.game.registerComponent(v3, "velocity");
+    window.game.registerComponent(v4, "velocity");
+    window.game.registerComponent(v5, "velocity");
+    left_paddle.addComponent(velocity.flag, velocity);
+    right_paddle.addComponent(v3.flag, v3);
+    top_paddle.addComponent(v4.flag, v4);
+    bottom_paddle.addComponent(v5.flag, v5);
 
-    window.game.registerComponent(p_controller, "controller");
-    window.game.registerComponent(m_controller, "controller");
-    e1.addComponent(p_controller.flag, p_controller);
+    window.game.registerComponent(p_y_controller, "controller");
+    window.game.registerComponent(p_x_controller, "controller");
+    left_paddle.addComponent(p_y_controller.flag, p_y_controller);
+    right_paddle.addComponent(p_y_controller.flag, p_y_controller);
+    top_paddle.addComponent(p_x_controller.flag, p_x_controller);
+    bottom_paddle.addComponent(p_x_controller.flag, p_x_controller);
     //e1.addComponent(m_controller.flag, m_controller);
 
 
-    e2.addComponent(r2.flag, r2);
-    e2.addComponent(p2.flag, p2);
-    e2.addComponent(c2.flag, c2);
-    e2.addComponent(v2.flag, v2);
+    ball.addComponent(r2.flag, r2);
+    ball.addComponent(p2.flag, p2);
+    ball.addComponent(c2.flag, c2);
+    ball.addComponent(v2.flag, v2);
 
     window.scene1 = new alien.Scene({
-        entities: [e1, e2]
+        entities: [left_paddle, right_paddle, ball, top_paddle, bottom_paddle]
     });
 
     game.addScene(window.scene1, "scene1");
@@ -109,7 +173,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     game.addSystem(s.physics_system, "physics");
     game.addSystem(s.collision_system, "collision");
     game.addSystem(s.render_system, "render");
-    game.addSystem(s.pong_boundary_system, "collision");
+    //game.addSystem(s.pong_boundary_system, "collision");
 
     game.setActiveScene("scene1");
 

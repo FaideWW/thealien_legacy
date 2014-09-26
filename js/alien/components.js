@@ -107,7 +107,11 @@ define([], function () {
                 if (!(this instanceof PaddleController)) {
                     return new PaddleController(options);
                 }
+
+                options = options || {};
+
                 this.type = "paddle";
+                this.direction = options.direction || "y";
             }
 
             return PaddleController;
