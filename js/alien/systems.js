@@ -71,7 +71,6 @@ define([], function () {
                         render_target.clearRect(0, 0, render_target.canvas.width, render_target.canvas.height);
                         render_target.fillStyle = "rgba(0,0,0,1)";
                         render_target.fillRect( 0, 0, render_target.canvas.width, render_target.canvas.height);
-scene,
                         scene.each(function (entity) {
                             //draw this
 
@@ -166,8 +165,9 @@ scene,
             }
         }()),
         ControlSystem = (function () {
-            var _flags = null,
-                lock   = 0;
+            var _flags      = null,
+                lock        = 0,
+                range    = null;
 
             return {
                 init: function (scene, flags) {
@@ -180,6 +180,20 @@ scene,
                     } else {
                         throw new Error('Required components not registered');
                     }
+
+                    // optional render target boundaries
+                    if (scene.renderTarget) {
+                        range = {
+                            x: {
+                                min: 50,
+                                max: scene.renderTarget.canvas.width - 50
+                            },
+                            y: {
+                                min: 50,
+                                max: scene.renderTarget.canvas.height - 50
+                            }
+                        };
+                    }
                 },
                 step: function (scene, dt) {
                     scene.each(function (entity) {
@@ -189,9 +203,37 @@ scene,
                             mouse      = {
                                 x: scene.input.mouseX,
                                 y: scene.input.mouseY
-                            };
+                            },
+                            adjusted_range = null;
 
-                        position[controller.direction] = mouse[controller.direction];
+                        if (range) {
+
+                            if (_flags.renderable && entity.components[_flags.renderable]) {
+                                adjusted_range = {
+                                    x: {
+                                        min: range.x.min + entity.components[_flags.renderable].half_width,
+                                        max: range.x.max - entity.components[_flags.renderable].half_width
+                                    },
+                                    y: {
+                                        min: range.y.min + entity.components[_flags.renderable].half_height,
+                                        max: range.y.max - entity.components[_flags.renderable].half_height
+                                    }
+                                };
+                            }
+
+                            // clamp the paddles to within the defined boundaries
+                            position[controller.direction] = Math.max(
+                                Math.min(
+                                    adjusted_range[controller.direction].max,
+                                    mouse[controller.direction]),
+                                adjusted_range[controller.direction].min
+                            );
+                        } else {
+                            position[controller.direction] = mouse[controller.direction];
+                        }
+
+
+
                     }, lock, this);
                 }
             }
