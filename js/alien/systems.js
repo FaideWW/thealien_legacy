@@ -211,12 +211,12 @@ define([], function () {
                             if (_flags.renderable && entity.components[_flags.renderable]) {
                                 adjusted_range = {
                                     x: {
-                                        min: range.x.min + entity.components[_flags.renderable].half_width,
-                                        max: range.x.max - entity.components[_flags.renderable].half_width
+                                        min: range.x.min + entity.components[_flags.renderable].half_width * 2,
+                                        max: range.x.max - entity.components[_flags.renderable].half_width * 2
                                     },
                                     y: {
-                                        min: range.y.min + entity.components[_flags.renderable].half_height,
-                                        max: range.y.max - entity.components[_flags.renderable].half_height
+                                        min: range.y.min + entity.components[_flags.renderable].half_height * 2,
+                                        max: range.y.max - entity.components[_flags.renderable].half_height * 2
                                     }
                                 };
                             }
@@ -307,12 +307,16 @@ define([], function () {
                             if (collision_manifold.x > 0 && collision_manifold.y > 0) {
                                 if (collision_manifold.x < collision_manifold.y) {
                                     if (position1.x < position2.x) {
+                                        collidable1.manifold = { x: -1, y: 0 };
+                                        collidable2.manifold = { x: 1, y: 0  };
                                         // position1 shifts left, position2 shifts right
                                         doShift(scene, entity1, { x: -collision_manifold.x, y: 0 });
                                         doShift(scene, entity2, { x: collision_manifold.x, y: 0 });
                                         collidable1.collidedX = true;
                                         collidable2.collidedX = true;
                                     } else {
+                                        collidable1.manifold = { x: 1, y: 0  };
+                                        collidable2.manifold = { x: -1, y: 0 };
                                         // position1 shifts right, position2 shifts left
                                         doShift(scene, entity1, { x: collision_manifold.x, y: 0 });
                                         doShift(scene, entity2, { x: -collision_manifold.x, y: 0 });
@@ -321,12 +325,16 @@ define([], function () {
                                     }
                                 } else {
                                     if (position1.y < position2.y) {
+                                        collidable1.manifold = { x: 0, y: -1 };
+                                        collidable2.manifold = { x: 0, y: 1  };
                                         // position1 shifts up, position2 shifts down
                                         doShift(scene, entity1, { x: 0, y: -collision_manifold.y });
                                         doShift(scene, entity2, { x: 0, y: collision_manifold.y });
                                         collidable1.collidedY = true;
                                         collidable2.collidedY = true;
                                     } else {
+                                        collidable1.manifold = { x: 0, y: 1  };
+                                        collidable2.manifold = { x: 0, y: -1 };
                                         // position1 shifts down, position2 shifts up
                                         doShift(scene, entity1, { x: 0, y: collision_manifold.y });
                                         doShift(scene, entity2, { x: 0, y: -collision_manifold.y });
@@ -342,7 +350,18 @@ define([], function () {
         }()),
         BounceSystem = (function () {
             var _flags = null,
-                lock   = 0;
+                lock   = 0,
+
+                dot = function (v1, v2) {
+                    return v1.x * v2.x + v1.y * v2.y;
+                },
+                unit = function (v) {
+                    var mag = Math.sqrt(v.x * v.x + v.y * v.y);
+                    return {
+                        x: v.x / mag,
+                        y: v.y / mag
+                    };
+                };
 
             return {
                 init: function (scene, flags) {
@@ -360,14 +379,19 @@ define([], function () {
                             velocity   = entity.components[_flags.velocity];
 
                         if ((collidable.collidedX || collidable.collidedY) && collidable.reaction === "bounce") {
-                            if (collidable.collidedX) {
-                                velocity.x *= -1;
-                                collidable.collidedX = false;
-                            }
+                            if (dot(collidable.manifold, unit(velocity)) < 0) {
+                                // ensure the collision has not already been resolved (i.e. the velocity is moving the entity in the opposite direction of the manifold)
+                                if (collidable.collidedX) {
+                                    velocity.x *= -1;
+                                    collidable.collidedX = false;
+                                }
 
-                            if (collidable.collidedY) {
-                                velocity.y *= -1;
-                                collidable.collidedY = false;
+                                if (collidable.collidedY) {
+                                    // determine if the collision is already being resolved
+                                    velocity.y *= -1;
+                                    collidable.collidedY = false;
+                                }
+
                             }
                         }
                     }, lock, this);
