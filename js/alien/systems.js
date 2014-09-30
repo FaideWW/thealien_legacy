@@ -7,7 +7,7 @@ define([], function () {
             var _flags         = null,
                 lock           = 0,
                 render_target  = null,
-                drawRect;
+                drawRect, drawText;
 
             drawRect = function (entity) {
 
@@ -43,6 +43,41 @@ define([], function () {
                 }
             };
 
+            drawText = function (entity) {
+                var position    = entity.components[_flags.position],
+                    renderable  = entity.components[_flags.renderable],
+                    translation = entity.components[_flags.translation],
+                    world_pos;
+
+                if (render_target) {
+                    world_pos = {
+                        x: position.x + ((translation) ? translation.x : 0),
+                        y: position.y + ((translation) ? translation.y : 0)
+                    };
+
+                    if (_flags.rotation && entity.components[_flags.rotation]) {
+                        render_target.translate(world_pos.x, world_pos.y);
+                        render_target.rotate(entity.components[_flags.rotation].angle);
+                        render_target.translate(-(world_pos.x), -(world_pos.y));
+                    }
+
+                    render_target.translate(world_pos.x, world_pos.y);
+
+                    render_target.font = renderable.font;
+
+                    if (renderable.fill) {
+                        render_target.fillStyle   = renderable.fill;
+                        render_target.fillText(renderable.text, 0, 0);
+                    }
+
+                    if (renderable.stroke) {
+                        render_target.strokeStyle = renderable.stroke;
+                        render_target.strokeText(renderable.text, 0, 0);
+                    }
+
+                }
+            };
+
 
             return {
                 init: function (scene, flags) {
@@ -75,8 +110,15 @@ define([], function () {
                             //draw this
 
                             render_target.save();
-                            if (entity.components[_flags.renderable].type === "square") {
-                                drawRect(entity);
+                            switch (entity.components[_flags.renderable].type) {
+                                case "square":
+                                    drawRect(entity);
+                                    break;
+                                case "text":
+                                    drawText(entity);
+                                    break;
+                                default:
+                                    break;
                             }
                             render_target.restore();
 
@@ -436,10 +478,11 @@ define([], function () {
             return {
                 init: function (scene, flags) {
                     _flags = flags;
-                    if (_flags.collidable && _flags.velocity && _flags.position) {
+                    if (_flags.collidable && _flags.velocity && _flags.position && _flags.type) {
                         lock |= _flags.collidable;
                         lock |= _flags.velocity;
                         lock |= _flags.position;
+                        lock |= _flags.type;
                     } else {
                         throw new Error('Required components not registered');
                     }
@@ -456,15 +499,34 @@ define([], function () {
                         var collidable = entity.components[_flags.collidable],
                             velocity   = entity.components[_flags.velocity],
                             position   = entity.components[_flags.position],
+                            type       = entity.components[_flags.type],
 
-                            minY       = collidable.half_height,
-                            maxY       = scene_height - collidable.half_height;
+                            minY       =                collidable.half_height,
+                            maxY       = scene_height - collidable.half_height,
+                            minX       =                collidable.half_width,
+                            maxX       = scene_width  - collidable.half_width;
 
-                        console.log('checking bounce');
+                        if (type.type === "ball") {
 
-                        if (position.y < minY || position.y > maxY) {
-                            velocity.y *= -1;
+                            if (position.x < minX) {
+                                // score west
+                                scene.gameState.points.west  += 1;
+                                console.log('score west');
+                            } else if (position.x > maxX) {
+                                // score east
+                                scene.gameState.points.east  += 1;
+                                console.log('score east');
+                            } else if (position.y < minY) {
+                                // score north
+                                scene.gameState.points.north += 1;
+                                console.log('score north');
+                            } else if (position.y > maxY) {
+                                // score south
+                                scene.gameState.points.south += 1;
+                                console.log('score south');
+                            }
                         }
+
                     }, lock, this);
                 }
             }

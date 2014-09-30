@@ -91,6 +91,12 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
 
 
         /**
+         * @type {Object}
+         */
+        this.__state = {};
+
+
+        /**
          * dirty flag to watch for new systems added during execution
          * @type {boolean}
          * @private
@@ -114,6 +120,10 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
         // load loopphases from options
         if (options.loopphases && options.loopphases.length) {
             this._loopphases = options.loopphases;
+        }
+
+        if (options.state) {
+            this.__state = options.state;
         }
 
 
@@ -223,6 +233,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
                 throw new Error('Scene does not exist');
             } else {
                 this.activeScene = this.scenes[name];
+                this.activeScene.gameState = this.__state;
                 this.__uninitialized_systems = true;
             }
         },

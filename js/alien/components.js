@@ -20,6 +20,24 @@ define([], function () {
 
             return SquareRenderable;
         }()),
+        TextRenderable = (function () {
+            function TextRenderable(options) {
+                if (!(this instanceof TextRenderable)) {
+                    return new TextRenderable(options);
+                }
+                options = options || {};
+
+                this.type = "text";
+
+                // accept bare string as parameter
+                this.text   = (options.text) ? options.text : options;
+                this.fill   = options.fill   || null;
+                this.stroke = options.stroke || null;
+                this.font   = options.font   || null;
+            }
+
+            return TextRenderable;
+        }()),
         Position = (function () {
             function Position(options) {
                 if (!(this instanceof Position)) {
@@ -125,11 +143,22 @@ define([], function () {
                 this.type = "mouse";
             }
             return MouseController;
+        }()),
+        Type = (function () {
+            function Type(options) {
+                if (!(this instanceof Type)) {
+                    return new Type(options);
+                }
+
+                this.type = options.type || null;
+            }
+            return Type;
         }());
 
 
     return {
         square_renderable: SquareRenderable,
+        text_renderable:   TextRenderable,
         position:          Position,
         rotation:          Rotation,
         translation:       Translation,
@@ -137,6 +166,7 @@ define([], function () {
         aabb_collidable:   AABBCollidable,
         velocity:          Velocity,
         paddle_controller: PaddleController,
-        mouse_controller:  MouseController
+        mouse_controller:  MouseController,
+        type:              Type
     };
 });

@@ -94,16 +94,27 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         c5 = new c.aabb_collidable({
             half_width: horiz_renderable.half_width,
             half_height: horiz_renderable.half_height
+        }),
+        t = new c.type({
+            type: "ball"
         });
 
 
 
     window.game = new alien.Game({
-        canvas: "gameCanvas"
+        canvas: "gameCanvas",
+        state: {
+            points: {
+                north: 0,
+                east:  0,
+                south: 0,
+                west:  0
+            }
+        }
     });
 
     window.game.registerComponent(vert_renderable, "renderable");
-    window.game.registerComponent(r2, "renderable"),
+    window.game.registerComponent(r2, "renderable");
     window.game.registerComponent(horiz_renderable, "renderable");
     left_paddle.addComponent(vert_renderable.flag , vert_renderable);
     right_paddle.addComponent(vert_renderable.flag, vert_renderable);
@@ -152,13 +163,37 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     //e1.addComponent(m_controller.flag, m_controller);
 
 
+    window.game.registerComponent(t, "type");
+
+
     ball.addComponent(r2.flag, r2);
     ball.addComponent(p2.flag, p2);
     ball.addComponent(c2.flag, c2);
     ball.addComponent(v2.flag, v2);
+    ball.addComponent(t.flag,  t);
+
+
+
+    var score_n = new alien.Entity(),
+        n_text  = new c.text_renderable({
+            text: "0",
+            fill: "rgba(255, 255, 255, 1)",
+            font: "32px monospace"
+        }),
+        n_pos   = new c.position({
+            x: window.game.ctx.canvas.width / 2,
+            y: window.game.ctx.canvas.height / 2
+        });
+
+
+    window.game.registerComponent(n_text, "renderable");
+    window.game.registerComponent(n_pos, "position");
+
+    score_n.addComponent(n_text.flag, n_text);
+    score_n.addComponent(n_pos.flag, n_pos);
 
     window.scene1 = new alien.Scene({
-        entities: [left_paddle, right_paddle, ball, top_paddle, bottom_paddle]
+        entities: [left_paddle, right_paddle, ball, top_paddle, bottom_paddle, score_n]
     });
 
     game.addScene(window.scene1, "scene1");
@@ -173,7 +208,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     game.addSystem(s.physics_system, "physics");
     game.addSystem(s.collision_system, "collision");
     game.addSystem(s.render_system, "render");
-    //game.addSystem(s.pong_boundary_system, "collision");
+    game.addSystem(s.pong_boundary_system, "collision");
 
     game.setActiveScene("scene1");
 
