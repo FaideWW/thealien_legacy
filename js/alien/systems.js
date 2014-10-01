@@ -2,6 +2,11 @@
  * Created by faide on 2014-09-05.
  */
 
+// TODO: resolve bullet-through-paper effect at high ball velocities
+
+
+'use strict';
+
 define([], function () {
     var RenderSystem = (function () {
             var _flags         = null,
@@ -192,8 +197,26 @@ define([], function () {
                         var position = entity.components[_flags.position],
                             velocity = entity.components[_flags.velocity];
 
-                        position.x += velocity.x * (dt / 1000);
-                        position.y += velocity.y * (dt / 1000);
+                        if (!(_flags.controller && entity.components[_flags.controller])) {
+                            position.x += velocity.x * (dt / 1000);
+                            position.y += velocity.y * (dt / 1000);
+
+                            if (_flags.acceleration && entity.components[_flags.acceleration]) {
+                                velocity.x += entity.components[_flags.acceleration].x * (dt / 1000);
+                                velocity.y += entity.components[_flags.acceleration].y * (dt / 1000);
+
+//                                entity.components[_flags.acceleration].y *= 0.99;
+//                                entity.components[_flags.acceleration].x *= 0.99;
+                            }
+
+                            if (_flags.spin && entity.components[_flags.spin] &&
+                                _flags.rotation && entity.components[_flags.rotation]) {
+                                entity.components[_flags.rotation].angle += entity.components[_flags.spin].angular_v * (dt / 1000);
+                                // drag
+                                entity.components[_flags.spin].angular_v *= 0.99;
+                            }
+                        }
+
                     }, lock, this);
                 },
                 // move an entity by a specified vector
@@ -202,6 +225,19 @@ define([], function () {
                     if (!(_flags.controller && entity.components[_flags.controller])) {
                         entity.components[_flags.position].x += vector.x;
                         entity.components[_flags.position].y += vector.y;
+                    }
+                },
+                accelerate: function (entity, accel) {
+                    if (!(_flags.controller && entity.components[_flags.controller]) &&
+                        (_flags.acceleration && entity.components[_flags.acceleration])) {
+                        entity.components[_flags.acceleration].x += accel.x;
+                        entity.components[_flags.acceleration].y += accel.y;
+                    }
+                },
+                spin: function (entity, angular_v, dir) {
+                    if (!(_flags.controller && entity.components[_flags.controller]) &&
+                        (_flags.spin && entity.components[_flags.spin])) {
+                        entity.components[_flags.spin].angular_v = (angular_v * dir);
                     }
                 }
             }
@@ -246,19 +282,25 @@ define([], function () {
                                 x: scene.input.mouseX,
                                 y: scene.input.mouseY
                             },
-                            adjusted_range = null;
+                            adjusted_range = null,
+                            last_pos = {
+                                x: position.x,
+                                y: position.y
+                            };
+
+
 
                         if (range) {
 
                             if (_flags.renderable && entity.components[_flags.renderable]) {
                                 adjusted_range = {
                                     x: {
-                                        min: range.x.min + entity.components[_flags.renderable].half_width * 2,
-                                        max: range.x.max - entity.components[_flags.renderable].half_width * 2
+                                        min: range.x.min + entity.components[_flags.renderable].half_width,
+                                        max: range.x.max - entity.components[_flags.renderable].half_width
                                     },
                                     y: {
-                                        min: range.y.min + entity.components[_flags.renderable].half_height * 2,
-                                        max: range.y.max - entity.components[_flags.renderable].half_height * 2
+                                        min: range.y.min + entity.components[_flags.renderable].half_height,
+                                        max: range.y.max - entity.components[_flags.renderable].half_height
                                     }
                                 };
                             }
@@ -274,7 +316,8 @@ define([], function () {
                             position[controller.direction] = mouse[controller.direction];
                         }
 
-
+                        velocity.x = (position.x - last_pos.x);
+                        velocity.y = (position.y - last_pos.y);
 
                     }, lock, this);
                 }
@@ -285,6 +328,7 @@ define([], function () {
                 lock   = 0,
                 scene_width = 0,
                 scene_height = 0,
+                spin_scalar  = 5,
 
                 // returns a collision manifold from the perspective of collidable1
                 betterAABBTest = function (pos1, pos2, aabb1, aabb2) {
@@ -317,6 +361,17 @@ define([], function () {
                 doShift = function (scene, e, v) {
                     scene.msg.enqueue('physics', function () {
                         this.shift(e, v);
+                    })
+                },
+                applySpin = function (scene, e, v, dir) {
+                    scene.msg.enqueue('physics', function () {
+                        var v_magsq = (v.x * v.x) + (v.y * v.y);
+                        console.log('give spin');
+                        this.accelerate(e, {
+                            x: v.x * spin_scalar,
+                            y: v.y * spin_scalar
+                        });
+                        this.spin(e, v_magsq, dir)
                     })
                 };
             return {
@@ -354,6 +409,22 @@ define([], function () {
                                         // position1 shifts left, position2 shifts right
                                         doShift(scene, entity1, { x: -collision_manifold.x, y: 0 });
                                         doShift(scene, entity2, { x: collision_manifold.x, y: 0 });
+
+                                        if (_flags.velocity && entity1.components[_flags.velocity] && entity2.components[_flags.velocity]) {
+                                            applySpin(scene, entity1, {
+                                                x: -entity2.components[_flags.velocity].x,
+                                                y: -entity2.components[_flags.velocity].y
+                                            }, 1);
+                                            applySpin(scene, entity2, {
+                                                x: -entity1.components[_flags.velocity].x,
+                                                y: -entity1.components[_flags.velocity].y
+                                            }, -1);
+
+                                        }
+
+
+
+
                                         collidable1.collidedX = true;
                                         collidable2.collidedX = true;
                                     } else {
@@ -362,6 +433,19 @@ define([], function () {
                                         // position1 shifts right, position2 shifts left
                                         doShift(scene, entity1, { x: collision_manifold.x, y: 0 });
                                         doShift(scene, entity2, { x: -collision_manifold.x, y: 0 });
+
+                                        if (_flags.velocity && entity1.components[_flags.velocity] && entity2.components[_flags.velocity]) {
+                                            applySpin(scene, entity1, {
+                                                x: -entity2.components[_flags.velocity].x,
+                                                y: -entity2.components[_flags.velocity].y
+                                            }, 1);
+                                            applySpin(scene, entity2, {
+                                                x: -entity1.components[_flags.velocity].x,
+                                                y: -entity1.components[_flags.velocity].y
+                                            }, -1);
+
+                                        }
+
                                         collidable1.collidedX = true;
                                         collidable2.collidedX = true;
                                     }
@@ -372,6 +456,19 @@ define([], function () {
                                         // position1 shifts up, position2 shifts down
                                         doShift(scene, entity1, { x: 0, y: -collision_manifold.y });
                                         doShift(scene, entity2, { x: 0, y: collision_manifold.y });
+
+                                        if (_flags.velocity && entity1.components[_flags.velocity] && entity2.components[_flags.velocity]) {
+                                            applySpin(scene, entity1, {
+                                                x: -entity2.components[_flags.velocity].x,
+                                                y: -entity2.components[_flags.velocity].y
+                                            }, -1);
+                                            applySpin(scene, entity2, {
+                                                x: -entity1.components[_flags.velocity].x,
+                                                y: -entity1.components[_flags.velocity].y
+                                            }, 1);
+
+                                        }
+
                                         collidable1.collidedY = true;
                                         collidable2.collidedY = true;
                                     } else {
@@ -380,6 +477,19 @@ define([], function () {
                                         // position1 shifts down, position2 shifts up
                                         doShift(scene, entity1, { x: 0, y: collision_manifold.y });
                                         doShift(scene, entity2, { x: 0, y: -collision_manifold.y });
+
+                                        if (_flags.velocity && entity1.components[_flags.velocity] && entity2.components[_flags.velocity]) {
+                                            applySpin(scene, entity1, {
+                                                x: -entity2.components[_flags.velocity].x,
+                                                y: -entity2.components[_flags.velocity].y
+                                            }, -1);
+                                            applySpin(scene, entity2, {
+                                                x: -entity1.components[_flags.velocity].x,
+                                                y: -entity1.components[_flags.velocity].y
+                                            }, 1);
+
+                                        }
+
                                         collidable1.collidedY = true;
                                         collidable2.collidedY = true;
                                     }
@@ -461,7 +571,6 @@ define([], function () {
 
 
                         if ((collidable.collidedX || collidable.collidedY) && collidable.collision_data.velocity) {
-                            console.log('impulse');
                             velocity.x += collidable.collision_data.velocity.x;
                             velocity.y += collidable.collision_data.velocity.y;
                         }
@@ -494,7 +603,7 @@ define([], function () {
                         throw new Error('Scene has no render target');
                     }
                 },
-                step: function (scene) {
+                step: function (scene, dt) {
                     scene.each(function (entity) {
                         var collidable = entity.components[_flags.collidable],
                             velocity   = entity.components[_flags.velocity],
@@ -511,15 +620,13 @@ define([], function () {
 
                             if (position.x < minX || position.x > maxX || position.y < minY || position.y > maxY) {
                                 // reset score
-                                console.log('reset');
                                 scene.gameState.points = 0;
                                 entity.reset();
                                 new_angle = Math.random() * Math.PI * 2;
                                 velocity.x = Math.cos(new_angle) * scene.gameState.INITIAL_BALL_VELOCITY;
                                 velocity.y = Math.sin(new_angle) * scene.gameState.INITIAL_BALL_VELOCITY;
                             } else {
-                                console.log('score');
-                                scene.gameState.points += 1;
+                                scene.gameState.points += dt;
 
                             }
                         }
@@ -537,6 +644,6 @@ define([], function () {
         collision_system:             CollisionDetectionSystem,
         bounce_system:                BounceSystem,
         impulse_system:               ImpulseSystem,
-        pong_boundary_system:         PongBoundarySystem,
+        pong_boundary_system:         PongBoundarySystem
     };
 });

@@ -17,7 +17,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     var INITIAL_BALL_V = 100,
         left_paddle          = new alien.Entity(),
         vert_renderable  = new c.square_renderable({
-            half_height: 28,
+            half_height: 56,
             half_width:  4,
             fill:        "rgba(255,255,255,1)",
             stroke:      "rgba(255,255,255,1)"
@@ -47,8 +47,9 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         }),
         p2 = new c.position({
             x: 256,
-            y: 128
+            y: 256
         }),
+        accel = new c.acceleration(),
         c2 = new c.aabb_collidable({
             half_width: r2.half_width,
             half_height: r2.half_height
@@ -71,7 +72,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         top_paddle = new alien.Entity(),
         horiz_renderable = new c.square_renderable({
             half_height: 4,
-            half_width: 28,
+            half_width: 56,
             fill:        "rgba(255,255,255,1)",
             stroke:      "rgba(255,255,255,1)"
 
@@ -100,7 +101,8 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         }),
         t = new c.type({
             type: "ball"
-        });
+        }),
+        spin = new c.spin();
 
 
 
@@ -153,6 +155,17 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     right_paddle.addComponent(v3.flag, v3);
     top_paddle.addComponent(v4.flag, v4);
     bottom_paddle.addComponent(v5.flag, v5);
+
+    // allow ball to spin
+    window.game.registerComponent(accel, "acceleration");
+    ball.addComponent(accel.flag, accel);
+
+    window.game.registerComponent(rotation, "rotation");
+    ball.addComponent(rotation.flag, rotation);
+
+    window.game.registerComponent(spin, "spin");
+    ball.addComponent(spin.flag, spin);
+
 
     window.game.registerComponent(p_y_controller, "controller");
     window.game.registerComponent(p_x_controller, "controller");

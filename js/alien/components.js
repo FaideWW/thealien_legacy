@@ -226,6 +226,36 @@ define([], function () {
                 component_cache[this.__id] = _.cloneDeep(this);
             }
             return proxify(Type);
+        }()),
+        Acceleration = (function () {
+            function Acceleration(options) {
+                if (!(this instanceof Acceleration)) {
+                    return new Acceleration(options);
+                }
+                this.__id = id();
+
+                options = options || {};
+
+                this.x = options.x || 0;
+                this.y = options.y || 0;
+
+                component_cache[this.__id] = _.cloneDeep(this);
+            }
+
+            return proxify(Acceleration);
+        }()),
+        Spin = (function (){
+            function Spin(options) {
+                if (!(this instanceof Spin)) {
+                    return new Spin(options);
+                }
+
+                this.__id = id();
+
+                options = options || {};
+                this.angular_v = options.angular_v || 0;
+            }
+            return proxify(Spin);
         }());
 
 
@@ -241,23 +271,7 @@ define([], function () {
         paddle_controller: PaddleController,
         mouse_controller:  MouseController,
         type:              Type,
-
-        component: function (options) {
-            var handler = {
-                get: function (component, prop) {
-                    if (prop in component) {
-                        if (typeof component[prop] === 'function') {
-                            // resolve component property if it is a function
-                            return component[prop]();
-                        }
-                        return component[prop];
-                    }
-                }
-            };
-            if (typeof Proxy === 'object') {
-                throw new Error('Direct Proxy API not supported');
-            }
-            return new Proxy(options, handler);
-        }
+        acceleration:      Acceleration,
+        spin:              Spin
     };
 });

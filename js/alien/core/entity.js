@@ -72,7 +72,6 @@ define([], function () {
             var i;
             for (i = 0; i < this.components.length; i += 1) {
                 if (this.components[i]) {
-                    console.log(this.components[i]);
                     this.components[i].reset();
                 }
             }
