@@ -104,12 +104,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     window.game = new alien.Game({
         canvas: "gameCanvas",
         state: {
-            points: {
-                north: 0,
-                east:  0,
-                south: 0,
-                west:  0
-            }
+            points: 0
         }
     });
 
@@ -176,7 +171,8 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
 
     var score_n = new alien.Entity(),
         n_text  = new c.text_renderable({
-            text: "0",
+            track: game.__state,
+            text: function () { return this.track.points; },
             fill: "rgba(255, 255, 255, 1)",
             font: "32px monospace"
         }),
@@ -185,6 +181,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
             y: window.game.ctx.canvas.height / 2
         });
 
+    console.log(n_text);
 
     window.game.registerComponent(n_text, "renderable");
     window.game.registerComponent(n_pos, "position");

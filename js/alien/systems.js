@@ -508,22 +508,9 @@ define([], function () {
 
                         if (type.type === "ball") {
 
-                            if (position.x < minX) {
-                                // score west
-                                scene.gameState.points.west  += 1;
-                                console.log('score west');
-                            } else if (position.x > maxX) {
-                                // score east
-                                scene.gameState.points.east  += 1;
-                                console.log('score east');
-                            } else if (position.y < minY) {
-                                // score north
-                                scene.gameState.points.north += 1;
-                                console.log('score north');
-                            } else if (position.y > maxY) {
+                            if (position.x < minX || position.x > maxX || position.y < minY || position.y > maxY) {
                                 // score south
-                                scene.gameState.points.south += 1;
-                                console.log('score south');
+                                scene.gameState.points += 1;
                             }
                         }
 

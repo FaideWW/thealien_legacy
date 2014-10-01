@@ -8,20 +8,23 @@
  * TODO: re-configure all components to generate a Proxy that can accept function and literal property definitions
  */
 define([], function () {
-        var proxify = function (constructor) {
-            return constructor;
-//                return function (options) {
-//                    var component = constructor(options);
-//                    return new Proxy(component, {
-//                        get: function (component, prop) {
-//                            if (prop in component) {
-//                                return (typeof component[prop] === 'function') ? component[prop]() : component[prop];
-//                            }
-//                        }
-//                    })
-//                };
-            },
-            SquareRenderable = (function () {
+    var proxify = function (constructor) {
+            return function (options) {
+                var component = constructor(options);
+
+                if (options && options.track) {
+                    component.track = options.track;
+                }
+                return new Proxy(component, {
+                    get: function (component, prop) {
+                        if (prop in component) {
+                            return (typeof component[prop] === 'function') ? component[prop]() : component[prop];
+                        }
+                    }
+                })
+            };
+        },
+        SquareRenderable = (function () {
             function SquareRenderable(options) {
                 if (!(this instanceof SquareRenderable)) {
                     return new SquareRenderable(options);
@@ -201,6 +204,7 @@ define([], function () {
                 get: function (component, prop) {
                     if (prop in component) {
                         if (typeof component[prop] === 'function') {
+                            // resolve component property if it is a function
                             return component[prop]();
                         }
                         return component[prop];
