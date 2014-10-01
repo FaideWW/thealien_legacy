@@ -509,8 +509,16 @@ define([], function () {
                         if (type.type === "ball") {
 
                             if (position.x < minX || position.x > maxX || position.y < minY || position.y > maxY) {
-                                // score south
+                                // reset score
+                                console.log('reset');
+                                scene.gameState.points = 0;
+                                entity.reset();
+                                velocity.x = (Math.random() * scene.gameState.MAX_BALL_VELOCITY * 2) - scene.gameState.MAX_BALL_VELOCITY;
+                                velocity.y = (Math.random() * scene.gameState.MAX_BALL_VELOCITY * 2) - scene.gameState.MAX_BALL_VELOCITY;
+                            } else {
+                                console.log('score');
                                 scene.gameState.points += 1;
+
                             }
                         }
 
@@ -527,6 +535,6 @@ define([], function () {
         collision_system:             CollisionDetectionSystem,
         bounce_system:                BounceSystem,
         impulse_system:               ImpulseSystem,
-        pong_boundary_system:         PongBoundarySystem
+        pong_boundary_system:         PongBoundarySystem,
     };
 });

@@ -3,7 +3,11 @@
  */
 'use strict';
 
-define([], function () {
+//TODO: consider how to properly cache initial state while preserving Proxy functionality
+
+define(['lodash'], function (_) {
+
+    var scene_cache = {};
 
     /** @typedef {} TileMap */
 
@@ -16,6 +20,12 @@ define([], function () {
      */
     function Scene(options) {
 
+        /** @type {string}
+         *    UUID generator from https://gist.github.com/gordonbrander/2230317
+         */
+        this.id = Math.random().toString(36).substr(2, 9);
+
+
         // declare references to singletons; they will be initialized when attached to a game
         this.msg = null;
         this.input = null;
@@ -26,6 +36,13 @@ define([], function () {
         this.entities = options.entities || [];
 
         this.tilemap = options.tilemap || null;
+
+        // memoize the scene's initial state (shallow copy, entities/components have their own caching
+
+        scene_cache[this.id] = {
+            entities: _.clone(this.entities),
+            tilemap: _.clone(this.tilemap)
+        };
     }
 
     Scene.prototype = {
@@ -52,6 +69,16 @@ define([], function () {
                     }
                 }
             }
+        },
+
+        // retrieval of cached initial state
+        reset: function () {
+            var i;
+            this.entities = _.clone(scene_cache[this.id].entities);
+            for (i = 0; i < this.entities.length; i += 1) {
+                this.entities[i].reset();
+            }
+            this.tilemap  = _.clone(scene_cache[this.id].tilemap);
         }
     };
 

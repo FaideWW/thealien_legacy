@@ -5,20 +5,42 @@
 'use strict';
 
 /**
- * TODO: re-configure all components to generate a Proxy that can accept function and literal property definitions
  */
 define([], function () {
-    var proxify = function (constructor) {
+    // TODO: this is a placeholder for creating a proper component factory with memoization
+    var component_cache = {},
+        id = function () {
+            /** @type {string}
+             *    UUID generator from https://gist.github.com/gordonbrander/2230317
+             */
+            return Math.random().toString(36).substr(2, 9);
+        },
+        proxify = function (constructor) {
             return function (options) {
                 var component = constructor(options);
 
                 if (options && options.track) {
                     component.track = options.track;
                 }
+
+                component.reset = function () {
+                    var prop;
+                    if (component_cache[this.__id]) {
+                        for (prop in component_cache[this.__id]) {
+                            if (component_cache[this.__id].hasOwnProperty(prop) && prop !== '__id') {
+                                this[prop] = component_cache[this.__id][prop];
+                            }
+                        }
+                    }
+                };
+
                 return new Proxy(component, {
                     get: function (component, prop) {
                         if (prop in component) {
-                            return (typeof component[prop] === 'function') ? component[prop]() : component[prop];
+                            if (typeof component[prop] === 'function') {
+                                console.log('resolving', prop, 'in', component);
+                            }
+                            return (typeof component[prop] === 'function' && prop !== 'reset') ? component[prop]() : component[prop];
                         }
                     }
                 })
@@ -30,12 +52,16 @@ define([], function () {
                     return new SquareRenderable(options);
                 }
 
+
                 options = options || {};
                 this.type   = "square";
                 this.half_width  = options.half_width  || 25;
                 this.half_height = options.half_height || 25;
                 this.fill        = options.fill   || null;
                 this.stroke      = options.stroke || null;
+
+                this.__id = id();
+                component_cache[this.__id] = _.cloneDeep(this);
             }
 
             return proxify(SquareRenderable);
@@ -55,6 +81,8 @@ define([], function () {
                 this.fill   = options.fill   || null;
                 this.stroke = options.stroke || null;
                 this.font   = options.font   || null;
+                this.__id = id();
+                component_cache[this.__id] = _.cloneDeep(this);
             }
 
             return proxify(TextRenderable);
@@ -68,6 +96,8 @@ define([], function () {
                 options = options || {};
                 this.x = options.x || 0;
                 this.y = options.y || 0;
+                this.__id = id();
+                component_cache[this.__id] = _.cloneDeep(this);
             }
 
             return proxify(Position);
@@ -81,6 +111,8 @@ define([], function () {
 
                 options = options || {};
                 this.angle = options.angle || 0;
+                this.__id = id();
+                component_cache[this.__id] = _.cloneDeep(this);
             }
 
             return proxify(Rotation);
@@ -95,6 +127,8 @@ define([], function () {
                 options = options || {};
                 this.x = options.x || 0;
                 this.y = options.y || 0;
+                this.__id = id();
+                component_cache[this.__id] = _.cloneDeep(this);
             }
 
             return proxify(Translation);
@@ -108,6 +142,8 @@ define([], function () {
 
                 options = options || {};
                 this.radius = options.radius || 50;
+                this.__id = id();
+                component_cache[this.__id] = _.cloneDeep(this);
             }
             return proxify(Orbital);
         }()),
@@ -129,6 +165,8 @@ define([], function () {
                 this.half_width  = options.half_width  || 0;
                 this.half_height = options.half_height || 0;
                 this.reaction = options.reaction       || "bounce";
+                this.__id = id();
+                component_cache[this.__id] = _.cloneDeep(this);
             }
 
             return proxify(AABBCollidable);
@@ -143,6 +181,8 @@ define([], function () {
                 options = options || {};
                 this.x = options.x || 0;
                 this.y = options.y || 0;
+                this.__id = id();
+                component_cache[this.__id] = _.cloneDeep(this);
             }
 
             return proxify(Velocity);
@@ -158,6 +198,8 @@ define([], function () {
 
                 this.type = "paddle";
                 this.direction = options.direction || "y";
+                this.__id = id();
+                component_cache[this.__id] = _.cloneDeep(this);
             }
 
             return proxify(PaddleController);
@@ -170,6 +212,8 @@ define([], function () {
 
 
                 this.type = "mouse";
+                this.__id = id();
+                component_cache[this.__id] = _.cloneDeep(this);
             }
             return proxify(MouseController);
         }()),
@@ -181,6 +225,8 @@ define([], function () {
 
 
                 this.type = options.type || null;
+                this.__id = id();
+                component_cache[this.__id] = _.cloneDeep(this);
             }
             return proxify(Type);
         }());
