@@ -212,4 +212,5 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
 
     game.setActiveScene("scene1");
 
+    window.components = c;
 });
