@@ -14,7 +14,7 @@ requirejs.config({
 
 requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien, c, s) {
 
-    var MAX_BALL_V = 200,
+    var INITIAL_BALL_V = 100,
         left_paddle          = new alien.Entity(),
         vert_renderable  = new c.square_renderable({
             half_height: 28,
@@ -53,9 +53,10 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
             half_width: r2.half_width,
             half_height: r2.half_height
         }),
+        init_angle = Math.random() * Math.PI * 2,
         v2 = new c.velocity({
-            x: (Math.random() * MAX_BALL_V * 2) - (MAX_BALL_V),
-            y: (Math.random() * MAX_BALL_V * 2) - (MAX_BALL_V)
+            x: Math.cos(init_angle) * INITIAL_BALL_V,
+            y: Math.sin(init_angle) * INITIAL_BALL_V
         }),
         right_paddle = new alien.Entity(),
         p3           = new c.position({
@@ -108,7 +109,7 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         state: {
             points: 0,
             reset: false,
-            MAX_BALL_VELOCITY: MAX_BALL_V
+            INITIAL_BALL_VELOCITY: INITIAL_BALL_V
         }
     });
 

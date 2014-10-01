@@ -190,12 +190,12 @@ define([], function () {
             var canvas_handlers, window_handlers, eventName;
 
             canvas_handlers = {
-                mousedown: mouseDown,
-                mouseup: mouseUp,
-                mousemove: mouseMove
             };
 
             window_handlers = {
+                mousedown: mouseDown,
+                mouseup: mouseUp,
+                mousemove: mouseMove,
                 keydown:   keyDown,
                 keyUp:     keyUp
             };

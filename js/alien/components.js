@@ -37,9 +37,6 @@ define([], function () {
                 return new Proxy(component, {
                     get: function (component, prop) {
                         if (prop in component) {
-                            if (typeof component[prop] === 'function') {
-                                console.log('resolving', prop, 'in', component);
-                            }
                             return (typeof component[prop] === 'function' && prop !== 'reset') ? component[prop]() : component[prop];
                         }
                     }

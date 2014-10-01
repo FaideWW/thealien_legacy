@@ -424,13 +424,13 @@ define([], function () {
                             if (dot(collidable.manifold, unit(velocity)) < 0) {
                                 // ensure the collision has not already been resolved (i.e. the velocity is moving the entity in the opposite direction of the manifold)
                                 if (collidable.collidedX) {
-                                    velocity.x *= -1;
+                                    velocity.x *= -1.1;
                                     collidable.collidedX = false;
                                 }
 
                                 if (collidable.collidedY) {
                                     // determine if the collision is already being resolved
-                                    velocity.y *= -1;
+                                    velocity.y *= -1.1;
                                     collidable.collidedY = false;
                                 }
 
@@ -504,7 +504,8 @@ define([], function () {
                             minY       =                collidable.half_height,
                             maxY       = scene_height - collidable.half_height,
                             minX       =                collidable.half_width,
-                            maxX       = scene_width  - collidable.half_width;
+                            maxX       = scene_width  - collidable.half_width,
+                            new_angle  = 0;
 
                         if (type.type === "ball") {
 
@@ -513,8 +514,9 @@ define([], function () {
                                 console.log('reset');
                                 scene.gameState.points = 0;
                                 entity.reset();
-                                velocity.x = (Math.random() * scene.gameState.MAX_BALL_VELOCITY * 2) - scene.gameState.MAX_BALL_VELOCITY;
-                                velocity.y = (Math.random() * scene.gameState.MAX_BALL_VELOCITY * 2) - scene.gameState.MAX_BALL_VELOCITY;
+                                new_angle = Math.random() * Math.PI * 2;
+                                velocity.x = Math.cos(new_angle) * scene.gameState.INITIAL_BALL_VELOCITY;
+                                velocity.y = Math.sin(new_angle) * scene.gameState.INITIAL_BALL_VELOCITY;
                             } else {
                                 console.log('score');
                                 scene.gameState.points += 1;
