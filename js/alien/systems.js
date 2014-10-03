@@ -227,9 +227,13 @@ define([], function () {
                         entity.components[_flags.position].y += vector.y;
                     }
                 },
-                accelerate: function (entity, accel) {
+                accelerate: function (entity, accel, abs) {
                     if (!(_flags.controller && entity.components[_flags.controller]) &&
                         (_flags.acceleration && entity.components[_flags.acceleration])) {
+                        if (abs) {
+                            entity.components[_flags.acceleration].x = 0;
+                            entity.components[_flags.acceleration].y = 0;
+                        }
                         entity.components[_flags.acceleration].x += accel.x;
                         entity.components[_flags.acceleration].y += accel.y;
                     }
@@ -365,13 +369,13 @@ define([], function () {
                 },
                 applySpin = function (scene, e, v, dir) {
                     scene.msg.enqueue('physics', function () {
-                        var v_magsq = (v.x * v.x) + (v.y * v.y);
+                        var spin_v = (v.x + v.y) * spin_scalar;
                         console.log('give spin');
                         this.accelerate(e, {
                             x: v.x * spin_scalar,
                             y: v.y * spin_scalar
-                        });
-                        this.spin(e, v_magsq, dir)
+                        }, true);
+                        this.spin(e, spin_v, dir)
                     })
                 };
             return {
@@ -414,11 +418,11 @@ define([], function () {
                                             applySpin(scene, entity1, {
                                                 x: -entity2.components[_flags.velocity].x,
                                                 y: -entity2.components[_flags.velocity].y
-                                            }, 1);
+                                            }, -1);
                                             applySpin(scene, entity2, {
                                                 x: -entity1.components[_flags.velocity].x,
                                                 y: -entity1.components[_flags.velocity].y
-                                            }, -1);
+                                            }, 1);
 
                                         }
 
@@ -461,11 +465,11 @@ define([], function () {
                                             applySpin(scene, entity1, {
                                                 x: -entity2.components[_flags.velocity].x,
                                                 y: -entity2.components[_flags.velocity].y
-                                            }, -1);
+                                            }, 1);
                                             applySpin(scene, entity2, {
                                                 x: -entity1.components[_flags.velocity].x,
                                                 y: -entity1.components[_flags.velocity].y
-                                            }, 1);
+                                            }, -1);
 
                                         }
 
