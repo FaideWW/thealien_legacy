@@ -16,9 +16,9 @@ define([], function () {
 
             drawRect = function (entity) {
 
-                var position    = entity.components[_flags.position],
-                    renderable  = entity.components[_flags.renderable],
-                    translation = entity.components[_flags.translation],
+                var position     = entity.components[_flags.position],
+                    renderable   = entity.components[_flags.renderable],
+                    translation  = entity.components[_flags.translation],
                     world_pos;
                 if (render_target) {
 
@@ -32,6 +32,7 @@ define([], function () {
                         render_target.rotate(entity.components[_flags.rotation].angle);
                         render_target.translate(-(world_pos.x), -(world_pos.y));
                     }
+
 
                     render_target.translate(world_pos.x, world_pos.y);
 
@@ -49,9 +50,10 @@ define([], function () {
             };
 
             drawText = function (entity) {
-                var position    = entity.components[_flags.position],
-                    renderable  = entity.components[_flags.renderable],
-                    translation = entity.components[_flags.translation],
+                var position     = entity.components[_flags.position],
+                    renderable   = entity.components[_flags.renderable],
+                    translation  = entity.components[_flags.translation],
+                    align_offset = 0,
                     world_pos;
 
                 if (render_target) {
@@ -66,9 +68,17 @@ define([], function () {
                         render_target.translate(-(world_pos.x), -(world_pos.y));
                     }
 
-                    render_target.translate(world_pos.x, world_pos.y);
 
                     render_target.font = renderable.font;
+
+                    if (renderable.align && renderable.align === "center") {
+                        align_offset = render_target.measureText(renderable.text).width / 2;
+                    }
+
+                    world_pos.x -= align_offset;
+
+                    render_target.translate(world_pos.x, world_pos.y);
+
 
                     if (renderable.fill) {
                         render_target.fillStyle   = renderable.fill;
@@ -370,7 +380,6 @@ define([], function () {
                 applySpin = function (scene, e, v, dir) {
                     scene.msg.enqueue('physics', function () {
                         var spin_v = (v.x + v.y) * spin_scalar;
-                        console.log('give spin');
                         this.accelerate(e, {
                             x: v.x * spin_scalar,
                             y: v.y * spin_scalar
@@ -638,6 +647,32 @@ define([], function () {
                     }, lock, this);
                 }
             }
+        }()),
+        StartMenuSystem = (function () {
+            var _flags = null,
+                lock   = 0;
+            return {
+                init: function (scene, flags) {
+                    _flags = flags;
+                    if (_flags.renderable && _flags.position && _flags.listener && _flags.collidable) {
+                        lock |= _flags.renderable;
+                        lock |= _flags.position;
+                        lock |= _flags.listener;
+                        lock |= _flags.collidable;
+                    } else {
+                        throw new Error('Required components not registered');
+                    }
+                },
+                step: function (scene) {
+                    // poll input
+                    scene.each(function () {
+                        if (scene.input.mouse) {
+                            console.log('go next');
+                            scene.goTo("scene1");
+                        }
+                    }, lock)
+                }
+            }
         }());
 
     return {
@@ -648,6 +683,7 @@ define([], function () {
         collision_system:             CollisionDetectionSystem,
         bounce_system:                BounceSystem,
         impulse_system:               ImpulseSystem,
-        pong_boundary_system:         PongBoundarySystem
+        pong_boundary_system:         PongBoundarySystem,
+        start_menu_system:            StartMenuSystem
     };
 });

@@ -78,6 +78,7 @@ define([], function () {
                 this.fill   = options.fill   || null;
                 this.stroke = options.stroke || null;
                 this.font   = options.font   || null;
+                this.align  = options.align  || null;
                 this.__id = id();
                 component_cache[this.__id] = _.cloneDeep(this);
             }
@@ -256,6 +257,16 @@ define([], function () {
                 this.angular_v = options.angular_v || 0;
             }
             return proxify(Spin);
+        }()),
+        MenuListener = (function () {
+            function MenuListener(options) {
+                if (!(this instanceof MenuListener)) {
+                    return new MenuListener(options);
+                }
+
+                this.__id = id();
+            }
+            return proxify(MenuListener);
         }());
 
 
@@ -272,6 +283,7 @@ define([], function () {
         mouse_controller:  MouseController,
         type:              Type,
         acceleration:      Acceleration,
-        spin:              Spin
+        spin:              Spin,
+        menu_listener:     MenuListener
     };
 });

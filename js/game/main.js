@@ -225,7 +225,43 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     game.addSystem(s.render_system, "render");
     game.addSystem(s.pong_boundary_system, "collision");
 
-    game.setActiveScene("scene1");
 
-    window.components = c;
+    var startPrompt = new alien.Entity(),
+        startText   = new c.text_renderable({
+            text: 'Click here to begin',
+            fill: 'rgba(255,255,255,1)',
+            stroke: 'rgba(255,255,255,1)',
+            font: "32px monospace",
+            align: 'center'
+        }),
+        startPos    = new c.position({
+            x: 256,
+            y: 256
+        }),
+        startListener = new c.menu_listener(),
+        startCollidable = new c.aabb_collidable({
+            half_width: 256,
+            half_height: 256
+        });
+
+    game.registerComponent(startText, "renderable");
+    game.registerComponent(startPos, "position");
+    game.registerComponent(startListener, "listener");
+    game.registerComponent(startCollidable, "collidable");
+    startPrompt.addComponent(startText.flag, startText);
+    startPrompt.addComponent(startPos.flag, startPos);
+    startPrompt.addComponent(startListener.flag, startListener);
+    startPrompt.addComponent(startCollidable.flag, startCollidable);
+
+    game.addSystem(s.start_menu_system, "input");
+
+    var startScene = new alien.Scene({
+        entities: [startPrompt]
+    });
+
+    game.addScene(startScene, "start");
+    game.setActiveScene("start");
+
+
+    game.run();
 });

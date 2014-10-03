@@ -31,6 +31,8 @@ define(['lodash'], function (_) {
         this.input = null;
         this.renderTarget = null;
 
+        this.goTo = null;
+
         options = options || {};
 
         this.entities = options.entities || [];

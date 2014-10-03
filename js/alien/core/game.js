@@ -194,6 +194,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          * @param {string} name     the identifier of the scene
          */
         addScene: function (scene, name) {
+            var g = this;
             if (!name) {
                 throw new Error('Scene must have a name');
             } else {
@@ -209,6 +210,12 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
                     if (!scene.renderTarget) {
                         scene.renderTarget = this.ctx;
                     }
+
+                    scene.goTo = function (destination) {
+                        scene.reset();
+                        g.setActiveScene(destination);
+                    };
+
                     this.scenes[name] = scene;
                 }
             }
