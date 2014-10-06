@@ -512,4 +512,240 @@ define(['alien/alien', 'core/input', 'lodash'], function (alien, InputManager, _
             expect(caller.calls.count()).toEqual(expected_num);
         });
     });
+
+    describe('alien.Math operation', function () {
+        it('should create a 2D vector', function () {
+            var vec        = alien.Math.vec2(5, 4),
+                empty_vec  = alien.Math.vec2(),
+                object_vec = alien.Math.vec2({
+                    x: 3,
+                    y: 2
+                });
+
+            expect(vec.x).toBe(5);
+            expect(vec.y).toBe(4);
+            expect(empty_vec.x).toBe(0);
+            expect(empty_vec.y).toBe(0);
+            expect(object_vec.x).toBe(3);
+            expect(object_vec.y).toBe(2);
+        });
+
+        it('should create a 3D vector', function () {
+            var vec        = alien.Math.vec3(3,1,2),
+                empty_vec  = alien.Math.vec3(),
+                object_vec = alien.Math.vec3({
+                    x: 4,
+                    y: 6,
+                    z: 5
+                });
+
+            expect(vec.x).toBe(3);
+            expect(vec.y).toBe(1);
+            expect(vec.z).toBe(2);
+            expect(empty_vec.x).toBe(0);
+            expect(empty_vec.y).toBe(0);
+            expect(empty_vec.z).toBe(0);
+            expect(object_vec.x).toBe(4);
+            expect(object_vec.y).toBe(6);
+            expect(object_vec.z).toBe(5);
+        });
+
+        it('should complain if the parameters are wrong', function () {
+            expect(function () {
+                var vec = alien.Math.vec2('x', 'y');
+            }).toThrowError('Invalid parameters');
+
+            expect(function () {
+                var vec = alien.Math.vec3('x', 'y', 'z');
+            }).toThrowError('Invalid parameters');
+        });
+
+        it('should identify 2D vectors', function () {
+            var vec = alien.Math.vec2(5,5),
+                no_vec = 9;
+            expect(alien.Math.isVec2(vec)).toBeTruthy();
+            expect(alien.Math.isVec2(no_vec)).toBeFalsy();
+        });
+
+        it('should identify 3D vectors', function () {
+            var vec = alien.Math.vec3(5,5,5),
+                no_vec = 9;
+            expect(alien.Math.isVec3(vec)).toBeTruthy();
+            expect(alien.Math.isVec3(no_vec)).toBeFalsy();
+        });
+
+        it('should equate equivalent vectors', function () {
+            var v1 = alien.Math.vec2(2,3),
+                v2 = alien.Math.vec2(2,3),
+                v3 = alien.Math.vec3(1,2,3),
+                v4 = alien.Math.vec3(1,2,3);
+
+            expect(alien.Math.equal(v1, v2)).toBeTruthy();
+            expect(alien.Math.equal(v1, v3)).toBeFalsy();
+            expect(alien.Math.equal(v3, v4)).toBeTruthy();
+            expect(alien.Math.equal(v2, v4)).toBeFalsy();
+        });
+
+        it('should add vectors', function () {
+            var v1       = alien.Math.vec2(1,2),
+                v2       = alien.Math.vec2(3,4),
+                result2d = alien.Math.vec2(4,6),
+
+                v3       = alien.Math.vec3(1,2,3),
+                v4       = alien.Math.vec3(4,5,6),
+                result3d = alien.Math.vec3(5,7,9);
+
+            expect(alien.Math.equal(alien.Math.add(v1, v2), result2d)).toBeTruthy();
+            expect(alien.Math.equal(alien.Math.add(v3, v4), result3d)).toBeTruthy();
+        });
+
+        it('should subtract vectors', function () {
+            var v1       = alien.Math.vec2(1,2),
+                v2       = alien.Math.vec2(3,4),
+                result2d = alien.Math.vec2(2,2),
+
+                v3       = alien.Math.vec3(1,2,3),
+                v4       = alien.Math.vec3(4,5,6),
+                result3d = alien.Math.vec3(3,3,3);
+
+            expect(alien.Math.equal(alien.Math.sub(v2, v1), result2d)).toBeTruthy();
+            expect(alien.Math.equal(alien.Math.sub(v4, v3), result3d)).toBeTruthy();
+        });
+
+        it('should multiply vectors and scalars', function () {
+            var v1       = alien.Math.vec2(3,4),
+                s1       = 3,
+                result2d = alien.Math.vec2(9,12),
+
+                v2       = alien.Math.vec3(3,4,5),
+                s2       = 4,
+                result3d = alien.Math.vec3(12, 16, 20);
+
+            expect(alien.Math.equal(alien.Math.mul(v1, s1), result2d)).toBeTruthy();
+            expect(alien.Math.equal(alien.Math.mul(v2, s2), result3d)).toBeTruthy();
+        });
+
+        it('should divide scalars into vectors', function () {
+            var v1       = alien.Math.vec2(8,4),
+                s1       = 2,
+                result2d = alien.Math.vec2(4,2),
+
+                v2       = alien.Math.vec2(8,4,2),
+                s2       = 2,
+                result3d = alien.Math.vec2(4,2,1);
+
+            expect(alien.Math.equal(alien.Math.div(v1, s1), result2d)).toBeTruthy();
+            expect(alien.Math.equal(alien.Math.div(v2, s2), result3d)).toBeTruthy();
+        });
+
+        it('should produce dot products', function () {
+            var v1 = alien.Math.vec2(3,4),
+                v2 = alien.Math.vec2(-3,-4);
+
+            expect(alien.Math.dot(v1, v2)).toEqual(-25);
+        });
+
+        it('should rotate vectors', function () {
+            var v1        = alien.Math.vec2(3, 4),
+                angle1    = Math.PI / 2,
+                rotated2d = alien.Math.vec2(-4, 3),
+
+                v2        = alien.Math.vec3(3, 4, 5),
+                angle2    = Math.PI / 2,
+                axis1      = alien.Math.vec3(1,0,0),
+                rotated3d = alien.Math.vec3(3,-5,4),
+
+                v3          = alien.Math.vec3(3, 4, 0),
+                angle3      = Math.PI / 2,
+                axis2       = alien.Math.vec3(0,0,1),
+                rotated3d_2 = alien.Math.vec3(-4, 3, 0);
+
+            expect(alien.Math.equal(alien.Math.rotate(v1, angle1), rotated2d)).toBeTruthy();
+            expect(alien.Math.equal(alien.Math.rotate(v2, angle2, axis1), rotated3d)).toBeTruthy();
+            expect(alien.Math.equal(alien.Math.rotate(v3, angle3, axis2), rotated3d_2)).toBeTruthy();
+        });
+
+        it('should calculate squared magnitude', function () {
+            var v1 = alien.Math.vec2(3,4),
+                m1 = 25,
+
+                v2 = alien.Math.vec3(3,4,5),
+                m2 = 50;
+
+            expect(alien.Math.magSquared(v1)).toEqual(m1);
+            expect(alien.Math.magSquared(v2)).toEqual(m2);
+        });
+
+        it('should calculate actual magnitude', function () {
+            var v1 = alien.Math.vec2(3,4),
+                m1 = 5,
+
+                v2 = alien.Math.vec3(3,4,5),
+                m2 = Math.sqrt(50);
+
+            expect(alien.Math.mag(v1)).toEqual(m1);
+            expect(alien.Math.mag(v2)).toEqual(m2);
+        });
+
+        it('should unitize non-unit vectors', function () {
+            var v1      = alien.Math.vec2(5, 0),
+                result1 = alien.Math.vec2(1, 0),
+
+                v2      = alien.Math.vec3(0, 4, 0),
+                result2 = alien.Math.vec3(0, 1, 0);
+
+            expect(alien.Math.equal(alien.Math.unt(v1), result1)).toBeTruthy();
+            expect(alien.Math.equal(alien.Math.unt(v2), result2)).toBeTruthy();
+        });
+
+        it('should compute a cross product', function () {
+            var v1      = alien.Math.vec2(3, 4),
+                v2      = alien.Math.vec2(2, 3),
+                result1 = 1,
+
+                v3      = alien.Math.vec3(3, 4, 0),
+                v4      = alien.Math.vec3(2, 3, 0),
+                result2 = alien.Math.vec3(0, 0, 1);
+
+            expect(alien.Math.cross(v1, v2)).toEqual(result1);
+            expect(alien.Math.equal(alien.Math.cross(v3, v4), result2)).toBeTruthy();
+        });
+
+        it('should produce a scalar projection of one vector onto another', function () {
+            var v1 = alien.Math.vec2(3, 3),
+                v2 = alien.Math.vec2(0, 5),
+
+                v3 = alien.Math.vec3(3, 4, 3),
+                v4 = alien.Math.vec3(0, 0, 5);
+
+            expect(alien.Math.scalarProject(v1, v2)).toEqual(3);
+            expect(alien.Math.scalarProject(v3, v4)).toEqual(3);
+        });
+
+        it('should produce a vector projection of one vector onto another', function () {
+            var v1      = alien.Math.vec2(3, 4),
+                v2      = alien.Math.vec2(0, 5),
+                result1 = alien.Math.vec2(0, 4),
+
+                v3      = alien.Math.vec3(3, 4, 5),
+                v4      = alien.Math.vec3(0, 0, 5),
+                result2 = alien.Math.vec3(0, 0, 5);
+
+            expect(alien.Math.equal(alien.Math.vectorProject(v1, v2), result1)).toBeTruthy();
+            expect(alien.Math.equal(alien.Math.vectorProject(v3, v4), result2)).toBeTruthy();
+        });
+
+        it('should produce a corresponding vector rejection', function () {
+            var v1      = alien.Math.vec2(3, 4),
+                v2      = alien.Math.vec2(0, 5),
+                result1 = alien.Math.vec2(3, 0),
+
+                v3      = alien.Math.vec3(3, 4, 5),
+                v4      = alien.Math.vec3(0, 0, 5),
+                result2 = alien.Math.vec3(3, 4, 0);
+
+            expect(alien.Math.equal(alien.Math.vectorReject(v1, v2), result1)).toBeTruthy();
+            expect(alien.Math.equal(alien.Math.vectorReject(v3, v4), result2)).toBeTruthy();
+        });
+    });
 });
