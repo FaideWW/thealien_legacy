@@ -192,7 +192,8 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
             track: game.__state,
             text: function () { return this.track.points; },
             fill: "rgba(255, 255, 255, 1)",
-            font: "32px monospace"
+            font: "32px monospace",
+            align: "center"
         }),
         n_pos   = new c.position({
             x: window.game.ctx.canvas.width / 2,

@@ -338,14 +338,17 @@ define([], function () {
             }
         }()),
         CollisionDetectionSystem = (function () {
+
+            // TODO: project ball trajectory to determine speculative collisions with paddles at high velocity
+
             var _flags = null,
                 lock   = 0,
                 scene_width = 0,
                 scene_height = 0,
-                spin_scalar  = 5,
+                spin_scalar  = 10,
 
                 // returns a collision manifold from the perspective of collidable1
-                betterAABBTest = function (pos1, pos2, aabb1, aabb2) {
+                AABBTest = function (pos1, pos2, aabb1, aabb2) {
                     var aabb_sum = {
                             half_width: aabb1.half_width + aabb2.half_width,
                             half_height: aabb1.half_height + aabb2.half_height
@@ -412,7 +415,7 @@ define([], function () {
 
 
                         if (collidable1.type === "aabb" && collidable2.type === "aabb") {
-                            collision_manifold = betterAABBTest(position1, position2, collidable1, collidable2);
+                            collision_manifold = AABBTest(position1, position2, collidable1, collidable2);
 
                             if (collision_manifold.x > 0 && collision_manifold.y > 0) {
                                 if (collision_manifold.x < collision_manifold.y) {
