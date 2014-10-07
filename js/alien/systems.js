@@ -638,6 +638,7 @@ define([], function () {
                                 // reset score
                                 scene.gameState.points = 0;
                                 entity.reset();
+                                console.log('resetting');
                                 new_angle = Math.random() * Math.PI * 2;
                                 velocity.x = Math.cos(new_angle) * scene.gameState.INITIAL_BALL_VELOCITY;
                                 velocity.y = Math.sin(new_angle) * scene.gameState.INITIAL_BALL_VELOCITY;

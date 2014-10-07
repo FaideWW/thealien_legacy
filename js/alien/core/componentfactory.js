@@ -7,29 +7,43 @@ define(['lodash'], function (_) {
              *    UUID generator from https://gist.github.com/gordonbrander/2230317
              */
             return Math.random().toString(36).substr(2, 9);
-    },
+        },
         component_cache     = {},
         component_templates = {},
-        gameRegistry            = null,
+        game                = null,
+        deferred_components = [],
         reset = function () {
             var prop;
+            console.groupCollapsed('resetting', this.__name, 'on', this.__entity.__id);
+            console.log(component_cache);
             if (component_cache[this.__id]) {
                 for (prop in component_cache[this.__id]) {
-                    if (component_cache[this.__id].hasOwnProperty(prop) && prop !== '__id') {
+                    if (component_cache[this.__id].hasOwnProperty(prop) && prop !== '__id' && prop !== '__flag') {
+                        console.log('setting', prop, 'to', component_cache[this.__id][prop], ' (was', this[prop] + ')');
                         this[prop] = component_cache[this.__id][prop];
                     }
                 }
             }
+            console.groupEnd();
         };
 
     return {
-        init: function (registry) {
-            gameRegistry = registry;
-            // clear the cache and template storage
-            component_cache = {};
-            component_templates = {};
+        init: function (g) {
+            game = g;
+            deferred_components.forEach(function (c) {
+                console.log('resolving component flag', c);
+                c.__flag =
+                    (game._componentFlags[c.__name]) ?
+                        game._componentFlags[c.__name] :
+                        game.registerComponent(null, c.__name);
+                if (c.__entity) {
+                    c.__entity.key |= c.__flag;
+                    c.__entity.components[c.__flag] = c;
+                }
+            }, this);
+            deferred_components = [];
         },
-        defineComponent: function (name, defaults, override) {
+        defineComponentTemplate: function (name, defaults, override) {
             var prop;
             if (component_templates.hasOwnProperty(name) && !override) {
                 throw new Error('Component', name, 'has an existing template');
@@ -42,12 +56,6 @@ define(['lodash'], function (_) {
                     component_templates[name][prop] = _.cloneDeep(defaults[prop]);
                 }
             }
-
-            component_templates[name].__flag =
-                (gameRegistry._componentFlags[name]) ?
-                    gameRegistry._componentFlags[name] :
-                    gameRegistry.registerComponent(null, name);
-
             return component_templates[name];
         },
         createComponent: function (name, attrs) {
@@ -58,30 +66,59 @@ define(['lodash'], function (_) {
                         if (prop in component) {
                             return (
                                 (typeof component[prop] === 'function' && prop !== '__reset') ?
-                                    component[prop]() :
+                                    component[prop]((game ? game.__state : {})) :
                                     component[prop]
                                 );
                         }
                     }
-                };
+                },
+                proxied_component;
 
             if (!component_templates.hasOwnProperty(name)) {
-                this.defineComponent(name, attrs);
+                this.defineComponentTemplate(name, component);
             } else {
                 component = _.defaults(component, component_templates[name]);
             }
             // override mandatory properties `__id`, `__flag`, and `__reset`
             component.__name  = name;
             component.__id    = id();
-            component.__flag  = component_templates[name].__flag;
+
             // since we are no longer using `new` to define components, we need to manually bind the reset
             //  execution context to the component object
             component.__reset = reset.bind(component);
 
+
+            /*
+                seal the component in a Proxy (function attributes can no longer be fetched as functions)
+
+                the component must be sealed AFTER the `__reset` partial is bound  (to preserve function attributes),
+                      but BEFORE `__flag` is set because `__flag` can be deferred but has to be resolved
+                      on the final object (the Proxy)
+
+             */
+            proxied_component = new Proxy(component, proxy_handler);
+
+
+            if (game) {
+                proxied_component.__flag  =
+                    (game._componentFlags[name]) ?
+                        game._componentFlags[name] :
+                        game.registerComponent(null, name);
+            } else {
+                console.log('deferring component registration');
+                proxied_component.__flag = 0;
+                deferred_components.push(proxied_component);
+            }
+
             component_cache[component.__id] = _.cloneDeep(component);
 
-            // seal the component in a Proxy (function attributes can no longer be fetched as functions)
-            return new Proxy(component, proxy_handler);
+            return proxied_component;
+        },
+        reset: function () {
+            //clear templates and component cache
+            component_cache = {};
+            component_templates = {};
+            deferred_components = [];
         }
     };
 

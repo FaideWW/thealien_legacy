@@ -16,44 +16,10 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
     var INITIAL_BALL_V = 100,
         init_angle = Math.random() * Math.PI * 2,
         cf = alien.ComponentFactory;
-    window.game = new alien.Game({
-        canvas: "gameCanvas",
-        state: {
-            points: 0,
-            reset: false,
-            INITIAL_BALL_VELOCITY: INITIAL_BALL_V
-        },
-        loopphases: [
-            "input",
-            "event",
-            "physics",
-            "collision",
-            "render"
-        ],
-        systems: {
-            input: [
-                s.control_system,
-                s.start_menu_system
-            ],
-            physics: [
-                s.bounce_system,
-                s.impulse_system,
-                s.physics_system
-            ],
-            collision: [
-                s.collision_system,
-                s.pong_boundary_system
-            ],
-            render: [
-                s.render_system
-
-            ]
-        }
-    });
 
     // define defaults for some components
 
-    cf.defineComponent('collidable', {
+    cf.defineComponentTemplate('collidable', {
         collidedX: false,
         collidedY: false,
         collision_data: {}
@@ -206,15 +172,14 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
         score = new alien.Entity({
             renderable: {
                 type: "text",
-                track: game.__state,
-                text: function () { return this.track.points; },
+                text: function (state) { return state.points; },
                 fill: "rgba(255, 255, 255, 1)",
                 font: "32px monospace",
                 align: "center"
             },
             position: {
-                x: window.game.ctx.canvas.width / 2,
-                y: window.game.ctx.canvas.height / 2
+                x: 256,
+                y: 256
             }
         }),
         startPrompt = new alien.Entity({
@@ -239,6 +204,42 @@ requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien,
 
     window.scene1 = new alien.Scene({
         entities: [left_paddle, right_paddle, ball, top_paddle, bottom_paddle, score]
+    });
+
+
+    window.game = new alien.Game({
+        canvas: "gameCanvas",
+        state: {
+            points: 0,
+            reset: false,
+            INITIAL_BALL_VELOCITY: INITIAL_BALL_V
+        },
+        loopphases: [
+            "input",
+            "event",
+            "physics",
+            "collision",
+            "render"
+        ],
+        systems: {
+            input: [
+                s.control_system,
+                s.start_menu_system
+            ],
+            physics: [
+                s.bounce_system,
+                s.impulse_system,
+                s.physics_system
+            ],
+            collision: [
+                s.collision_system,
+                s.pong_boundary_system
+            ],
+            render: [
+                s.render_system
+
+            ]
+        }
     });
 
     game.addScene(window.scene1, "scene1");

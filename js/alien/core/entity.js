@@ -38,8 +38,11 @@ define(['lodash', 'core/componentfactory'], function (_, cf) {
         if (typeof options === 'object') {
             _.each(options, function (c, i) {
                 var component = cf.createComponent(i, c);
+                //backreference, for deferred key resolution
+                component.__entity = this;
                 // syntactic sugar
                 this[i] = component;
+
                 this.key |= component.__flag;
                 this.components[component.__flag] = component;
             }, this);
