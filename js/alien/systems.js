@@ -251,7 +251,8 @@ define([], function () {
                 spin: function (entity, angular_v, dir) {
                     if (!(_flags.controller && entity.components[_flags.controller]) &&
                         (_flags.spin && entity.components[_flags.spin])) {
-                        entity.components[_flags.spin].angular_v = (angular_v * dir);
+                        entity.components[_flags.spin].angular_v *= 0.5;
+                        entity.components[_flags.spin].angular_v += (angular_v * dir);
                     }
                 }
             }
