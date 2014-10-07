@@ -3,14 +3,12 @@
  */
 'use strict';
 
-define([], function () {
+define(['lodash', 'core/componentfactory'], function (_, cf) {
 
     /**
      * TODO: remove this when components are defined
      * @typedef {Object} Component
      */
-
-
 
     /**
      * Creates an Entity instance. An Entity is a collection of
@@ -36,6 +34,16 @@ define([], function () {
         this.key = 0;
         /** @type {Array<Component>} */
         this.components = [];
+
+        if (typeof options === 'object') {
+            _.each(options, function (c, i) {
+                var component = cf.createComponent(i, c);
+                // syntactic sugar
+                this[i] = component;
+                this.key |= component.__flag;
+                this.components[component.__flag] = component;
+            }, this);
+        }
     }
 
     Entity.prototype = {
@@ -72,7 +80,7 @@ define([], function () {
             var i;
             for (i = 0; i < this.components.length; i += 1) {
                 if (this.components[i]) {
-                    this.components[i].reset();
+                    this.components[i].__reset();
                 }
             }
         }

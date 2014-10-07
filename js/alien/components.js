@@ -51,7 +51,7 @@ define([], function () {
 
 
                 options = options || {};
-                this.type   = "square";
+                this.type   = "rect";
                 this.half_width  = options.half_width  || 25;
                 this.half_height = options.half_height || 25;
                 this.fill        = options.fill   || null;
@@ -155,7 +155,6 @@ define([], function () {
                 this.type = "aabb";
                 this.collidedX = false;
                 this.collidedY = false;
-                this.collided  = false;
 
                 this.collision_data = {};
 

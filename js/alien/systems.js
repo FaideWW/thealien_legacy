@@ -126,7 +126,7 @@ define([], function () {
 
                             render_target.save();
                             switch (entity.components[_flags.renderable].type) {
-                                case "square":
+                                case "rect":
                                     drawRect(entity);
                                     break;
                                 case "text":

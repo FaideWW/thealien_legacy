@@ -1,6 +1,6 @@
 'use strict';
 
-define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
+define(['core/input', 'core/messenger', 'core/componentfactory', 'lodash'], function (InputManager, Messenger, CF, _) {
 
     /**
      * TODO: remove these when they're implemented for real
@@ -119,7 +119,17 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
 
         // load loopphases from options
         if (options.loopphases && options.loopphases.length) {
-            this._loopphases = options.loopphases;
+            options.loopphases.forEach(function (loopphase, i) {
+                this.addLoopphase(i, loopphase);
+            }, this)
+        }
+
+        if (options.systems) {
+            _.each(options.systems, function (system_list, loopphase) {
+                system_list.forEach(function (sys) {
+                    this.addSystem(sys, loopphase);
+                }, this);
+            }, this);
         }
 
         if (options.state) {
@@ -129,6 +139,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
 
         // init input manager
         InputManager.init(this.ctx.canvas);
+        CF.init(this);
 
     }
 
@@ -153,8 +164,10 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
             this._componentFlags[componentName] = this._currentComponentBit;
             this._currentComponentBit = this._currentComponentBit << 1;
 
-            //set the flag on the component (this is the only reason we need the component as a parameter)
-            component.flag = this._componentFlags[componentName];
+            if (component) {
+                //set the flag on the component (this is the only reason we need the component as a parameter)
+                component.flag = this._componentFlags[componentName];
+            }
 
             return this._componentFlags[componentName];
         },
@@ -166,7 +179,7 @@ define(['core/input', 'core/messenger'], function (InputManager, Messenger) {
          */
         addSystem: function(system, loopphase) {
             if (!this.systems.hasOwnProperty(loopphase) || this._loopphases.indexOf(loopphase) === -1) {
-                throw new Error("Loopphase does not exist");
+                throw new Error("Loopphase " + loopphase + " does not exist");
             }
             this.__uninitialized_systems = true;
             system.__initialized = false;
