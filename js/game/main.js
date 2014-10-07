@@ -12,7 +12,7 @@ requirejs.config({
     }
 });
 
-requirejs(['alien/alien', 'alien/components', 'alien/systems'], function (alien, c, s) {
+requirejs(['alien/alien', 'alien/systems'], function (alien, s) {
     var INITIAL_BALL_V = 100,
         init_angle = Math.random() * Math.PI * 2,
         cf = alien.ComponentFactory;

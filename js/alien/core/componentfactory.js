@@ -14,24 +14,19 @@ define(['lodash'], function (_) {
         deferred_components = [],
         reset = function () {
             var prop;
-            console.groupCollapsed('resetting', this.__name, 'on', this.__entity.__id);
-            console.log(component_cache);
             if (component_cache[this.__id]) {
                 for (prop in component_cache[this.__id]) {
                     if (component_cache[this.__id].hasOwnProperty(prop) && prop !== '__id' && prop !== '__flag') {
-                        console.log('setting', prop, 'to', component_cache[this.__id][prop], ' (was', this[prop] + ')');
                         this[prop] = component_cache[this.__id][prop];
                     }
                 }
             }
-            console.groupEnd();
         };
 
     return {
         init: function (g) {
             game = g;
             deferred_components.forEach(function (c) {
-                console.log('resolving component flag', c);
                 c.__flag =
                     (game._componentFlags[c.__name]) ?
                         game._componentFlags[c.__name] :
@@ -105,7 +100,6 @@ define(['lodash'], function (_) {
                         game._componentFlags[name] :
                         game.registerComponent(null, name);
             } else {
-                console.log('deferring component registration');
                 proxied_component.__flag = 0;
                 deferred_components.push(proxied_component);
             }
