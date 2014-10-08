@@ -3,6 +3,8 @@
  */
 
 // TODO: resolve bullet-through-paper effect at high ball velocities
+// TODO: in the future, implement system indexing or some priority sorting
+// TODO: consider possible ways to preserve the Proxy object when using math library shortcuts
 
 
 'use strict';
@@ -10,9 +12,8 @@
 define(['core/math'], function (math) {
     return function (game) {
         /*
-            Order is imperative here; systems are sorted within their loopphases in the order they are declared
+         Order is imperative here; systems are sorted within their loopphases in the order they are declared
 
-            TODO: in the future, implement system indexing or some priority sorting
          */
 
         // Paddle Control
@@ -72,8 +73,7 @@ define(['core/math'], function (math) {
                     position[controller.direction] = mouse[controller.direction];
                 }
 
-                velocity.x = (position.x - last_pos.x);
-                velocity.y = (position.y - last_pos.y);
+                entity.velocity = math.sub(position, last_pos);
 
             }, this.__lock, this);
         }, {
@@ -83,11 +83,10 @@ define(['core/math'], function (math) {
         // Start Screen
         game.defineSystem('input', function (flags) {
             return flags.renderable | flags.position | flags.listener | flags.collidable;
-        }, function (scene, dt) {
+        }, function (scene) {
             // poll input
             scene.each(function () {
                 if (scene.input.mouse) {
-                    console.log('go next');
                     scene.goTo('play');
                 }
             }, this.__lock)
@@ -129,8 +128,7 @@ define(['core/math'], function (math) {
 
 
                 if ((collidable.collidedX || collidable.collidedY) && collidable.collision_data.velocity) {
-                    velocity.x += collidable.collision_data.velocity.x;
-                    velocity.y += collidable.collision_data.velocity.y;
+                    entity.velocity = math.add(velocity, collidable.collision_data.velocity);
                 }
             }, this.__lock, this);
         });
@@ -148,15 +146,16 @@ define(['core/math'], function (math) {
                     velocity = entity.velocity;
 
                 if (!(entity.controller)) {
-                    position.x += velocity.x * (dt / 1000);
-                    position.y += velocity.y * (dt / 1000);
+                    entity.position = math.add(position, math.mul(velocity, dt / 1000));
+//                    position.x += velocity.x * (dt / 1000);
+//                    position.y += velocity.y * (dt / 1000);
 
                     if (entity.acceleration) {
-                        velocity.x += entity.acceleration.x * (dt / 1000);
-                        velocity.y += entity.acceleration.y * (dt / 1000);
+                        entity.velocity = math.add(velocity, math.mul(entity.acceleration, dt / 1000));
+//                        velocity.x += entity.acceleration.x * (dt / 1000);
+//                        velocity.y += entity.acceleration.y * (dt / 1000);
 
-//                                entity.components[_flags.acceleration].y *= 0.99;
-//                                entity.components[_flags.acceleration].x *= 0.99;
+//                        entity.acceleration = math.mul(entity.acceleration, 0.99);
                     }
 
                     if (entity.spin && entity.rotation) {
@@ -171,18 +170,18 @@ define(['core/math'], function (math) {
             shift: function (entity, vector) {
                 // if the entity is being controlled, don't shift it
                 if (!(entity.controller)) {
-                    entity.position.x += vector.x;
-                    entity.position.y += vector.y;
+                    entity.position = math.add(entity.position, vector);
                 }
             },
             accelerate: function (entity, accel, abs) {
                 if (!(entity.controller) && (entity.acceleration)) {
                     if (abs) {
-                        entity.acceleration.x = 0;
-                        entity.acceleration.y = 0;
+                        entity.acceleration = math.vec2();
                     }
-                    entity.acceleration.x += accel.x;
-                    entity.acceleration.y += accel.y;
+
+                    entity.acceleration = math.add(entity.acceleration, accel);
+//                    entity.acceleration.x += accel.x;
+//                    entity.acceleration.y += accel.y;
                 }
             },
             spin: function (entity, angular_v, dir) {
@@ -211,45 +210,42 @@ define(['core/math'], function (math) {
                     if (collision_manifold.x > 0 && collision_manifold.y > 0) {
                         if (collision_manifold.x < collision_manifold.y) {
                             if (position1.x < position2.x) {
-                                collidable1.manifold = { x: -1, y: 0 };
-                                collidable2.manifold = { x: 1, y: 0  };
+                                collidable1.manifold = math.vec2(-1, 0);
+                                collidable2.manifold = math.vec2(1, 0);
                                 // position1 shifts left, position2 shifts right
-                                this.doShift(scene, entity1, { x: -collision_manifold.x, y: 0 });
-                                this.doShift(scene, entity2, { x: collision_manifold.x, y: 0 });
+                                this.doShift(scene, entity1, math.vec2(-collision_manifold.x, 0));
+                                this.doShift(scene, entity2, math.vec2( collision_manifold.x, 0));
 
                                 if (entity1.velocity && entity2.velocity) {
-                                    this.applySpin(scene, entity1, {
-                                        x: -entity2.velocity.x,
-                                        y: -entity2.velocity.y
-                                    }, -1);
-                                    this.applySpin(scene, entity2, {
-                                        x: -entity1.velocity.x,
-                                        y: -entity1.velocity.y
-                                    }, 1);
-
+                                    this.applySpin(scene, entity1, math.vec2(
+                                        -entity2.velocity.x,
+                                        -entity2.velocity.y
+                                    ), -1);
+                                    this.applySpin(scene, entity2, math.vec2(
+                                        -entity1.velocity.x,
+                                        -entity1.velocity.y
+                                    ), 1);
                                 }
-
-
 
                                 collidable1.collidedX = true;
                                 collidable2.collidedX = true;
 
                             } else {
-                                collidable1.manifold = { x: 1, y: 0  };
-                                collidable2.manifold = { x: -1, y: 0 };
+                                collidable1.manifold = math.vec2( 1, 0);
+                                collidable2.manifold = math.vec2(-1, 0);
                                 // position1 shifts right, position2 shifts left
-                                this.doShift(scene, entity1, { x: collision_manifold.x, y: 0 });
-                                this.doShift(scene, entity2, { x: -collision_manifold.x, y: 0 });
+                                this.doShift(scene, entity1, math.vec2( collision_manifold.x, 0));
+                                this.doShift(scene, entity2, math.vec2(-collision_manifold.x, 0));
 
                                 if (entity1.velocity && entity2.velocity) {
-                                    this.applySpin(scene, entity1, {
-                                        x: -entity2.velocity.x,
-                                        y: -entity2.velocity.y
-                                    }, 1);
-                                    this.applySpin(scene, entity2, {
-                                        x: -entity1.velocity.x,
-                                        y: -entity1.velocity.y
-                                    }, -1);
+                                    this.applySpin(scene, entity1, math.vec2(
+                                        -entity2.velocity.x,
+                                        -entity2.velocity.y
+                                    ), 1);
+                                    this.applySpin(scene, entity2, math.vec2(
+                                        -entity1.velocity.x,
+                                        -entity1.velocity.y
+                                    ), -1);
 
                                 }
 
@@ -258,42 +254,42 @@ define(['core/math'], function (math) {
                             }
                         } else {
                             if (position1.y < position2.y) {
-                                collidable1.manifold = { x: 0, y: -1 };
-                                collidable2.manifold = { x: 0, y: 1  };
+                                collidable1.manifold = math.vec2(0, -1);
+                                collidable2.manifold = math.vec2(0,  1);
                                 // position1 shifts up, position2 shifts down
-                                this.doShift(scene, entity1, { x: 0, y: -collision_manifold.y });
-                                this.doShift(scene, entity2, { x: 0, y: collision_manifold.y });
+                                this.doShift(scene, entity1, math.vec2(0, -collision_manifold.y));
+                                this.doShift(scene, entity2, math.vec2(0,  collision_manifold.y));
 
                                 if (entity1.velocity && entity2.velocity) {
-                                    this.applySpin(scene, entity1, {
-                                        x: -entity2.velocity.x,
-                                        y: -entity2.velocity.y
-                                    }, 1);
-                                    this.applySpin(scene, entity2, {
-                                        x: -entity1.velocity.x,
-                                        y: -entity1.velocity.y
-                                    }, -1);
+                                    this.applySpin(scene, entity1, math.vec2(
+                                        -entity2.velocity.x,
+                                        -entity2.velocity.y
+                                    ), 1);
+                                    this.applySpin(scene, entity2, math.vec2(
+                                        -entity1.velocity.x,
+                                        -entity1.velocity.y
+                                    ), -1);
 
                                 }
 
                                 collidable1.collidedY = true;
                                 collidable2.collidedY = true;
                             } else {
-                                collidable1.manifold = { x: 0, y: 1  };
-                                collidable2.manifold = { x: 0, y: -1 };
+                                collidable1.manifold = math.vec2(0,  1);
+                                collidable2.manifold = math.vec2(0, -1);
                                 // position1 shifts down, position2 shifts up
-                                this.doShift(scene, entity1, { x: 0, y: collision_manifold.y });
-                                this.doShift(scene, entity2, { x: 0, y: -collision_manifold.y });
+                                this.doShift(scene, entity1, math.vec2(0,  collision_manifold.y));
+                                this.doShift(scene, entity2, math.vec2(0, -collision_manifold.y));
 
                                 if (entity1.velocity && entity2.velocity) {
-                                    this.applySpin(scene, entity1, {
-                                        x: -entity2.velocity.x,
-                                        y: -entity2.velocity.y
-                                    }, -1);
-                                    this.applySpin(scene, entity2, {
-                                        x: -entity1.velocity.x,
-                                        y: -entity1.velocity.y
-                                    }, 1);
+                                    this.applySpin(scene, entity1, math.vec2(
+                                        -entity2.velocity.x,
+                                        -entity2.velocity.y
+                                    ), -1);
+                                    this.applySpin(scene, entity2, math.vec2(
+                                        -entity1.velocity.x,
+                                        -entity1.velocity.y
+                                    ), 1);
 
                                 }
 
@@ -310,26 +306,16 @@ define(['core/math'], function (math) {
                         half_width: aabb1.half_width + aabb2.half_width,
                         half_height: aabb1.half_height + aabb2.half_height
                     },
-                    relative_pos = {
-                        x: pos2.x - pos1.x,
-                        y: pos2.y - pos1.y
-                    },
-                    collision_manifold = {};
+                    relative_pos = math.vec2(
+                            pos2.x - pos1.x,
+                            pos2.y - pos1.y
+                    );
 
-                // find closest point and return the difference to it
-                if (relative_pos.x < 0) {
-                    collision_manifold.x = aabb_sum.half_width + relative_pos.x;
-                } else {
-                    collision_manifold.x = aabb_sum.half_width - relative_pos.x;
-                }
+                return math.vec2(
+                        aabb_sum.half_width  + ((relative_pos.x < 0) ? relative_pos.x : -relative_pos.x),
+                        aabb_sum.half_height + ((relative_pos.y < 0) ? relative_pos.y : -relative_pos.y)
+                );
 
-                if (relative_pos.y < 0) {
-                    collision_manifold.y = aabb_sum.half_height + relative_pos.y;
-                } else {
-                    collision_manifold.y = aabb_sum.half_height - relative_pos.y;
-                }
-
-                return collision_manifold;
 
             },
             doShift: function (scene, e, v) {
@@ -341,10 +327,7 @@ define(['core/math'], function (math) {
                 var spin_scalar = 5;
                 scene.msg.enqueue('physics', function () {
                     var spin_v = (v.x + v.y) * spin_scalar;
-                    this.accelerate(e, {
-                        x: v.x * spin_scalar,
-                        y: v.y * spin_scalar
-                    }, true);
+                    this.accelerate(e, math.mul(v, spin_scalar), true);
                     this.spin(e, spin_v, dir)
                 })
             }
@@ -372,7 +355,6 @@ define(['core/math'], function (math) {
                         // reset score
                         scene.gameState.points = 0;
                         entity.reset();
-                        console.log('resetting');
                         new_angle = Math.random() * Math.PI * 2;
                         velocity.x = Math.cos(new_angle) * scene.gameState.INITIAL_BALL_VELOCITY;
                         velocity.y = Math.sin(new_angle) * scene.gameState.INITIAL_BALL_VELOCITY;
@@ -384,8 +366,6 @@ define(['core/math'], function (math) {
 
             }, this.__lock, this);
         });
-
-
 
         // Rendering
         game.defineSystem("render", function (flags) {
@@ -427,10 +407,16 @@ define(['core/math'], function (math) {
                     world_pos;
                 if (render_target) {
 
-                    world_pos = {
-                        x: position.x + ((translation) ? translation.x : 0),
-                        y: position.y + ((translation) ? translation.y : 0)
-                    };
+                    // we want a value copy, not a reference copy
+                    world_pos = math.vec2(position);
+
+                    if (translation) {
+                        world_pos = math.add(world_pos, translation);
+                    }
+//                    world_pos = {
+//                        x: position.x + ((translation) ? translation.x : 0),
+//                        y: position.y + ((translation) ? translation.y : 0)
+//                    };
 
                     if (entity.rotation) {
                         render_target.translate(world_pos.x, world_pos.y);
@@ -461,10 +447,13 @@ define(['core/math'], function (math) {
                     world_pos;
 
                 if (render_target) {
-                    world_pos = {
-                        x: position.x + ((translation) ? translation.x : 0),
-                        y: position.y + ((translation) ? translation.y : 0)
-                    };
+
+                    // we want a value copy, not a reference copy
+                    world_pos = math.vec2(position);
+
+                    if (translation) {
+                        world_pos = math.add(world_pos, translation);
+                    }
 
                     if (entity.rotation) {
                         render_target.translate(world_pos.x, world_pos.y);

@@ -2,11 +2,11 @@
  * Created by faide on 14-10-06.
  */
 define(['lodash'], function (_) {
-    var id = function () {
+    var idhash = function () {
             /** @type {string}
              *    UUID generator from https://gist.github.com/gordonbrander/2230317
              */
-            return "component_" + Math.random().toString(36).substr(2, 9);
+            return Math.random().toString(36).substr(2, 9);
         },
         component_cache     = {},
         component_templates = {},
@@ -32,8 +32,7 @@ define(['lodash'], function (_) {
                             g._componentFlags[c.__name] :
                             g.registerComponent(null, c.__name);
                     if (c.__entity) {
-                        c.__entity.key |= c.__flag;
-                        c.__entity.components[c.__flag] = c;
+                        c.__entity.__resolveDeferredComponent(c);
                     }
                 }, this);
                 deferred_components = [];
@@ -79,7 +78,7 @@ define(['lodash'], function (_) {
             }
             // override mandatory properties `__id`, `__flag`, and `__reset`
             component.__name  = name;
-            component.__id    = id();
+            component.__id    = '' + name + '_' + idhash();
 
             // since we are no longer using `new` to define components, we need to manually bind the reset
             //  execution context to the component object
