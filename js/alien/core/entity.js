@@ -29,7 +29,7 @@ define(['lodash', 'core/componentfactory'], function (_, cf) {
         /** @type {string}
          *    UUID generator from https://gist.github.com/gordonbrander/2230317
          */
-        this.id = Math.random().toString(36).substr(2, 9);
+        this.id = "entity_" + Math.random().toString(36).substr(2, 9);
         /** @type {number} */
         this.key = 0;
         /** @type {Array<Component>} */

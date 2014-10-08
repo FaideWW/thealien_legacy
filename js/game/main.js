@@ -12,7 +12,7 @@ requirejs.config({
     }
 });
 
-requirejs(['alien/alien', 'alien/systems'], function (alien, s) {
+requirejs(['alien/alien', 'game/systems'], function (alien, s) {
     var INITIAL_BALL_V = 100,
         init_angle = Math.random() * Math.PI * 2,
         cf = alien.ComponentFactory;
@@ -220,26 +220,7 @@ requirejs(['alien/alien', 'alien/systems'], function (alien, s) {
             "physics",
             "collision",
             "render"
-        ],
-        systems: {
-            input: [
-                s.control_system,
-                s.start_menu_system
-            ],
-            physics: [
-                s.bounce_system,
-                s.impulse_system,
-                s.physics_system
-            ],
-            collision: [
-                s.collision_system,
-                s.pong_boundary_system
-            ],
-            render: [
-                s.render_system
-
-            ]
-        }
+        ]
     });
 
     game.addScene(window.scene1, "scene1");
@@ -252,7 +233,30 @@ requirejs(['alien/alien', 'alien/systems'], function (alien, s) {
     game.setActiveScene("start");
 
 
+//    StartMenuSystem = (function () {
+//        var _flags = null,
+//            lock   = 0;
+//        return {
+//            init: function (scene, flags) {
+//                _flags = flags;
+//                if (_flags.renderable && _flags.position && _flags.listener && _flags.collidable) {
+//                    lock |= _flags.renderable;
+//                    lock |= _flags.position;
+//                    lock |= _flags.listener;
+//                    lock |= _flags.collidable;
+//                } else {
+//                    throw new Error('Required components not registered');
+//                }
+//            },
+//            step: function (scene) {
+//            }
+//        }
+//    }())
+
+    s(game);
+
     game.run();
+
 
     window.alien = alien;
 });

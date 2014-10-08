@@ -6,7 +6,7 @@ define(['lodash'], function (_) {
             /** @type {string}
              *    UUID generator from https://gist.github.com/gordonbrander/2230317
              */
-            return Math.random().toString(36).substr(2, 9);
+            return "component_" + Math.random().toString(36).substr(2, 9);
         },
         component_cache     = {},
         component_templates = {},
@@ -25,18 +25,21 @@ define(['lodash'], function (_) {
 
     return {
         init: function (g) {
+            if (!game) {
+                deferred_components.forEach(function (c) {
+                    c.__flag =
+                        (g._componentFlags[c.__name]) ?
+                            g._componentFlags[c.__name] :
+                            g.registerComponent(null, c.__name);
+                    if (c.__entity) {
+                        c.__entity.key |= c.__flag;
+                        c.__entity.components[c.__flag] = c;
+                    }
+                }, this);
+                deferred_components = [];
+            }
+
             game = g;
-            deferred_components.forEach(function (c) {
-                c.__flag =
-                    (game._componentFlags[c.__name]) ?
-                        game._componentFlags[c.__name] :
-                        game.registerComponent(null, c.__name);
-                if (c.__entity) {
-                    c.__entity.key |= c.__flag;
-                    c.__entity.components[c.__flag] = c;
-                }
-            }, this);
-            deferred_components = [];
         },
         defineComponentTemplate: function (name, defaults, override) {
             var prop;

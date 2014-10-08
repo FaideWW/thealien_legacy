@@ -1,6 +1,6 @@
 'use strict';
 
-define(['core/input', 'core/messenger', 'core/componentfactory', 'lodash'], function (InputManager, Messenger, CF, _) {
+define(['core/input', 'core/messenger', 'core/componentfactory', 'core/systemfactory', 'lodash'], function (InputManager, Messenger, CF, SF, _) {
 
     /**
      * TODO: remove these when they're implemented for real
@@ -140,6 +140,9 @@ define(['core/input', 'core/messenger', 'core/componentfactory', 'lodash'], func
         // init input manager
         InputManager.init(this.ctx.canvas);
         CF.init(this);
+        SF.init(this);
+
+        this.defineSystem = SF.defineSystem;
 
     }
 
@@ -177,12 +180,16 @@ define(['core/input', 'core/messenger', 'core/componentfactory', 'lodash'], func
          * @param {System} system      the system to execute
          * @param {string} loopphase   the phase of the game loop where the system should be called
          */
-        addSystem: function(system, loopphase) {
+        addSystem: function(system, loopphase, __bypass) {
             if (!this.systems.hasOwnProperty(loopphase) || this._loopphases.indexOf(loopphase) === -1) {
                 throw new Error("Loopphase " + loopphase + " does not exist");
             }
-            this.__uninitialized_systems = true;
-            system.__initialized = false;
+            if (!__bypass) {
+                this.__uninitialized_systems = true;
+                system.__initialized = false;
+            } else {
+                system.__initialized = true;
+            }
             this.systems[loopphase].push(system);
         },
 
