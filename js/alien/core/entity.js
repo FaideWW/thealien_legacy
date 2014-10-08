@@ -17,7 +17,7 @@ define(['lodash', 'core/componentfactory'], function (_, cf) {
      * when systems filter out Entities that do not contain the requisite
      * components, using their key to identify what components they contain.
      *
-     * @param {Object} options
+     * @param {Object|Object.<string,Component>} options
      * @returns {Entity}
      * @constructor
      */
@@ -38,7 +38,7 @@ define(['lodash', 'core/componentfactory'], function (_, cf) {
         if (typeof options === 'object') {
             _.each(options, function (c, i) {
                 var component = cf.createComponent(i, c);
-                //backreference, for deferred key resolution
+                //back-reference, for deferred key resolution
                 component.__entity = this;
                 // syntactic sugar
                 this[i] = component;

@@ -88,7 +88,7 @@ define(['core/math'], function (math) {
             scene.each(function () {
                 if (scene.input.mouse) {
                     console.log('go next');
-                    scene.goTo("scene1");
+                    scene.goTo('play');
                 }
             }, this.__lock)
         });
