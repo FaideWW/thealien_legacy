@@ -4,6 +4,19 @@
 'use strict';
 
 define(['lodash', 'core/componentfactory'], function (_, cf) {
+    /**
+     * Prevents accidental overwrite of component references.
+     *  Intercepts property assignments and passes them through
+     *  into the component itself
+     *
+     *  entity.position = math.vec2(5,5)    ->     let temp_v        = math.vec2(5,5)
+     *                                             entity.position.x = temp_v.x
+     *                                             entity.position.y = temp_v.y
+     *
+     * @param {Entity} entity
+     * @param {string} name
+     * @param {number} flag
+     */
     var proxifyComponent = function (entity, name, flag) {
         Object.defineProperty(entity, name, {
             get: function () {
