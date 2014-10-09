@@ -47,7 +47,15 @@ define(['lodash'], function (_) {
         };
     }
 
+    /*
+        Array-like iteration methods that operate on the key-lock mechanism for managing component dependencies
+     */
     Scene.prototype = {
+        all: function (lock) {
+            return this.entities.filter(function (e) {
+                return ((e.key & lock) === lock);
+            })
+        },
         each: function (callback, lock, thisArg) {
             var i, entity;
             for (i = 0; i < this.entities.length; i += 1) {
@@ -56,6 +64,17 @@ define(['lodash'], function (_) {
                     callback.call(thisArg, entity);
                 }
             }
+        },
+
+        map: function (callback, lock, thisArg) {
+            var i, entity, array = [];
+            for (i = 0; i < this.entities.length; i += 1) {
+                entity = this.entities[i];
+                if ((entity.key & lock) === lock) {
+                    array.push(callback.call(thisArg, entity));
+                }
+            }
+            return array;
         },
 
         pairs: function (callback, lock, thisArg) {

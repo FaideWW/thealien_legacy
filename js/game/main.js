@@ -12,7 +12,7 @@ requirejs.config({
     }
 });
 
-requirejs(['alien/alien', 'game/systems'], function (alien, systems) {
+requirejs(['alien/alien', 'game/systems', 'game/collision'], function (alien, systems, collision) {
     var INITIAL_BALL_V = 100,
         init_angle = Math.random() * Math.PI * 2,
         cf = alien.ComponentFactory,
@@ -241,6 +241,7 @@ requirejs(['alien/alien', 'game/systems'], function (alien, systems) {
     game.setActiveScene("start");
 
     // declare and initialize systems
+    collision(game);
     systems(game);
 
     game.run();

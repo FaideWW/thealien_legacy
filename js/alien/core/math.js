@@ -37,7 +37,7 @@ define([], function () {
                 };
             }
 
-            throw new Error('Invalid parameters');
+            throw new Error('Invalid parameters (' + x + ',' + y + ')');
         },
 
         isVec2: function (v) {
@@ -65,7 +65,7 @@ define([], function () {
                 };
             }
 
-            throw new Error('Invalid parameters');
+            throw new Error('Invalid parameters (' + x + ',' + y + ')');
         },
 
         isVec3: function (v) {

@@ -6,7 +6,7 @@ define(['lodash'], function (_) {
             /** @type {string}
              *    UUID generator from https://gist.github.com/gordonbrander/2230317
              */
-            return "component_" + Math.random().toString(36).substr(2, 9);
+            return "system_" + Math.random().toString(36).substr(2, 9);
         },
         game = null;
 
