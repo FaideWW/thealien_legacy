@@ -21,7 +21,6 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                                 && 0.001 >= manifold.manifold.unt().dot(this.movable.velocity.unt())) {
                             PhysicsSystem.ground(this);
                             this.movable.jumping = false;
-                            console.log('is on ground');
                         } else {
                             console.group('colliding, but not with ground');
                             console.log('manifold', manifold.manifold.unt());
@@ -52,6 +51,7 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
                 /* Fetch messages */
                 var entities = scene.getAllWithAllOf(['movable', 'position']);
                 Messaging.fetch('physics');
+
                 _.each(entities, function (e) {
                     var m = e.movable;
                     if (0 !== m.velocity.y) {
@@ -60,6 +60,10 @@ define(['underscore', 'alien/utilities/math', 'alien/logging', 'alien/systems/ev
 
                     if (e.camera) {
                         e.camera.position = this.performCameraDynamics(e, dt);
+                        if (e.camera.range) {
+                            e.camera.position.x = Math.max(Math.min(e.camera.position.x, e.camera.range.max.x), e.camera.range.min.x);
+                            e.camera.position.y = Math.max(Math.min(e.camera.position.y, e.camera.range.max.y), e.camera.range.min.y);
+                        }
                     }
 
                     m.velocity = m.velocity.add(this.interpolatedVector(m.acceleration, dt));

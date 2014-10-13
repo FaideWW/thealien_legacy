@@ -34,9 +34,12 @@ define(['underscore', 'alien/systems/messaging', 'alien/logging'], function (_, 
                     new_animation = false;
                 if (!active) {
                     this.setAnimation(entity, entity.animatable.defaultAnimation);
+                    animation = entity.animatable.animations[entity.animatable.activeAnimation]
                     new_animation = true;
                 } else if (active !== animation) {
                     this.setAnimation(entity, active.id);
+
+                    animation = entity.animatable.animations[entity.animatable.activeAnimation]
                     new_animation = true;
                 } else {
                     animation.timeSince += dt;
