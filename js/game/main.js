@@ -172,6 +172,8 @@ requirejs(['alien/alien', 'game/systems', 'game/collision'], function (alien, sy
             reaction:    "bounce"
         },
         velocity: {
+            //x: 0,
+            //y: -1300
             x: Math.cos(init_angle) * INITIAL_BALL_V,
             y: Math.sin(init_angle) * INITIAL_BALL_V
         },
@@ -222,8 +224,8 @@ requirejs(['alien/alien', 'game/systems', 'game/collision'], function (alien, sy
         loopphases: [
             "input",
             "event",
-            "physics",
             "collision",
+            "physics",
             "render"
         ]
     });
@@ -246,6 +248,25 @@ requirejs(['alien/alien', 'game/systems', 'game/collision'], function (alien, sy
 
     game.run();
 
+    document.getElementById('play').addEventListener('mousedown', function (e) {
+        game.run();
+    });
+    document.getElementById('pause').addEventListener('mousedown', function (e) {
+        game.stop();
+    });
+    document.getElementById('step').addEventListener('mousedown', function (e) {
+        game.__step(16);
+    });
+
+    window.addEventListener('keydown', function (key) {
+        if (key.keyCode === 68) {
+            game.__step(16);
+        }
+        if (key.keyCode === 65) {
+            console.log('back');
+            game.__step(-16);
+        }
+    });
 
     window.alien = alien;
     window.game  = game;

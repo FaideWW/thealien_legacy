@@ -73,6 +73,7 @@ define(['core/math'], function (math) {
                 }
 
                 entity.velocity = math.sub(position, last_pos);
+                //console.log(entity.velocity);
 
             }, this.__lock, this);
         }, {
@@ -100,14 +101,14 @@ define(['core/math'], function (math) {
                     velocity = entity.velocity;
 
                 if ((collidable.collidedX || collidable.collidedY) && collidable.reaction === "bounce") {
-                    if (math.dot(collidable.manifold, math.unt(velocity)) < 0) {
+                    if (!collidable.manifold || math.dot(collidable.manifold, math.unt(velocity)) < 0) {
+                            // determine if the collision is already being resolved
                         if (collidable.collidedX) {
                             velocity.x *= -1.1;
                             collidable.collidedX = false;
                         }
 
                         if (collidable.collidedY) {
-                            // determine if the collision is already being resolved
                             velocity.y *= -1.1;
                             collidable.collidedY = false;
                         }
@@ -145,9 +146,14 @@ define(['core/math'], function (math) {
                     velocity = entity.velocity;
 
                 if (!(entity.controller)) {
-                    entity.position = math.add(position, math.mul(velocity, dt / 1000));
+                    if (!entity.velocity.skipStep) {
+                        entity.position = math.add(position, math.mul(velocity, dt / 1000));
 //                    position.x += velocity.x * (dt / 1000);
 //                    position.y += velocity.y * (dt / 1000);
+                    } else {
+                        entity.velocity.skipStep = false;
+                    }
+
 
                     if (entity.acceleration) {
                         entity.velocity = math.add(velocity, math.mul(entity.acceleration, dt / 1000));
@@ -213,6 +219,9 @@ define(['core/math'], function (math) {
                         scene.gameState.points = 0;
                         entity.reset();
                         new_angle = Math.random() * Math.PI * 2;
+
+                        //velocity.x = 0;
+                        //velocity.y = -1300;
                         velocity.x = Math.cos(new_angle) * scene.gameState.INITIAL_BALL_VELOCITY;
                         velocity.y = Math.sin(new_angle) * scene.gameState.INITIAL_BALL_VELOCITY;
                     } else {
@@ -291,7 +300,7 @@ define(['core/math'], function (math) {
 
                     render_target.beginPath();
                     render_target.rect(-renderable.half_width, -renderable.half_height,
-                            renderable.half_width * 2, renderable.half_height * 2);
+                        renderable.half_width * 2, renderable.half_height * 2);
                     render_target.fill();
                     render_target.stroke();
                 }

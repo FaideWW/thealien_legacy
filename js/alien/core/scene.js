@@ -71,7 +71,7 @@ define(['lodash'], function (_) {
             for (i = 0; i < this.entities.length; i += 1) {
                 entity = this.entities[i];
                 if ((entity.key & lock) === lock) {
-                    array.push(callback.call(thisArg, entity));
+                    array.push(callback.call(thisArg, entity, i));
                 }
             }
             return array;

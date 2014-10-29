@@ -280,7 +280,7 @@ define(['core/input', 'core/messenger', 'core/componentfactory', 'core/systemfac
          * @param {number} time     the timestamp of the last step() call
          */
         step: function(time) {
-            var currTime, game, dt, i, j, l, m;
+            var currTime, game, dt;
 
             currTime = time;
             game = this;
@@ -300,24 +300,28 @@ define(['core/input', 'core/messenger', 'core/componentfactory', 'core/systemfac
 
                 dt = currTime - time;
 
-                InputManager.processInput();
-
-
-                if (dt > 0) {
-                    l = this._loopphases.length;
-                    for (i = 0; i < l; i += 1) {
-                        m = this.systems[this._loopphases[i]].length;
-                        for (j = 0; j < m; j += 1) {
-                            if (this.systems[this._loopphases[i]][j].__initialized) {
-                                this.systems[this._loopphases[i]][j].step(this.activeScene, dt);
-                            }
-                        }
-                    }
-                }
+                this.__step(dt);
             }
 
             if (this.__running) {
                 nextFrame(this.step.bind(game, currTime));
+            }
+        },
+        __step: function (dt) {
+            var i, j, l, m;
+            InputManager.processInput();
+
+
+            if (dt !== 0) {
+                l = this._loopphases.length;
+                for (i = 0; i < l; i += 1) {
+                    m = this.systems[this._loopphases[i]].length;
+                    for (j = 0; j < m; j += 1) {
+                        if (this.systems[this._loopphases[i]][j].__initialized) {
+                            this.systems[this._loopphases[i]][j].step(this.activeScene, dt);
+                        }
+                    }
+                }
             }
         },
 

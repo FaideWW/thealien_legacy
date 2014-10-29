@@ -1,7 +1,7 @@
 /**
  * Created by faide on 14-10-05.
  */
-define([], function () {
+define(['lodash'], function (_) {
     /**
      * Most vector operations will accept 2d and 3d vector arguments
      *
@@ -30,10 +30,10 @@ define([], function () {
                 };
             }
 
-            if (x === undefined && y === undefined) {
+            if (x === undefined || y === undefined) {
                 return {
-                    x: 0,
-                    y: 0
+                    x: x || 0,
+                    y: y || 0
                 };
             }
 
@@ -41,10 +41,17 @@ define([], function () {
         },
 
         isVec2: function (v) {
-            return (!(isNaN(v.x) || isNaN(v.y)));
+            return (v && !(isNaN(v.x) || isNaN(v.y)));
         },
 
         vec3: function (x, y, z) {
+            if (this.isVec2(x)) {
+                return {
+                    x: x.x,
+                    y: x.y,
+                    z: 0
+                };
+            }
             if (typeof x === 'object' && !(isNaN(x.x) || isNaN(x.y) || isNaN(x.z))) {
                 return x;
             }
@@ -53,15 +60,15 @@ define([], function () {
                 return {
                     x: x,
                     y: y,
-                    z: z
+                    z: z || 0
                 }
             }
 
-            if (x === undefined && y === undefined && z === undefined) {
+            if (x === undefined || y === undefined || z === undefined) {
                 return {
-                    x: 0,
-                    y: 0,
-                    z: 0
+                    x: x || 0,
+                    y: y || 0,
+                    z: z || 0
                 };
             }
 
@@ -69,17 +76,49 @@ define([], function () {
         },
 
         isVec3: function (v) {
-            return (!(isNaN(v.x) || isNaN(v.y) || isNaN(v.z)));
+            return (v && !(isNaN(v.x) || isNaN(v.y) || isNaN(v.z)));
         },
 
+        polygon: function (points) {
+            if (this.isPolygon(points)) {
+                return {
+                    points: points.points
+                };
+            }
+
+            if (points) {
+                if (points.points) {
+                    return {
+                        points: points.points
+                    };
+                }
+                if (points.length) {
+                    return {
+                        points: points
+                    }
+                } else if (arguments.length > 1) {
+                    return {
+                        points: Array.prototype.slice.call(arguments, 0)
+                    };
+                }
+            }
+
+            return {
+                points: []
+            };
+
+        },
+        isPolygon: function (p) {
+            return (p && p.points && p.points.length && _.every(p.points, function (point) { return this.isVec2(point); }, this));
+        },
         equal: function (v1, v2) {
             if (this.isVec3(v1) && this.isVec3(v2)) {
                 return (v1.x === v2.x &&
-                        v1.y === v2.y &&
-                        v1.z === v2.z);
+                v1.y === v2.y &&
+                v1.z === v2.z);
             } else if (this.isVec2(v1) && this.isVec2(v2)) {
                 return (v1.x === v2.x &&
-                    v1.y === v2.y);
+                v1.y === v2.y);
             } else {
                 return false;
             }
@@ -136,12 +175,12 @@ define([], function () {
         dot: function (v1, v2) {
             if (this.isVec3(v1) && this.isVec3(v2)) {
                 return v1.x * v2.x +
-                       v1.y * v2.y +
-                       v1.z * v2.z;
+                    v1.y * v2.y +
+                    v1.z * v2.z;
             }
 
             return v1.x * v2.x +
-                   v1.y * v2.y;
+                v1.y * v2.y;
         },
 
         rotate: function (v, rads, axis) {
@@ -169,12 +208,12 @@ define([], function () {
         magSquared: function (v) {
             if (this.isVec3(v)) {
                 return v.x * v.x +
-                       v.y * v.y +
-                       v.z * v.z;
+                    v.y * v.y +
+                    v.z * v.z;
             }
 
             return v.x * v.x +
-                   v.y * v.y;
+                v.y * v.y;
         },
 
         mag: function (v) {
@@ -233,6 +272,166 @@ define([], function () {
              * returns v1'' = v1 - v1'
              */
             return this.sub(v1, this.vectorProject(v1, v2));
+        },
+
+        /**
+         Returns the scalar parameters t and u where there exists an
+         intersection between <p, p + r> and <q, q + s>:
+
+         p + (t)r = q + (u)s
+
+         or (-1, -1) if the lines are parallel/colinear.
+
+         note that an intersection only exists if 0 <= t <= 1 and 0 <= u <= 1
+         */
+        lineIntersection: function (p, q, p_plus_r, q_plus_s) {
+            // t = ((q - p) x s) / (r x s)
+            var r = this.sub(p_plus_r, p),
+                s = this.sub(q_plus_s, q),
+                q_minus_p = this.sub(q, p),
+                r_cross_s = this.cross(r, s),
+                q_minus_p_cross_s = this.cross( q_minus_p, s),
+                q_minus_p_cross_r = this.cross( q_minus_p, r),
+
+                t = q_minus_p_cross_s / r_cross_s,
+                u = q_minus_p_cross_r / r_cross_s;
+
+            if (r_cross_s === 0) {
+                // lines are either colinear or parallel, discard
+                t = -1;
+                u = -1;
+            }
+
+            return {
+                t: t,
+                u: u
+            };
+        },
+        /**
+         * Simpler version of the ray cast algorithm
+         */
+        pointInPolygon: function (polygon, position, point) {
+            point = point || this.vec2();
+            var raycast = this.rayCast(polygon, (this.sub(position, point)));
+
+            return raycast.count % 2 === 1;
+        },
+
+        /**
+         * Returns the number of times a ray (beginning from the origin), or -1 if the polygon is invalid
+         * @param polygon
+         * @param position
+         * @param ray
+         */
+        rayCast: function (polygon, position, ray, rayOrigin) {
+            var points, max_x, r, r0, count = -1, i, l, edge, intersection, point, t;
+
+            if (this.isPolygon(polygon) && this.isVec2(position)) {
+
+
+                points = polygon.points;
+                l = points.length;
+
+                max_x = position.x + _.max(polygon.points, function (p) { return p.x; }).x;
+                r = (this.isVec2(ray)) ? ray : this.vec2(max_x + 1, 0);
+                r0 = (this.isVec2(rayOrigin)) ? rayOrigin : this.vec2();
+
+                count    = 0;
+                t        = Infinity;
+                point    = this.vec2();
+
+                for (i = 0; i < l; i += 1) {
+                    edge = {
+                        source: this.add(position, points[i]),
+                        dest:   this.add(position, points[(i + 1) % l])
+                    };
+
+                    intersection = this.lineIntersection(r0, edge.source, r, edge.dest);
+
+                    // we use the asymmetric non-inclusive range (0,1] because of cases where a ray intersecting
+                    // exactly with a vertex would cause edges on both sides of the vertex to register
+                    // an intersection.  this solves it by discarding results that match the case where
+                    // t = 0 and then t = 1 immediately afterwards. may require better solution later
+                    if (intersection.t > 0 && intersection.t <= 1 &&
+                        intersection.u > 0 && intersection.u <= 1) {
+                        count += 1;
+
+                        if (intersection.t < t) {
+                            t     = intersection.t;
+                            point = this.mul(r, t);
+                        }
+
+                    }
+                }
+
+            } else {
+                console.error('Invalid polygon');
+            }
+
+            return {
+                count: count,
+                t:     t,
+                point: point
+            };
+
+        },
+
+        // returns a separating vector (magnitude can be calculated if necessary)
+        pointLineDistance: function (line, point) {
+            var lensq = this.magSquared(this.sub(line.dest, line.source)),
+                t, projection;
+
+            point = point || this.vec2();
+
+            if (lensq === 0) {
+                // line.dest === line.source
+                return this.sub(line.source, point);
+            }
+
+            t = this.dot(this.sub(point, line.source), this.sub(line.dest, line.source)) / lensq;
+
+            if (t < 0) {
+                return this.sub(line.source, point);
+            } else if (t > 1) {
+                return this.sub(line.dest, point);
+            }
+
+            projection = this.add(line.source, this.mul(this.sub(line.dest, line.source), t));
+            return this.sub(projection, point);
+        },
+
+        pointPolyDistance: function (poly, position, point) {
+            var points, edge, i, l, separationVector, separationDistSq, minimumVector, minimumDistSq;
+
+            if (this.isPolygon(poly)) {
+                if (this.pointInPolygon(poly, position, point)) {
+                    console.error('point inside polygon');
+                    return;
+                }
+                point = point || this.vec2();
+                point = this.sub(point, position);
+                points = poly.points;
+                l = points.length;
+
+
+                for (i = 0; i < l; i += 1) {
+                    edge = {
+                        source: points[i],
+                        dest:   points[(i + 1) % l]
+                    };
+
+                    separationVector = this.pointLineDistance(edge, point);
+                    separationDistSq = this.magSquared(separationVector);
+
+                    if (!minimumDistSq || minimumDistSq > separationDistSq) {
+                        minimumDistSq = separationDistSq;
+                        minimumVector = separationVector;
+                    }
+
+                }
+
+                return minimumVector;
+            }
         }
 
 
