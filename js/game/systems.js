@@ -8,7 +8,7 @@
 
 'use strict';
 
-define(['core/math'], function (math) {
+define(['lodash', 'core/math'], function (_, math) {
     return function (game) {
         /*
          Order is imperative here; systems are sorted within their loopphases in the order they are declared
@@ -102,7 +102,7 @@ define(['core/math'], function (math) {
 
                 if ((collidable.collidedX || collidable.collidedY) && collidable.reaction === "bounce") {
                     if (!collidable.manifold || math.dot(collidable.manifold, math.unt(velocity)) < 0) {
-                            // determine if the collision is already being resolved
+                        // determine if the collision is already being resolved
                         if (collidable.collidedX) {
                             velocity.x *= -1.1;
                             collidable.collidedX = false;
@@ -154,6 +154,8 @@ define(['core/math'], function (math) {
                         entity.velocity.skipStep = false;
                     }
 
+                    entity.velocity.x = Math.min(entity.velocity.x, scene.gameState.MAX_BALL_VELOCITY);
+                    entity.velocity.y = Math.min(entity.velocity.y, scene.gameState.MAX_BALL_VELOCITY);
 
                     if (entity.acceleration) {
                         entity.velocity = math.add(velocity, math.mul(entity.acceleration, dt / 1000));
@@ -175,6 +177,7 @@ define(['core/math'], function (math) {
             shift: function (entity, vector) {
                 // if the entity is being controlled, don't shift it
                 if (!(entity.controller)) {
+
                     entity.position = math.add(entity.position, vector);
                 }
             },
@@ -205,12 +208,36 @@ define(['core/math'], function (math) {
                     velocity = entity.velocity,
                     position = entity.position,
                     type = entity.type,
+                    minX, minY, maxX, maxY, new_angle = 0, i, l;
 
-                    minY = collidable.half_height,
-                    maxY = scene.renderTarget.canvas.height - collidable.half_height,
-                    minX = collidable.half_width,
-                    maxX = scene.renderTarget.canvas.width - collidable.half_width,
-                    new_angle = 0;
+
+                if (collidable.type === 'aabb') {
+                    minY = collidable.half_height;
+                    maxY = scene.renderTarget.canvas.height - collidable.half_height;
+                    minX = collidable.half_width;
+                    maxX = scene.renderTarget.canvas.width - collidable.half_width;
+                } else if (collidable.type === 'obb') {
+                    l = collidable.points.length;
+                    for (i = 0; i < l; i += 1) {
+                        if (!minX || collidable.points[i].x < minX) {
+                            minX = collidable.points[i].x;
+                        }
+
+                        if (!maxX || collidable.points[i].x > maxX) {
+                            maxX = collidable.points[i].x;
+                        }
+
+                        if (!minY || collidable.points[i].y < minY) {
+                            minY = collidable.points[i].y;
+                        }
+
+                        if (!maxY || collidable.points[i].y > maxY) {
+                            maxY = collidable.points[i].y;
+                        }
+                        maxX = scene.renderTarget.canvas.width  - maxX;
+                        maxY = scene.renderTarget.canvas.height - maxY;
+                    }
+                }
 
                 if (type.type === "ball") {
 

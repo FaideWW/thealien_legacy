@@ -14,6 +14,7 @@ requirejs.config({
 
 requirejs(['alien/alien', 'game/systems', 'game/collision'], function (alien, systems, collision) {
     var INITIAL_BALL_V = 100,
+        MAX_V          = Infinity,
         init_angle = Math.random() * Math.PI * 2,
         cf = alien.ComponentFactory,
         left_paddle,
@@ -172,10 +173,10 @@ requirejs(['alien/alien', 'game/systems', 'game/collision'], function (alien, sy
             reaction:    "bounce"
         },
         velocity: {
-            //x: 0,
-            //y: -1300
-            x: Math.cos(init_angle) * INITIAL_BALL_V,
-            y: Math.sin(init_angle) * INITIAL_BALL_V
+            x: 300,
+            y: 0
+            //x: Math.cos(init_angle) * INITIAL_BALL_V,
+            //y: Math.sin(init_angle) * INITIAL_BALL_V
         },
         type: {
             type: "ball"
@@ -219,7 +220,8 @@ requirejs(['alien/alien', 'game/systems', 'game/collision'], function (alien, sy
         state: {
             points: 0,
             reset: false,
-            INITIAL_BALL_VELOCITY: INITIAL_BALL_V
+            INITIAL_BALL_VELOCITY: INITIAL_BALL_V,
+            MAX_BALL_VELOCITY:     MAX_V
         },
         loopphases: [
             "input",
@@ -259,6 +261,9 @@ requirejs(['alien/alien', 'game/systems', 'game/collision'], function (alien, sy
     });
 
     window.addEventListener('keydown', function (key) {
+        if (key.keyCode === 32) {
+            game.stop();
+        }
         if (key.keyCode === 68) {
             game.__step(16);
         }

@@ -218,6 +218,7 @@ define(['lodash', 'core/math'], function (_, math) {
         },
         doShift = function (scene, e, v) {
             scene.msg.enqueue('physics', function () {
+
                 this.shift(e, v);
             })
         },
@@ -228,6 +229,23 @@ define(['lodash', 'core/math'], function (_, math) {
                 this.accelerate(e, math.mul(v, spin_scalar), true);
                 this.spin(e, spin_v, dir)
             })
+        },
+        constructMinkowski = function (entity1, entity2) {
+            var minkowskiDiff = {
+                position: math.sub(entity2.position, entity1.position),
+                collidable: {
+                    half_width:  entity1.collidable.half_width  + entity2.collidable.half_width,
+                    half_height: entity1.collidable.half_height + entity2.collidable.half_height
+                }
+            };
+
+            minkowskiDiff.polygon = math.polygon([
+                { x: -minkowskiDiff.collidable.half_width, y: -minkowskiDiff.collidable.half_height },
+                { x:  minkowskiDiff.collidable.half_width, y: -minkowskiDiff.collidable.half_height },
+                { x:  minkowskiDiff.collidable.half_width, y:  minkowskiDiff.collidable.half_height },
+                { x: -minkowskiDiff.collidable.half_width, y:  minkowskiDiff.collidable.half_height }
+            ]);
+            return minkowskiDiff;
         };
 
     return function(game) {
@@ -406,14 +424,17 @@ define(['lodash', 'core/math'], function (_, math) {
                     var entity_pairs = [];
                     this._entity_quadtree.retrieve(e).forEach(function (match) {
                         if (match !== e) {
+                            /** potential performance gain: eliminate duplicate pairs with the entities swapped */
                             entity_pairs.push([e, match]);
                         }
                     });
                     return entity_pairs;
                 }, this), true);
+                window.pairs = pairs;
 
+                // TODO: implement speculative contacts [in progress]
 
-                // TODO: implement speculative contacts
+                // TODO: OBB implementation
 
 
                 pairs.forEach(function (pair) {
@@ -422,52 +443,47 @@ define(['lodash', 'core/math'], function (_, math) {
                     var entity1 = pair[0].__e,
                         entity2 = pair[1].__e,
 
-                        minkowskiDiff, minkowskiPoly, velocity, distance;
+                        minkowskiDiff, velocity, distance;
 
                     if (!(entity1.velocity && entity2.velocity)) {
                         return;
                     }
 
                     // as a rule, the entity with the higher velocity will be resolved
-                    if ((entity2.velocity && !entity1.velocity) ||
-                        (entity2.velocity && math.magSquared(entity1.velocity) < math.magSquared(entity2.velocity))) {
-                        entity1 = pair[1].__e;
-                        entity2 = pair[0].__e;
-                    }
+                    //if ((entity2.velocity && !entity1.velocity) ||
+                    //    (entity2.velocity && math.magSquared(entity1.velocity) < math.magSquared(entity2.velocity))) {
+                    //    entity1 = pair[1].__e;
+                    //    entity2 = pair[0].__e;
+                    //}
 
-                    minkowskiDiff = {
-                        position: math.sub(entity2.position, entity1.position),
-                        collidable: {
-                            half_width:  entity1.collidable.half_width  + entity2.collidable.half_width,
-                            half_height: entity1.collidable.half_height + entity2.collidable.half_height
-                        }
-                    };
+                    minkowskiDiff = this.constructMinkowski(entity1, entity2);
 
-                    minkowskiPoly = math.polygon([
-                        { x: -minkowskiDiff.collidable.half_width, y: -minkowskiDiff.collidable.half_height },
-                        { x:  minkowskiDiff.collidable.half_width, y: -minkowskiDiff.collidable.half_height },
-                        { x:  minkowskiDiff.collidable.half_width, y:  minkowskiDiff.collidable.half_height },
-                        { x: -minkowskiDiff.collidable.half_width, y:  minkowskiDiff.collidable.half_height }
-                    ]);
                     velocity = math.mul(entity1.velocity, (dt / 1000));
-                    distance = math.rayCast(minkowskiPoly, minkowskiDiff.position, velocity);
+                    distance = math.rayCast(minkowskiDiff.polygon, minkowskiDiff.position, velocity);
 
 
                     if (distance.t >= 0 && distance.t <= 1) {
 
-                        this.doShift(scene, entity1, math.mul(velocity, distance.t));
 
                         // minimum translational distance is the shortest vector from the origin to the minkowski polygon
-                        var separatingVector = math.pointPolyDistance(minkowskiPoly, minkowskiDiff.position);
+                        var separatingVector = math.pointPolyDistance(minkowskiDiff.polygon, minkowskiDiff.position);
 
                         if (!separatingVector) {
+                            //debugger;
                             // the entities are already colliding (supposedly)
                             discreteCollision.call(this, entity1, entity2);
 
                         } else {
+                            //console.group('continuous collision');
+                            //console.log('e1', entity1);
+                            //console.log('e2', entity2);
+                            //console.log(separatingVector);
+                            this.doShift(scene, entity1, math.mul(velocity, distance.t));
                             if (separatingVector.x !== 0) {
+                                //console.log('collide x');
                                 entity1.collidable.collidedX = true;
                             } else if (separatingVector.y !== 0) {
+                                //console.log('collide y');
                                 entity1.collidable.collidedY = true;
                             }
 
@@ -478,6 +494,7 @@ define(['lodash', 'core/math'], function (_, math) {
                             // skip one physics step to preserve the simulation
                             entity1.velocity.skipStep = true;
                             //console.groupEnd();
+
 
                         }
 
@@ -492,6 +509,7 @@ define(['lodash', 'core/math'], function (_, math) {
             AABBTest: AABBTest,
             doShift: doShift,
             applySpin: applySpin,
+            constructMinkowski: constructMinkowski,
             genQT: generateQuadTree
         });
     };
