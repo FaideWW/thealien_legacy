@@ -167,6 +167,9 @@ define(['lodash', 'core/math'], function (_, math) {
 
                     if (entity.spin && entity.rotation) {
                         entity.rotation.angle += entity.spin.angular_v * (dt / 1000);
+                        if (entity.collidable && entity.collidable.type === 'obb') {
+                            entity.collidable.rotation = entity.rotation.angle;
+                        }
                         // drag
                         entity.spin.angular_v *= 0.99;
                     }

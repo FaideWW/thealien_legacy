@@ -210,6 +210,7 @@ requirejs(['alien/alien', 'game/systems', 'game/collision'], function (alien, sy
         },
         listener: {},
         collidable: {
+            type: 'aabb',
             half_height: 256,
             half_width: 256
         }
@@ -259,16 +260,18 @@ requirejs(['alien/alien', 'game/systems', 'game/collision'], function (alien, sy
     document.getElementById('step').addEventListener('mousedown', function (e) {
         game.__step(16);
     });
+    document.getElementById('stepshort').addEventListener('mousedown', function (e) {
+        game.__step(1);
+    });
 
     window.addEventListener('keydown', function (key) {
         if (key.keyCode === 32) {
-            game.stop();
+            game.__step(1);
         }
         if (key.keyCode === 68) {
             game.__step(16);
         }
         if (key.keyCode === 65) {
-            console.log('back');
             game.__step(-16);
         }
     });

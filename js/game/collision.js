@@ -100,17 +100,25 @@ define(['lodash', 'core/math'], function (_, math) {
                             this.bounds.x + this.bounds.width  / 2,
                             this.bounds.y + this.bounds.height / 2
                         ),
-                        world_volume = {
-                            // get the minimum enclosing AABB in worldspace of the entity
-                            min: math.vec2(entity.position.x - entity.collidable.half_width,
-                                entity.position.y - entity.collidable.half_height),
-                            max: math.vec2(entity.position.x + entity.collidable.half_width * 2,
-                                entity.position.y + entity.collidable.half_height * 2)
-                        },
-                        isInUpperHalf = (world_volume.min.y < center.y && world_volume.max.y < center.y),
-                        isInLowerHalf = (world_volume.min.y > center.y);
+                        getEnclosingAABB = function (entity) {
+                            var pos = entity.position,
+                                collidable = entity.collidable,
+                                rect = {};
 
-                    if (world_volume.min.x < center.x && world_volume.max.x < center.x) {
+                            if (collidable.type === 'aabb') {
+                                rect.top_left = math.vec2(pos.x - collidable.half_width, pos.y - collidable.half_height);
+                                rect.bottom_right = math.vec2(pos.x + collidable.half_width, pos.y + collidable.half_height);
+                            } else if (collidable.type === 'obb') {
+                                rect = math.getEnclosingRect(collidable);
+                            }
+
+                            return rect;
+                        },
+                        world_volume = getEnclosingAABB(entity),
+                        isInUpperHalf = (world_volume.top_left.y < center.y && world_volume.bottom_right.y < center.y),
+                        isInLowerHalf = (world_volume.top_left.y > center.y);
+
+                    if (world_volume.top_left.x < center.x && world_volume.bottom_right.x < center.x) {
                         // right half
                         if (isInLowerHalf) {
                             // bottom right
@@ -119,7 +127,7 @@ define(['lodash', 'core/math'], function (_, math) {
                             // top right
                             index = 1;
                         }
-                    } else if (world_volume.max.x > center.x) {
+                    } else if (world_volume.bottom_right.x > center.x) {
                         // left half
                         if (isInLowerHalf) {
                             // bottom left
@@ -230,22 +238,47 @@ define(['lodash', 'core/math'], function (_, math) {
                 this.spin(e, spin_v, dir)
             })
         },
-        constructMinkowski = function (entity1, entity2) {
-            var minkowskiDiff = {
-                position: math.sub(entity2.position, entity1.position),
-                collidable: {
+        getMinkowski = function (entity1, entity2) {
+            var minkowski_diff = {
+                    position: math.sub(entity2.position, entity1.position)
+                },
+                minkowski_collidable, poly1, poly2;
+
+
+            if (entity1.collidable.type === 'aabb' && entity2.collidable.type === 'aabb') {
+                minkowski_collidable = {
                     half_width:  entity1.collidable.half_width  + entity2.collidable.half_width,
                     half_height: entity1.collidable.half_height + entity2.collidable.half_height
-                }
-            };
+                };
 
-            minkowskiDiff.polygon = math.polygon([
-                { x: -minkowskiDiff.collidable.half_width, y: -minkowskiDiff.collidable.half_height },
-                { x:  minkowskiDiff.collidable.half_width, y: -minkowskiDiff.collidable.half_height },
-                { x:  minkowskiDiff.collidable.half_width, y:  minkowskiDiff.collidable.half_height },
-                { x: -minkowskiDiff.collidable.half_width, y:  minkowskiDiff.collidable.half_height }
-            ]);
-            return minkowskiDiff;
+                minkowski_diff.polygon = math.polygon([
+                    { x: -minkowski_collidable.half_width, y: -minkowski_collidable.half_height },
+                    { x:  minkowski_collidable.half_width, y: -minkowski_collidable.half_height },
+                    { x:  minkowski_collidable.half_width, y:  minkowski_collidable.half_height },
+                    { x: -minkowski_collidable.half_width, y:  minkowski_collidable.half_height }
+                ]);
+            } else {
+                // construct it from polygon
+                if (entity1.collidable.type === 'aabb') {
+                    poly1 = math.polygon(entity1.collidable);
+                } else {
+                    poly1 = entity1.collidable;
+                }
+
+                if (entity2.collidable.type === 'aabb') {
+                    poly2 = math.polygon(entity2.collidable);
+                } else {
+                    poly2 = entity2.collidable;
+                }
+
+
+                // build the minkowski polygon using
+                minkowski_diff.polygon = constructMinkowskiPolygon(poly1, poly2, minkowski_diff.position);
+            }
+            return minkowski_diff;
+        },
+        constructMinkowskiPolygon = function (poly1, poly2, position) {
+
         };
 
     return function(game) {
@@ -406,6 +439,7 @@ define(['lodash', 'core/math'], function (_, math) {
                             position:
                                 math.add(initial_position, math.div(math.sub(final_position, initial_position), 2)),
                             collidable: {
+                                type: 'aabb',
                                 half_width:  e.collidable.half_width  + (Math.abs(step_velocity.x) / 2),
                                 half_height: e.collidable.half_height + (Math.abs(step_velocity.y) / 2)
                             }
@@ -432,73 +466,14 @@ define(['lodash', 'core/math'], function (_, math) {
                 }, this), true);
                 window.pairs = pairs;
 
-                // TODO: implement speculative contacts [in progress]
-
-                // TODO: OBB implementation
-
 
                 pairs.forEach(function (pair) {
                     //discreteCollision.call(this, pair[0].__e, pair[1].__e);
 
                     var entity1 = pair[0].__e,
-                        entity2 = pair[1].__e,
-
-                        minkowskiDiff, velocity, distance;
-
-                    if (!(entity1.velocity && entity2.velocity)) {
-                        return;
-                    }
-
-                    // as a rule, the entity with the higher velocity will be resolved
-                    //if ((entity2.velocity && !entity1.velocity) ||
-                    //    (entity2.velocity && math.magSquared(entity1.velocity) < math.magSquared(entity2.velocity))) {
-                    //    entity1 = pair[1].__e;
-                    //    entity2 = pair[0].__e;
-                    //}
-
-                    minkowskiDiff = this.constructMinkowski(entity1, entity2);
-
-                    velocity = math.mul(entity1.velocity, (dt / 1000));
-                    distance = math.rayCast(minkowskiDiff.polygon, minkowskiDiff.position, velocity);
+                        entity2 = pair[1].__e;
 
 
-                    if (distance.t >= 0 && distance.t <= 1) {
-
-
-                        // minimum translational distance is the shortest vector from the origin to the minkowski polygon
-                        var separatingVector = math.pointPolyDistance(minkowskiDiff.polygon, minkowskiDiff.position);
-
-                        if (!separatingVector) {
-                            //debugger;
-                            // the entities are already colliding (supposedly)
-                            discreteCollision.call(this, entity1, entity2);
-
-                        } else {
-                            //console.group('continuous collision');
-                            //console.log('e1', entity1);
-                            //console.log('e2', entity2);
-                            //console.log(separatingVector);
-                            this.doShift(scene, entity1, math.mul(velocity, distance.t));
-                            if (separatingVector.x !== 0) {
-                                //console.log('collide x');
-                                entity1.collidable.collidedX = true;
-                            } else if (separatingVector.y !== 0) {
-                                //console.log('collide y');
-                                entity1.collidable.collidedY = true;
-                            }
-
-                            if (entity2.velocity) {
-                                this.applySpin(scene, entity1, math.mul(entity2.velocity, -1), 1);
-                            }
-
-                            // skip one physics step to preserve the simulation
-                            entity1.velocity.skipStep = true;
-                            //console.groupEnd();
-
-
-                        }
-
-                    }
 
                 }, this);
 
@@ -509,7 +484,7 @@ define(['lodash', 'core/math'], function (_, math) {
             AABBTest: AABBTest,
             doShift: doShift,
             applySpin: applySpin,
-            constructMinkowski: constructMinkowski,
+            constructMinkowski: getMinkowski,
             genQT: generateQuadTree
         });
     };

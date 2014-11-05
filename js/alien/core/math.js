@@ -91,8 +91,16 @@ define(['lodash'], function (_) {
                     return {
                         points: points.points
                     };
-                }
-                if (points.length) {
+                } else if (points.half_width && points.half_height) {
+                    return {
+                        points: [
+                            this.vec2(-points.half_width, -points.half_height),
+                            this.vec2( points.half_width, -points.half_height),
+                            this.vec2( points.half_width,  points.half_height),
+                            this.vec2(-points.half_width,  points.half_height),
+                        ]
+                    };
+                } else if (points.length) {
                     return {
                         points: points
                     }
@@ -203,6 +211,15 @@ define(['lodash'], function (_) {
                 v.x * Math.cos(rads) - v.y * Math.sin(rads),
                 v.x * Math.sin(rads) + v.y * Math.cos(rads)
             );
+        },
+
+        normal: function (v, cw) {
+            var rotation = -Math.PI / 2;
+            if (cw) {
+                rotation *= -1;
+            }
+
+            return this.rotate(v, rotation);
         },
 
         magSquared: function (v) {
@@ -431,6 +448,37 @@ define(['lodash'], function (_) {
                 }
 
                 return minimumVector;
+            }
+        },
+        getEnclosingRect: function (poly) {
+            var points, i, l, min_x, min_y, max_x, max_y;
+
+            if (this.isPolygon(poly)) {
+                points = poly.points;
+                l = points.length;
+
+                for (i = 0; i < l; i += 1) {
+                    if (!min_x || points[i].x < min_x) {
+                        min_x = points[i].x;
+                    }
+
+                    if (!max_x || points[i].x > max_x) {
+                        max_x = points[i].x;
+                    }
+
+                    if (!min_y || points[i].y < min_y) {
+                        min_y = points[i].y;
+                    }
+
+                    if (!max_y || points[i].y > max_y) {
+                        max_y = points[i].y;
+                    }
+                }
+
+                return {
+                    top_left: this.vec2(min_x, min_y),
+                    bottom_right: this.vec2(max_x, max_y)
+                };
             }
         }
 
