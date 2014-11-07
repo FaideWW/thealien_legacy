@@ -277,7 +277,188 @@ define(['lodash', 'core/math'], function (_, math) {
             }
             return minkowski_diff;
         },
-        constructMinkowskiPolygon = function (poly1, poly2, position) {
+        /**
+         * Get the shortest separating vector between two collidables by computing the
+         * minkowski sum
+         *
+         * the returned result is the vector from the closest point on collidable2
+         * to the closest point on collidable1
+         */
+        getSeparatingVector = function (collidable1, collidable2, position1, position2) {
+            var relative_position = math.sub(position2, position1),
+                sep_vec = math.vec2(),
+                mink_width, mink_height, poly1, poly2,
+                support, s, a, d, ab, ac, ao, z, edge_normal;
+
+            if (collidable1.type === 'aabb' && collidable2.type === 'aabb') {
+                // AABB-AABB minkowski: just add the two half widths and half heights
+                mink_width = collidable1.half_width + collidable2.half_width;
+                mink_height = collidable1.half_height + collidable2.half_height;
+
+                if (relative_position.x - mink_width > 0) {
+                    sep_vec.x = (relative_position.x - mink_width);
+                }
+                if (relative_position.x + mink_width < 0) {
+                    sep_vec.x = -(relative_position.x + mink_width);
+                }
+
+                if (relative_position.y - mink_height > 0) {
+                    sep_vec.y = (relative_position.y - mink_height);
+                }
+                if (relative_position.y + mink_height < 0) {
+                    sep_vec.y = -(relative_position.y + mink_height);
+                }
+
+            } else if ((collidable1.type === 'obb' &&
+                (collidable2.type === 'aabb' || collidable2.type === 'obb'))) {
+                // OBB-OBB minkowski: via GJK
+                // if one of the collidables is an AABB, we cast it to an OBB with 0 rotation
+
+                /*
+                GJK algorithm (as I understand it), in 2D
+
+                summarized from https://mollyrocket.com/849
+
+                begin with a point A in the minkowski difference
+                initialize a list S containing that point, and a direction vector D which is the
+                inverse of that point (pointing towards the origin
+
+                doSimplex
+                    - determines the next direction to explore based on the current simplex
+                    - this calculates the voronoi region of the simplex using dot products and some
+                      clever a priori heuristics to quickly discard potential directions
+                    - in R^2 (2-space), we only need to consider two simplex cases
+                        -
+
+                while (true):
+                    get the support vertex A of the minkowski difference in direction D
+                    if A dot D < 0:
+                        // there is no intersection (support vertex cannot enclose the origin
+                        return A
+                    else:
+                        unshift A to S
+                        subroutine doSimplex:
+                            if S contains two points:
+                                if ((S[1] - S[0]) dot -S[0] > 0): // the origin is closer to the edge than the point
+                                    // this is the normal vector of the voronoi region we intend to explore next
+                                    set D <- ((S[1] - S[0]) x -S[0]) x (S[1] - S[0])
+                                else: // the origin is closer to the point
+                                    set S <- [S[0]]
+                                    set D <- S[0]
+                            else if S contains 3 points:
+                                if (<0,0,1> x (S[2] - S[0]) dot -S[0] > 0: // testing one edge of the triangle
+                                    if ((S[2] - S[0]) dot S[0] > 0):
+                                        set S <- [S[0], S[2]]
+                                        set D <- (<0,0,1> x (S[2] - S[0]) // edge normal that we produced earlier (a 2D only optimization)
+                                    else: // star check
+                                        if (S[1] - S[0]) dot -S[0] > 0:
+                                            set S <- [S[0], S[1]]
+                                            set D <- ((S[1] - S[0]) x S[0]) x (S[1] - S[0])
+                                        else:
+                                            set S <- [S[0]]
+                                            set D <- S[0]
+                                else:
+                                    if ((S[1] - S[0]) x <0,0,1>) dot -S[0] > 0: // star check
+                                         if (S[1] - S[0]) dot -S[0] > 0:
+                                             set S <- [S[0], S[1]]
+                                             set D <- ((S[1] - S[0]) x -S[0]) x (S[1] - S[0])
+                                         else:
+                                             set S <- [S[0]]
+                                             set D <- S[0]
+                                    else:
+                                        // the triangle contains the origin
+                                        return intersection
+
+
+                note: we may need to promote 2d vectors into 3-space to take advantage of the cross product auto-choosing
+                        the correct direction in the edge-closest cases
+
+                 */
+                poly1 = math.polygon(collidable1);
+                poly2 = math.offset(math.polygon(collidable2), relative_position);
+
+                // our Minkowski difference will be (poly2 - poly1)
+
+                /**
+                 *  Poly-poly support function
+                 *  returns the vertex in the minkowski difference of the two polygons
+                 */
+                support = function (poly1, poly2, direction) {
+                    var support_subroutine = function (poly, vector) {
+                        return _.max(poly.points, function (p) { return math.dot(p, vector) });
+                    };
+
+                    return (math.sub(support_subroutine(poly2, direction), support_subroutine(poly1, math.mul(direction, -1))));
+                };
+
+                // the direction here is arbitrary
+                a = support(poly1, poly2, relative_position);
+                s = [a];
+                d = math.mul(a, -1);
+
+
+                while (true) {
+                    a = support(poly1, poly2, d);
+                    if (math.dot(a, d) < 0) {
+                        // no intersection
+                        console.log(s);
+                        sep_vec = a;
+                        break;
+                    }
+                    s.unshift(a);
+
+                    ao = math.vec3(math.mul(a, -1));
+                    // check simplex subroutine
+                    if (s.length === 2) {
+                        // 2-simplex
+                        ab = math.vec3(math.sub(s[1], s[0]));
+
+                        if (math.dot(ab,ao) > 0) {
+                            d = math.cross(math.cross(ab, ao), ab);
+                        } else {
+                            s = [s[0]];
+                            d = s[0];
+                        }
+                    } else {
+                        // 3-simplex
+                        ab = math.vec3(math.sub(s[1], s[0]));
+                        ac = math.vec3(math.sub(s[2], s[0]));
+                        z  = math.vec3(0,0,1);
+                        edge_normal = math.cross(z, ac);
+                        if (math.dot(edge_normal, ao) > 0) {
+                            if (math.dot(ac, ao) > 0) {
+                                s = [s[0], s[2]];
+                                d = edge_normal;
+                            } else {
+                                if (math.dot(ab, ao) > 0) {
+                                    s = [s[0], s[1]];
+                                    d = math.cross(math.cross(ab, ao), ab);
+                                } else {
+                                    s = [s[0]];
+                                    d = s[0];
+                                }
+                            }
+                        } else {
+                            if (math.dot(math.cross(ab, z), ao) > 0) {
+                                if (math.dot(ab, ao) > 0) {
+                                    s = [s[0], s[1]];
+                                    d = math.cross(math.cross(ab, ao), ab);
+                                } else {
+                                    s = [s[0]];
+                                    d = s[0];
+                                }
+                            } else {
+                                // intersection
+                                break;
+                            }
+                        }
+                    }
+
+                }
+
+            }
+
+            return sep_vec;
 
         };
 
@@ -473,6 +654,53 @@ define(['lodash', 'core/math'], function (_, math) {
                     var entity1 = pair[0].__e,
                         entity2 = pair[1].__e;
 
+                    // test data
+                    var x = {
+                            type: 'obb',
+                            half_width:  Math.sqrt(2),
+                            half_height: Math.sqrt(2),
+                            rotation: Math.PI / 4
+                        },
+                        y = {
+                            type: 'aabb',
+                            half_width:  2,
+                            half_height: 2
+                        },
+                        p = math.vec2(0, -6),
+                        q = math.vec2(6, 0),
+                        s;
+                    debugger;
+
+
+                    /**
+                     * #
+                     * |#
+                     * | #
+                     * |#
+                     * # \
+                     * |  \
+                     * |   #####
+                     * |   #   #
+                     * +---#---#---------
+                     *     #   #
+                     *     #####
+                     */
+
+
+                    s = this.getSepVec(x, y, p, q);
+
+
+                    // speculative contacts:
+                    //
+                    if (entity1.type) {
+                        debugger;
+                    }
+
+                    var separating_vector = this.getSepVec(entity1.collidable, entity2.collidable, entity1.position, entity2.position),
+
+                        velocity_fragment = 0;
+
+
 
 
                 }, this);
@@ -485,7 +713,8 @@ define(['lodash', 'core/math'], function (_, math) {
             doShift: doShift,
             applySpin: applySpin,
             constructMinkowski: getMinkowski,
-            genQT: generateQuadTree
+            genQT: generateQuadTree,
+            getSepVec: getSeparatingVector
         });
     };
 });

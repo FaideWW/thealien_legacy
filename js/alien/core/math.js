@@ -1,6 +1,8 @@
 /**
  * Created by faide on 14-10-05.
  */
+
+"use strict";
 define(['lodash'], function (_) {
     /**
      * Most vector operations will accept 2d and 3d vector arguments
@@ -94,10 +96,10 @@ define(['lodash'], function (_) {
                 } else if (points.half_width && points.half_height) {
                     return {
                         points: [
-                            this.vec2(-points.half_width, -points.half_height),
-                            this.vec2( points.half_width, -points.half_height),
-                            this.vec2( points.half_width,  points.half_height),
-                            this.vec2(-points.half_width,  points.half_height),
+                            this.rotate(this.vec2(-points.half_width, -points.half_height), (points.rotation || 0)),
+                            this.rotate(this.vec2( points.half_width, -points.half_height), (points.rotation || 0)),
+                            this.rotate(this.vec2( points.half_width,  points.half_height), (points.rotation || 0)),
+                            this.rotate(this.vec2(-points.half_width,  points.half_height), (points.rotation || 0)),
                         ]
                     };
                 } else if (points.length) {
@@ -214,12 +216,7 @@ define(['lodash'], function (_) {
         },
 
         normal: function (v, cw) {
-            var rotation = -Math.PI / 2;
-            if (cw) {
-                rotation *= -1;
-            }
-
-            return this.rotate(v, rotation);
+            return (cw) ? this.vec2(v.y, -v.x) : this.vec2(-v.y, v.x);
         },
 
         magSquared: function (v) {
@@ -480,6 +477,14 @@ define(['lodash'], function (_) {
                     bottom_right: this.vec2(max_x, max_y)
                 };
             }
+        },
+        /**
+         * Adds a vector to every point within a polygon
+         * @param poly
+         * @param vector
+         */
+        offset: function (poly, vector) {
+            return this.polygon(_.map(poly.points, function (p) { return this.add(p, vector); }, this));
         }
 
 
