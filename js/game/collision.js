@@ -319,21 +319,30 @@ define(['lodash', 'core/math'], function (_, math) {
 
                 summarized from https://mollyrocket.com/849
 
-                begin with a point A in the minkowski difference
-                initialize a list S containing that point, and a direction vector D which is the
-                inverse of that point (pointing towards the origin
+                 doSimplex
+                     - determines the next direction to explore based on the current simplex
+                     - this calculates the voronoi region of the simplex containing the origin
+                         using dot products and some clever a priori heuristics to quickly discard
+                         potential directions
+                     - in R^2 (2-space), we only need to consider two simplex cases
+                     - 2-simplex (line): the origin is either closest to the newest support vertex,
+                        or to the edge formed by the two vertices
+                     - 3-simplex (triangle): there are four possible outcomes in a simplex formed by points [A,B,C]
+                         - the origin is closest to the newest support vertex
+                         - the origin is closest to edge AB
+                         - the origin is closest to edge AC
+                         - the simplex encloses the origin (intersection exists)
 
-                doSimplex
-                    - determines the next direction to explore based on the current simplex
-                    - this calculates the voronoi region of the simplex using dot products and some
-                      clever a priori heuristics to quickly discard potential directions
-                    - in R^2 (2-space), we only need to consider two simplex cases
-                        -
+                the algo:
+
+                A <- support(minkowski, arbitrary direction)
+                S <- [A]
+                D <- -A
 
                 while (true):
-                    get the support vertex A of the minkowski difference in direction D
+                    A <- support(minkowski, D)
                     if A dot D < 0:
-                        // there is no intersection (support vertex cannot enclose the origin
+                        // there is no intersection (support vertex cannot enclose the origin)
                         return A
                     else:
                         unshift A to S
@@ -673,17 +682,17 @@ define(['lodash', 'core/math'], function (_, math) {
 
 
                     /**
-                     * #
-                     * |#
-                     * | #
-                     * |#
-                     * # \
-                     * |  \
-                     * |   #####
-                     * |   #   #
-                     * +---#---#---------
-                     *     #   #
-                     *     #####
+                     *   #
+                     *  #|#
+                     * # | #
+                     *  #|#
+                     *   # \
+                     *   |  \
+                     *   |   #####
+                     *   |   #   #
+                     *   +---#---#---------
+                     *       #   #
+                     *       #####
                      */
 
 
