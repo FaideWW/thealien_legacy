@@ -287,8 +287,7 @@ define(['lodash', 'core/math'], function (_, math) {
         getSeparatingVector = function (collidable1, collidable2, position1, position2) {
             var relative_position = math.sub(position2, position1),
                 sep_vec = math.vec2(),
-                mink_width, mink_height, poly1, poly2,
-                support, s, a, d, ab, ac, ao, z, edge_normal;
+                mink_width, mink_height;
 
             if (collidable1.type === 'aabb' && collidable2.type === 'aabb') {
                 // AABB-AABB minkowski: just add the two half widths and half heights
@@ -311,159 +310,9 @@ define(['lodash', 'core/math'], function (_, math) {
 
             } else if ((collidable1.type === 'obb' &&
                 (collidable2.type === 'aabb' || collidable2.type === 'obb'))) {
-                // OBB-OBB minkowski: via GJK
-                // if one of the collidables is an AABB, we cast it to an OBB with 0 rotation
-
-                /*
-                GJK algorithm (as I understand it), in 2D
-
-                summarized from https://mollyrocket.com/849
-
-                 doSimplex
-                     - determines the next direction to explore based on the current simplex
-                     - this calculates the voronoi region of the simplex containing the origin
-                         using dot products and some clever a priori heuristics to quickly discard
-                         potential directions
-                     - in R^2 (2-space), we only need to consider two simplex cases
-                     - 2-simplex (line): the origin is either closest to the newest support vertex,
-                        or to the edge formed by the two vertices
-                     - 3-simplex (triangle): there are four possible outcomes in a simplex formed by points [A,B,C]
-                         - the origin is closest to the newest support vertex
-                         - the origin is closest to edge AB
-                         - the origin is closest to edge AC
-                         - the simplex encloses the origin (intersection exists)
-
-                the algo:
-
-                A <- support(minkowski, arbitrary direction)
-                S <- [A]
-                D <- -A
-
-                while (true):
-                    A <- support(minkowski, D)
-                    if A dot D < 0:
-                        // there is no intersection (support vertex cannot enclose the origin)
-                        return A
-                    else:
-                        unshift A to S
-                        subroutine doSimplex:
-                            if S contains two points:
-                                if ((S[1] - S[0]) dot -S[0] > 0): // the origin is closer to the edge than the point
-                                    // this is the normal vector of the voronoi region we intend to explore next
-                                    set D <- ((S[1] - S[0]) x -S[0]) x (S[1] - S[0])
-                                else: // the origin is closer to the point
-                                    set S <- [S[0]]
-                                    set D <- S[0]
-                            else if S contains 3 points:
-                                if (<0,0,1> x (S[2] - S[0]) dot -S[0] > 0: // testing one edge of the triangle
-                                    if ((S[2] - S[0]) dot S[0] > 0):
-                                        set S <- [S[0], S[2]]
-                                        set D <- (<0,0,1> x (S[2] - S[0]) // edge normal that we produced earlier (a 2D only optimization)
-                                    else: // star check
-                                        if (S[1] - S[0]) dot -S[0] > 0:
-                                            set S <- [S[0], S[1]]
-                                            set D <- ((S[1] - S[0]) x S[0]) x (S[1] - S[0])
-                                        else:
-                                            set S <- [S[0]]
-                                            set D <- S[0]
-                                else:
-                                    if ((S[1] - S[0]) x <0,0,1>) dot -S[0] > 0: // star check
-                                         if (S[1] - S[0]) dot -S[0] > 0:
-                                             set S <- [S[0], S[1]]
-                                             set D <- ((S[1] - S[0]) x -S[0]) x (S[1] - S[0])
-                                         else:
-                                             set S <- [S[0]]
-                                             set D <- S[0]
-                                    else:
-                                        // the triangle contains the origin
-                                        return intersection
 
 
-                note: we may need to promote 2d vectors into 3-space to take advantage of the cross product auto-choosing
-                        the correct direction in the edge-closest cases
-
-                 */
-                poly1 = math.polygon(collidable1);
-                poly2 = math.offset(math.polygon(collidable2), relative_position);
-
-                // our Minkowski difference will be (poly2 - poly1)
-
-                /**
-                 *  Poly-poly support function
-                 *  returns the vertex in the minkowski difference of the two polygons
-                 */
-                support = function (poly1, poly2, direction) {
-                    var support_subroutine = function (poly, vector) {
-                        return _.max(poly.points, function (p) { return math.dot(p, vector) });
-                    };
-
-                    return (math.sub(support_subroutine(poly2, direction), support_subroutine(poly1, math.mul(direction, -1))));
-                };
-
-                // the direction here is arbitrary
-                a = support(poly1, poly2, relative_position);
-                s = [a];
-                d = math.mul(a, -1);
-
-
-                while (true) {
-                    a = support(poly1, poly2, d);
-                    if (math.dot(a, d) < 0) {
-                        // no intersection
-                        console.log(s);
-                        sep_vec = a;
-                        break;
-                    }
-                    s.unshift(a);
-
-                    ao = math.vec3(math.mul(a, -1));
-                    // check simplex subroutine
-                    if (s.length === 2) {
-                        // 2-simplex
-                        ab = math.vec3(math.sub(s[1], s[0]));
-
-                        if (math.dot(ab,ao) > 0) {
-                            d = math.cross(math.cross(ab, ao), ab);
-                        } else {
-                            s = [s[0]];
-                            d = s[0];
-                        }
-                    } else {
-                        // 3-simplex
-                        ab = math.vec3(math.sub(s[1], s[0]));
-                        ac = math.vec3(math.sub(s[2], s[0]));
-                        z  = math.vec3(0,0,1);
-                        edge_normal = math.cross(z, ac);
-                        if (math.dot(edge_normal, ao) > 0) {
-                            if (math.dot(ac, ao) > 0) {
-                                s = [s[0], s[2]];
-                                d = edge_normal;
-                            } else {
-                                if (math.dot(ab, ao) > 0) {
-                                    s = [s[0], s[1]];
-                                    d = math.cross(math.cross(ab, ao), ab);
-                                } else {
-                                    s = [s[0]];
-                                    d = s[0];
-                                }
-                            }
-                        } else {
-                            if (math.dot(math.cross(ab, z), ao) > 0) {
-                                if (math.dot(ab, ao) > 0) {
-                                    s = [s[0], s[1]];
-                                    d = math.cross(math.cross(ab, ao), ab);
-                                } else {
-                                    s = [s[0]];
-                                    d = s[0];
-                                }
-                            } else {
-                                // intersection
-                                break;
-                            }
-                        }
-                    }
-
-                }
+                sep_vec = math.testGJKBoolean(collidable1, collidable2, position1, position2);
 
             }
 
@@ -677,7 +526,7 @@ define(['lodash', 'core/math'], function (_, math) {
                         },
                         p = math.vec2(0, -6),
                         q = math.vec2(6, 0),
-                        s;
+                        s, s2;
                     debugger;
 
 
@@ -696,7 +545,8 @@ define(['lodash', 'core/math'], function (_, math) {
                      */
 
 
-                    s = this.getSepVec(x, y, p, q);
+                    s = math.testGJKBoolean(x, y, p, q);
+                    s2 = math.testGJKSeparation(x, y, p, q);
 
 
                     // speculative contacts:
