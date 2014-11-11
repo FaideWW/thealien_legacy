@@ -727,9 +727,60 @@ define(['lodash'], function (_) {
 
             }
             return sep_vec;
+        },
+
+        /**
+         *
+         *  Determine penetration vector based on the termination simplex provided by
+         *  the GJK intersection test.  Uses EPA
+         *
+         *  Expanding Polytope Algorithm (EPA):
+         *      determine the winding of the simplex
+         *      while (true):
+         *          edge <- closest edge of the simplex to the origin
+         *          point <- support(minkowski_diff, edge.normal)
+         *          if point is not significantly past the origin: (i.e. the edge is the actual penetration edge)
+         *              return edge normal and penetration depth
+         *          add point to the simplex in the correct position to split the edge into two new edges
+         *
+         */
+        testEPAPenetration: function (poly1, poly2, simplex) {
+
+            var math = this,
+                /**
+                 * Returns -1 if CCW, 1 if CW
+                 *
+                 * Uses the right hand rule of cross products to determine
+                 * which direction the next edge in the polygon faces
+                 * compared to the current edge
+                 *
+                 * @param simplex
+                 * @returns {number}
+                 */
+                getWinding = function (simplex) {
+                    var a, b, i, j, l = simplex.length;
+
+                    for (i = 0; i < l; i += 1) {
+                        j = (i + 1) % l;
+
+                        a = simplex[i];
+                        b = simplex[j];
+
+                        if (math.cross(a, b) > 0) {
+                            return 1;
+                        } else if (math.cross(a, b) < 0) {
+                            return -1;
+                        }
+                    }
+                },
+                closestEdge = function (simplex, winding) {
+
+                },
+                addPointToSimplex = function (simplex, point, index) {
+
+                };
+
+
         }
-
-
-
     };
 });
