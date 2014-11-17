@@ -15,6 +15,7 @@ define(['lodash'], function (_) {
      *
      */
     return {
+        EPSILON: 2.2204460492503130808472633361816E-16,
         vec2:   function (x, y) {
             // vec2 can be created with an object, or with a tuple
             if (typeof x === 'object' && !(isNaN(x.x) || isNaN(x.y))) {
@@ -567,7 +568,8 @@ define(['lodash'], function (_) {
             var math = this,
                 relative_position = math.sub(position2, position1),
                 has_collision, poly1, poly2,
-                support_function, s, a, b, d, ab, ac, ao, z, edge_normal;
+                support_function, s, a, b, d, ab, ac, ao, z, edge_normal,
+                tolerance;
 
             poly1 = math.polygon(collidable1);
             poly2 = math.offset(math.polygon(collidable2), relative_position);
@@ -591,6 +593,7 @@ define(['lodash'], function (_) {
             d = math.mul(a, -1);
             s = [a];
 
+            tolerance = 0.000001;
 
 
             while (true) {
@@ -621,12 +624,12 @@ define(['lodash'], function (_) {
                     ac = math.vec3(math.sub(s[2], s[0]));
                     z  = math.vec3(0,0,1);
                     edge_normal = math.cross(z, ac);
-                    if (math.dot(edge_normal, ao) > 0) {
-                        if (math.dot(ac, ao) > 0) {
+                    if (math.dot(edge_normal, ao) > tolerance) {
+                        if (math.dot(ac, ao) > tolerance) {
                             s = [s[0], s[2]];
                             d = edge_normal;
                         } else {
-                            if (math.dot(ab, ao) > 0) {
+                            if (math.dot(ab, ao) > tolerance) {
                                 s = [s[0], s[1]];
                                 d = math.cross(math.cross(ab, ao), ab);
                             } else {
@@ -635,8 +638,8 @@ define(['lodash'], function (_) {
                             }
                         }
                     } else {
-                        if (math.dot(math.cross(ab, z), ao) > 0) {
-                            if (math.dot(ab, ao) > 0) {
+                        if (math.dot(math.cross(ab, z), ao) > tolerance) {
+                            if (math.dot(ab, ao) > tolerance) {
                                 s = [s[0], s[1]];
                                 d = math.cross(math.cross(ab, ao), ab);
                             } else {
@@ -646,6 +649,7 @@ define(['lodash'], function (_) {
                         } else {
                             // intersection
                             has_collision = true;
+
                             break;
                         }
                     }
@@ -744,7 +748,7 @@ define(['lodash'], function (_) {
          *          add point to the simplex in the correct position to split the edge into two new edges
          *
          */
-        testEPAPenetration: function (poly1, poly2, simplex) {
+        testEPAPenetration: function (poly1, poly2, support, simplex) {
 
             var math = this,
                 /**
@@ -773,13 +777,166 @@ define(['lodash'], function (_) {
                         }
                     }
                 },
+                /**
+                 * Determines the closest edge on a simplex to the origin.
+                 * @param simplex
+                 * @param winding
+                 */
                 closestEdge = function (simplex, winding) {
+                    var a, b, i, j, normal, distance,
+                        edge = {
+                            distance: Infinity,
+                            normal: math.vec2(),
+                            index: -1
+                        },
+                        l = simplex.length;
 
+                    for (i = 0; i < l; i += 1) {
+                        j = (i + 1) % l;
+                        a = simplex[i];
+                        b = simplex[j];
+
+                        normal = math.sub(b, a);
+
+                        if (winding < 0) {
+                            normal = math.normal(normal, true);
+                        } else {
+                            normal = math.normal(normal, false);
+                        }
+
+                        normal = math.unt(normal);
+
+                        distance = Math.abs(math.dot(a, normal));
+                        if (distance < edge.distance) {
+                            edge.distance = distance;
+                            edge.normal = math.vec2(normal);
+                            edge.index = j;
+                        }
+                    }
+
+                    return edge;
                 },
-                addPointToSimplex = function (simplex, point, index) {
 
+                winding = getWinding(simplex),
+                point   = math.vec2(),
+                edge    = {},
+                projection,
+                penetration = {
+                    normal: math.vec2(),
+                    depth: 0
                 };
 
+            while (true) {
+                edge  = closestEdge(simplex, winding);
+                point = support(edge.normal);
+
+                projection = math.dot(edge.normal, point);
+                if ((projection - edge.distance) < math.EPSILON) {
+                    penetration.normal = edge.normal;
+                    penetration.depth = projection;
+                    break;
+                }
+
+                simplex.splice(edge.index, 0, point);
+            }
+
+            return penetration;
+        },
+        testGJKIntersection: function (collidable1, collidable2, position1, position2) {
+            // the whole routine
+            var math = this,
+                relative_position = math.sub(position2, position1),
+                has_collision, poly1, poly2,
+                support_function, support,
+                s, a, b, d, ab, ac, ao, z, edge_normal,
+                tolerance;
+
+            poly1 = math.polygon(collidable1);
+            poly2 = math.offset(math.polygon(collidable2), relative_position);
+
+            // our Minkowski difference will be (poly2 - poly1)
+
+            /**
+             *  Poly-poly support function
+             *  returns the vertex in the minkowski difference of the two polygons
+             */
+            support_function = function (poly1, poly2, direction) {
+                var support_subroutine = function (poly, vector) {
+                    return _.max(poly.points, function (p) { return math.dot(p, vector) });
+                };
+
+                return (math.sub(support_subroutine(poly2, direction), support_subroutine(poly1, math.mul(direction, -1))));
+            };
+
+
+            support = function (dir) {
+                return support_function(poly1, poly2, dir);
+            };
+
+            // the direction here is arbitrary
+            a = support_function(poly1, poly2, relative_position);
+            d = math.mul(a, -1);
+            s = [a];
+
+            tolerance = 0.000001;
+
+
+            while (true) {
+                a = support_function(poly1, poly2, d);
+                if (math.dot(a, d) < 0) {
+                    // no intersection
+                    return math.testGJKSeparation(collidable1, collidable2, position1, position2);
+                }
+                s.unshift(a);
+
+                ao = math.vec3(math.mul(a, -1));
+                // check simplex subroutine
+                if (s.length === 2) {
+                    // 2-simplex
+                    ab = math.vec3(math.sub(s[1], s[0]));
+
+                    if (math.dot(ab,ao) > tolerance) {
+                        d = math.cross(math.cross(ab, ao), ab);
+                    } else {
+                        s = [s[0]];
+                        d = s[0];
+                    }
+                } else {
+                    // 3-simplex
+                    ab = math.vec3(math.sub(s[1], s[0]));
+                    ac = math.vec3(math.sub(s[2], s[0]));
+                    z  = math.vec3(0,0,1);
+                    edge_normal = math.cross(z, ac);
+                    if (math.dot(edge_normal, ao) > tolerance) {
+                        if (math.dot(ac, ao) > tolerance) {
+                            s = [s[0], s[2]];
+                            d = edge_normal;
+                        } else {
+                            if (math.dot(ab, ao) > tolerance) {
+                                s = [s[0], s[1]];
+                                d = math.cross(math.cross(ab, ao), ab);
+                            } else {
+                                s = [s[0]];
+                                d = s[0];
+                            }
+                        }
+                    } else {
+                        if (math.dot(math.cross(ab, z), ao) > tolerance) {
+                            if (math.dot(ab, ao) > tolerance) {
+                                s = [s[0], s[1]];
+                                d = math.cross(math.cross(ab, ao), ab);
+                            } else {
+                                s = [s[0]];
+                                d = s[0];
+                            }
+                        } else {
+                            // intersection
+                            return math.testEPAPenetration(poly1, poly2, support, s);
+                        }
+                    }
+                }
+
+            }
 
         }
     };

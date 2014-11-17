@@ -526,8 +526,13 @@ define(['lodash', 'core/math'], function (_, math) {
                         },
                         p = math.vec2(0, -6),
                         q = math.vec2(6, 0),
-                        s, s2;
-                    debugger;
+
+
+
+                        p2 = math.vec2(0, -1.5),
+                        q2 = math.vec2(1.5,  0),
+                        s, s2, s3, s4;
+
 
 
                     /**
@@ -547,6 +552,9 @@ define(['lodash', 'core/math'], function (_, math) {
 
                     s = math.testGJKBoolean(x, y, p, q);
                     s2 = math.testGJKSeparation(x, y, p, q);
+                    s3 = math.testGJKIntersection(x, y, p, q);
+                    debugger;
+                    s4 = math.testGJKIntersection(x, x, p2, q2);
 
 
                     // speculative contacts:
