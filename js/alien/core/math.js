@@ -264,6 +264,16 @@ define(['lodash'], function (_) {
             return (v1.x * v2.y) - (v2.x * v1.y);
         },
 
+        tripleProduct: function (v1, v2, v3) {
+            var ac = v1.x * v3.x + v1.y * v3.y,
+                bc = v2.x * v3.x + v2.y * v3.y;
+
+            return this.vec2(
+                v2.x * ac - v1.x * bc,
+                v2.y * ac - v1.y * bc
+            );
+        },
+
         scalarProject: function (v1, v2) {
             /**
              *               v1 . v2
@@ -496,7 +506,7 @@ define(['lodash'], function (_) {
             // OBB-OBB minkowski: via GJK
             // if one of the collidables is an AABB, we cast it to an OBB with 0 rotation
 
-            /*
+            /**
              GJK algorithm (as I understand it), in 2D
 
              summarized from https://mollyrocket.com/849
@@ -522,43 +532,43 @@ define(['lodash'], function (_) {
              D <- -A
 
              while (true):
-             A <- support(minkowski, D)
-             if A dot D < 0:
-             // there is no intersection (support vertex cannot enclose the origin)
-             return A
-             else:
-             unshift A to S
-             subroutine doSimplex:
-             if S contains two points:
-             if ((S[1] - S[0]) dot -S[0] > 0): // the origin is closer to the edge than the point
-             // this is the normal vector of the voronoi region we intend to explore next
-             set D <- ((S[1] - S[0]) x -S[0]) x (S[1] - S[0])
-             else: // the origin is closer to the point
-             set S <- [S[0]]
-             set D <- S[0]
-             else if S contains 3 points:
-             if (<0,0,1> x (S[2] - S[0]) dot -S[0] > 0: // testing one edge of the triangle
-             if ((S[2] - S[0]) dot S[0] > 0):
-             set S <- [S[0], S[2]]
-             set D <- (<0,0,1> x (S[2] - S[0]) // edge normal that we produced earlier (a 2D only optimization)
-             else: // star check
-             if (S[1] - S[0]) dot -S[0] > 0:
-             set S <- [S[0], S[1]]
-             set D <- ((S[1] - S[0]) x S[0]) x (S[1] - S[0])
-             else:
-             set S <- [S[0]]
-             set D <- S[0]
-             else:
-             if ((S[1] - S[0]) x <0,0,1>) dot -S[0] > 0: // star check
-             if (S[1] - S[0]) dot -S[0] > 0:
-             set S <- [S[0], S[1]]
-             set D <- ((S[1] - S[0]) x -S[0]) x (S[1] - S[0])
-             else:
-             set S <- [S[0]]
-             set D <- S[0]
-             else:
-             // the triangle contains the origin
-             return intersection
+                 A <- support(minkowski, D)
+                 if A dot D < 0:
+                     // there is no intersection (support vertex cannot enclose the origin)
+                     return A
+                 else:
+                 unshift A to S
+                 subroutine doSimplex:
+                 if S contains two points:
+                     if ((S[1] - S[0]) dot -S[0] > 0): // the origin is closer to the edge than the point
+                         // this is the normal vector of the voronoi region we intend to explore next
+                         set D <- ((S[1] - S[0]) x -S[0]) x (S[1] - S[0])
+                     else: // the origin is closer to the point
+                         set S <- [S[0]]
+                         set D <- S[0]
+                 else if S contains 3 points:
+                     if (<0,0,1> x (S[2] - S[0]) dot -S[0] > 0: // testing one edge of the triangle
+                         if ((S[2] - S[0]) dot S[0] > 0):
+                             set S <- [S[0], S[2]]
+                             set D <- (<0,0,1> x (S[2] - S[0]) // edge normal that we produced earlier (a 2D only optimization)
+                         else: // star check
+                             if (S[1] - S[0]) dot -S[0] > 0:
+                                 set S <- [S[0], S[1]]
+                                 set D <- ((S[1] - S[0]) x S[0]) x (S[1] - S[0])
+                             else:
+                                 set S <- [S[0]]
+                                 set D <- S[0]
+                     else:
+                         if ((S[1] - S[0]) x <0,0,1>) dot -S[0] > 0: // star check
+                             if (S[1] - S[0]) dot -S[0] > 0:
+                                 set S <- [S[0], S[1]]
+                                 set D <- ((S[1] - S[0]) x -S[0]) x (S[1] - S[0])
+                             else:
+                                 set S <- [S[0]]
+                                 set D <- S[0]
+                         else:
+                             // the triangle contains the origin
+                             return intersection
 
 
              note: we may need to promote 2d vectors into 3-space to take advantage of the cross product auto-choosing
@@ -590,14 +600,20 @@ define(['lodash'], function (_) {
 
             // the direction here is arbitrary
             a = support_function(poly1, poly2, relative_position);
-            d = math.mul(a, -1);
+            d = math.mul(relative_position, -1);
             s = [a];
 
             tolerance = 0.000001;
 
 
             while (true) {
+                if (math.magSquared(d) === 0) {
+                    d = math.vec2(1, 0);
+                }
+
+                // find the new support point
                 a = support_function(poly1, poly2, d);
+                // if the new point is past the origin in the direction specified
                 if (math.dot(a, d) < 0) {
                     // no intersection
                     console.log(s);
@@ -613,7 +629,7 @@ define(['lodash'], function (_) {
                     ab = math.vec3(math.sub(s[1], s[0]));
 
                     if (math.dot(ab,ao) > 0) {
-                        d = math.cross(math.cross(ab, ao), ab);
+                        d = math.tripleProduct(ab, ao, ab);
                     } else {
                         s = [s[0]];
                         d = s[0];
@@ -631,7 +647,7 @@ define(['lodash'], function (_) {
                         } else {
                             if (math.dot(ab, ao) > tolerance) {
                                 s = [s[0], s[1]];
-                                d = math.cross(math.cross(ab, ao), ab);
+                                d = math.tripleProduct(ab, ao, ab);
                             } else {
                                 s = [s[0]];
                                 d = s[0];
@@ -641,7 +657,7 @@ define(['lodash'], function (_) {
                         if (math.dot(math.cross(ab, z), ao) > tolerance) {
                             if (math.dot(ab, ao) > tolerance) {
                                 s = [s[0], s[1]];
-                                d = math.cross(math.cross(ab, ao), ab);
+                                d = math.tripleProduct(ab, ao, ab);
                             } else {
                                 s = [s[0]];
                                 d = s[0];
@@ -689,7 +705,7 @@ define(['lodash'], function (_) {
                 return support_function(poly1, poly2, dir);
             };
 
-            // the direction here is arbitrary
+            // the direction here is arbitrary, so we choose a vector we've already created
             a = support(relative_position);
             d = math.mul(a, -1);
             b = support(d);
@@ -824,9 +840,10 @@ define(['lodash'], function (_) {
                 penetration = {
                     normal: math.vec2(),
                     depth: 0
-                };
+                },
+                __maxits = 5000;
 
-            while (true) {
+            while (__maxits) {
                 edge  = closestEdge(simplex, winding);
                 point = support(edge.normal);
 
@@ -836,8 +853,9 @@ define(['lodash'], function (_) {
                     penetration.depth = projection;
                     break;
                 }
-
                 simplex.splice(edge.index, 0, point);
+
+                __maxits--;
             }
 
             return penetration;
@@ -874,66 +892,67 @@ define(['lodash'], function (_) {
             };
 
             // the direction here is arbitrary
-            a = support_function(poly1, poly2, relative_position);
-            d = math.mul(a, -1);
+            a = support(relative_position);
+            d = math.mul(relative_position, -1);
             s = [a];
 
             tolerance = 0.000001;
 
 
             while (true) {
-                a = support_function(poly1, poly2, d);
-                if (math.dot(a, d) < 0) {
+                a = support(d);
+                if (math.dot(a, d) <= 0) {
                     // no intersection
                     return math.testGJKSeparation(collidable1, collidable2, position1, position2);
                 }
-                s.unshift(a);
+                s.push(a);
 
                 ao = math.vec3(math.mul(a, -1));
                 // check simplex subroutine
-                if (s.length === 2) {
-                    // 2-simplex
-                    ab = math.vec3(math.sub(s[1], s[0]));
 
-                    if (math.dot(ab,ao) > tolerance) {
-                        d = math.cross(math.cross(ab, ao), ab);
-                    } else {
-                        s = [s[0]];
-                        d = s[0];
+                if (s.length === 2) {
+                    // 2-simplex AB
+                    // no need to reset the simplex here, we can
+                    // just set a new direction (the triple product of
+                    // the edge AB with AO) from AB to the origin
+                    ab = math.vec3(math.sub(s[0], s[1]));
+                    d = math.tripleProduct(ab, ao, ab);
+
+                    if (math.magSquared(d) < tolerance) {
+                        // origin lies on the segment, choose a normal
+                        d = math.normal(ab, false);
                     }
+
+                    //if (math.dot(ab,ao) <= tolerance) {
+                    //    // origin is on the left side of AB
+                    //    s = [s[0]];
+                    //    d = s[0];
+                    //}
                 } else {
-                    // 3-simplex
-                    ab = math.vec3(math.sub(s[1], s[0]));
-                    ac = math.vec3(math.sub(s[2], s[0]));
-                    z  = math.vec3(0,0,1);
-                    edge_normal = math.cross(z, ac);
-                    if (math.dot(edge_normal, ao) > tolerance) {
-                        if (math.dot(ac, ao) > tolerance) {
-                            s = [s[0], s[2]];
-                            d = edge_normal;
-                        } else {
-                            if (math.dot(ab, ao) > tolerance) {
-                                s = [s[0], s[1]];
-                                d = math.cross(math.cross(ab, ao), ab);
-                            } else {
-                                s = [s[0]];
-                                d = s[0];
-                            }
-                        }
+                    // 3-simplex ABC
+                    ab = math.vec3(math.sub(s[1], s[2]));
+                    ac = math.vec3(math.sub(s[0], s[2]));
+                    edge_normal = math.tripleProduct(ab, ac, ac);
+
+                    /** simplified from GJK algorithm on mollyrocket */
+                    // classify origin on line AC
+                    if (math.dot(edge_normal, ao) >= 0) {
+                        // origin is on the right side of AC
+                        // new search direction is edge_normal
+                        s = [s[0], s[2]];
+                        d = edge_normal;
                     } else {
-                        if (math.dot(math.cross(ab, z), ao) > tolerance) {
-                            if (math.dot(ab, ao) > tolerance) {
-                                s = [s[0], s[1]];
-                                d = math.cross(math.cross(ab, ao), ab);
-                            } else {
-                                s = [s[0]];
-                                d = s[0];
-                            }
-                        } else {
+                        edge_normal = math.tripleProduct(ac, ab, ab);
+
+                        if (math.dot(edge_normal, ao) < 0) {
                             // intersection
                             return math.testEPAPenetration(poly1, poly2, support, s);
+                        } else {
+                            s = [s[1], s[2]];
+                            d = edge_normal;
                         }
                     }
+
                 }
 
             }

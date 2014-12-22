@@ -515,14 +515,20 @@ define(['lodash', 'core/math'], function (_, math) {
                     // test data
                     var x = {
                             type: 'obb',
-                            half_width:  Math.sqrt(2),
-                            half_height: Math.sqrt(2),
-                            rotation: Math.PI / 4
+                            half_width:  2,
+                            half_height: 2,
+                            rotation: 0
                         },
                         y = {
                             type: 'aabb',
                             half_width:  2,
                             half_height: 2
+                        },
+                        x2 = {
+                            type: 'obb',
+                            half_width: Math.sqrt(2),
+                            half_height: Math.sqrt(2),
+                            rotation: Math.PI / 4
                         },
                         p = math.vec2(0, -6),
                         q = math.vec2(6, 0),
@@ -531,30 +537,23 @@ define(['lodash', 'core/math'], function (_, math) {
 
                         p2 = math.vec2(0, -1.5),
                         q2 = math.vec2(1.5,  0),
-                        s, s2, s3, s4;
 
 
+                        p3 = math.vec2(3, 0),
+                        q3 = math.vec2(0, 3),
 
-                    /**
-                     *   #
-                     *  #|#
-                     * # | #
-                     *  #|#
-                     *   # \
-                     *   |  \
-                     *   |   #####
-                     *   |   #   #
-                     *   +---#---#---------
-                     *       #   #
-                     *       #####
-                     */
+                        s, s2, s3, s4, s5;
 
 
                     s = math.testGJKBoolean(x, y, p, q);
                     s2 = math.testGJKSeparation(x, y, p, q);
                     s3 = math.testGJKIntersection(x, y, p, q);
-                    debugger;
+                    // expect s4 = 1?
                     s4 = math.testGJKIntersection(x, x, p2, q2);
+                    debugger;
+                    s5 = math.testGJKIntersection(x2, x2, p3, q3);
+
+
 
 
                     // speculative contacts:
