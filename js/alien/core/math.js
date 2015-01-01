@@ -462,6 +462,22 @@ define(['lodash'], function (_) {
                 return minimumVector;
             }
         },
+        // returns the point on a line segment start->end closest to point
+        // similar to the above point-line, but clamps the closest point to the segment
+        closestPointOnSegment: function (point, start, end) {
+            var point_to_start = this.sub(point, start),
+                line           = this.sub(end, start),
+                line_len_sq    = this.magSquared(line),
+                projection     = this.dot(point_to_start, line),
+                t;
+            if (line_len_sq === 0) {
+                // start === end
+                return start;
+            }
+
+            t = this.clamp(projection / line_len_sq, 0, 1);
+            return this.add(this.mul(line, t), start);
+        },
         getEnclosingRect: function (poly) {
             var points, i, l, min_x, min_y, max_x, max_y;
 
@@ -746,6 +762,7 @@ define(['lodash'], function (_) {
                 }
 
             }
+            sep_vec.collision = false;
             return sep_vec;
         },
 
@@ -837,26 +854,32 @@ define(['lodash'], function (_) {
                 point   = math.vec2(),
                 edge    = {},
                 projection,
-                penetration = {
-                    normal: math.vec2(),
-                    depth: 0
-                },
+                //penetration = {
+                //    normal: math.vec2(),
+                //    depth: 0
+                //},
+                penetration = math.vec2(),
                 __maxits = 5000;
-
+            penetration.collision = false;
             while (__maxits) {
                 edge  = closestEdge(simplex, winding);
                 point = support(edge.normal);
 
                 projection = math.dot(edge.normal, point);
                 if ((projection - edge.distance) < math.EPSILON) {
-                    penetration.normal = edge.normal;
-                    penetration.depth = projection;
+                    penetration.x = edge.normal.x * projection;
+                    penetration.y = edge.normal.y * projection;
+                    penetration.collision = true;
+
+                    //penetration.normal = edge.normal;
+                    //penetration.depth = projection;
                     break;
                 }
                 simplex.splice(edge.index, 0, point);
 
                 __maxits--;
             }
+
 
             return penetration;
         },
@@ -956,6 +979,173 @@ define(['lodash'], function (_) {
                 }
 
             }
+
+        },
+        /**
+         * This is similar in principle to testing whether two static polygons intersect using the
+         * Minkowski Difference.  Instead of determining whether the origin lies within the MD, we cast a ray
+         * from the origin in the direction of the relative linear velocity of one of the polygons.  if the ray intersects
+         * with the MD, the two entities will collide.  returns false if no collision, or a time of collision and point of
+         * impact of there is.
+         *
+         * Using a GJK-based raycast allows us to use the same independent support function used in the intersection/distance algorithm
+         *
+         * The theory:
+         *
+         * cast a ray from the origin in the direction of the relative linear velocity (v2 - v1)
+         * determine the MD's support point in the direction of the origin, and store the normal
+         * set the current point along the ray as the origin
+         * set the direction of search as the relative position (p2 - p1)
+         * create an empty simplex ([a, b] = null)
+         *
+         *  if the MD contains the origin:
+         *      return false (collision at t=0)
+         *
+         *  while the distance from the support point to the current point on the ray is greater than the tolerance distance:
+         *      find the MD's support point in the direction of the ray
+         *      if the vector from the support point to the current point on the ray is in the same direction as the ray:
+         *          if the ray is in the same direction as the direction from the center of the MD to the origin: (todo: find out how to do this with an originless MD)
+         *              return false (no collision, the ray is moving the opposite direction of the MD)
+         *          else:
+         *              set the new current point as the closest point on the ray to the MD's support point
+         *              if the current point is further along the ray than the maximum distance:
+         *                  return false (no collision, the ray terminates before reaching the MD)
+         *              store the new normal
+         *      if a is not null
+         *          if b is not null:
+         *              replace the simplex point further from the current point on the ray with the support point
+         *              update the distance
+         *              set the direction as AB x AX x AB (triple product, x being the current point on the ray)
+         *          else:
+         *              set b as the support point
+         *              set the direction as AB x AX x AB
+         *      else:
+         *          set a as the support point
+         *          set the direction as -d
+         *
+         *
+         */
+        testGJKRaycast: function (collidable1, collidable2, position1, position2, velocity1, velocity2) {
+            var poly1, poly2, support_function, support,
+                p, x, a, b, dir, distance_sq, ddotw, ddotr, p1, p2, ab, ax,
+                t, normal,
+                rel_vel, rel_pos, ray_length, ray_dir,
+                _MAX_ITERATIONS = 500, _MIN_DISTANCE = 0.00001,
+                its, math = this;
+
+            rel_vel = math.sub(velocity2, velocity1);
+            rel_pos = math.sub(position2, position1);
+
+            poly1 = math.polygon(collidable1);
+            poly2 = math.offset(math.polygon(collidable2), rel_vel);
+
+            // our Minkowski difference will be (poly2 - poly1)
+
+            /**
+             *  Poly-poly support function
+             *  returns the vertex in the minkowski difference of the two polygons
+             */
+            support_function = function (poly1, poly2, direction) {
+                var support_subroutine = function (poly, vector) {
+                    return _.max(poly.points, function (p) { return math.dot(p, vector) });
+                };
+
+                return (math.sub(support_subroutine(poly2, direction), support_subroutine(poly1, math.mul(direction, -1))));
+            };
+            support = function (dir) {
+                return support_function(poly1, poly2, dir);
+            };
+
+            // initialize return values
+            t       = 0;
+            ray_dir = math.unt(rel_vel);
+            normal  = math.vec2(0,0);
+            // initialize ray and simplex
+            ray_length = math.mag(rel_vel);
+            x         = math.vec2(0,0);
+            a = null;
+            b = null;
+
+            // note: static GJK intersection should take place before this, to ensure the MD does not contain the origin
+
+            dir         = math.sub(x, rel_pos);
+            distance_sq = Infinity;
+
+            its = 0;
+
+            while (distance_sq > _MIN_DISTANCE) {
+                p = support(dir);
+                ddotw = math.dot(dir, math.sub(x, p));
+                if (ddotw > 0) {
+                    ddotr = math.dot(dir, ray_dir);
+                    if (ddotr >= 0) {
+                        // no collision; ray is moving opposite to the direction
+                        console.log('no collision; ray is moving away from MD');
+                        return false;
+                    } else {
+                        t = t - ddotw / ddotr;
+                        if (t > ray_length) {
+                            // no collision; ray does not intersect MD
+                            console.log('no collision; ray does not intersect MD');
+                            return false;
+                        }
+                        x = math.mul(ray_dir, t);
+                        normal = math.vec2(dir);
+                    }
+                }
+
+                // check simplex: the goal is to take the three points (a, b, and the support) and keep the two closest to the current point
+                if (a !== null) {
+                    if (b !== null) {
+                        p1 = math.closestPointOnSegment(x, a, p);
+                        p2 = math.closestPointOnSegment(x, p, b);
+
+                        if (math.magSquared(math.sub(x, p1)) < math.magSquared(math.sub(x, p2))) {
+                            // replace b with support
+                            b = p;
+                            distance_sq = math.magSquared(math.sub(x, p1));
+                        } else {
+                            // replace a with support
+                            a = p;
+                            distance_sq = math.magSquared(math.sub(x, p2));
+                        }
+
+                        ab = math.sub(b, a);
+                        ax = math.sub(x, a);
+                        // set the new direction
+                        dir = math.tripleProduct(ab, ax, ab);
+
+                    } else {
+                        // set b
+                        b = p;
+
+                        ab = math.sub(b, a);
+                        ax = math.sub(x, a);
+                        // set the new direction
+                        dir = math.tripleProduct(ab, ax, ab);
+                    }
+                } else {
+                    // set a
+                    a = p;
+                    // negate the old direction (since we have no b to create a real search dir)
+                    dir = math.mul(dir, -1);
+                }
+
+                if (its === _MAX_ITERATIONS) {
+                    // no collision; max iterations reached with no solution
+                    console.log('no collision; max iterations reached');
+                    return false;
+                }
+
+                its += 1;
+            }
+
+            return {
+                point: x,
+                normal: math.unt(normal),
+                distance: t
+            };
+
 
         }
     };

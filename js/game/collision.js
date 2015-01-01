@@ -498,7 +498,9 @@ define(['lodash', 'core/math'], function (_, math) {
                     this._entity_quadtree.retrieve(e).forEach(function (match) {
                         if (match !== e) {
                             /** potential performance gain: eliminate duplicate pairs with the entities swapped */
-                            entity_pairs.push([e, match]);
+                            if (entity_pairs.indexOf([match, e]) === -1) {
+                                entity_pairs.push([e, match]);
+                            }
                         }
                     });
                     return entity_pairs;
@@ -512,49 +514,18 @@ define(['lodash', 'core/math'], function (_, math) {
                     var entity1 = pair[0].__e,
                         entity2 = pair[1].__e;
 
-                    // test data
-                    var x = {
-                            type: 'obb',
-                            half_width:  2,
-                            half_height: 2,
-                            rotation: 0
-                        },
-                        y = {
-                            type: 'aabb',
-                            half_width:  2,
-                            half_height: 2
-                        },
-                        x2 = {
-                            type: 'obb',
-                            half_width: Math.sqrt(2),
-                            half_height: Math.sqrt(2),
-                            rotation: Math.PI / 4
-                        },
-                        p = math.vec2(0, -6),
-                        q = math.vec2(6, 0),
 
 
 
-                        p2 = math.vec2(0, -1.5),
-                        q2 = math.vec2(1.5,  0),
+                    var separating_vector = math.testGJKIntersection(entity1.collidable, entity2.collidable, entity1.position, entity2.position),
 
+                        velocity_fragment = 0;
 
-                        p3 = math.vec2(3, 0),
-                        q3 = math.vec2(0, 3),
+                    if (separating_vector.collision) {
+                        // this case should never run
+                    } else {
 
-                        s, s2, s3, s4, s5;
-
-
-                    s = math.testGJKBoolean(x, y, p, q);
-                    s2 = math.testGJKSeparation(x, y, p, q);
-                    s3 = math.testGJKIntersection(x, y, p, q);
-                    // expect s4 = 1?
-                    s4 = math.testGJKIntersection(x, x, p2, q2);
-                    debugger;
-                    s5 = math.testGJKIntersection(x2, x2, p3, q3);
-
-
-
+                    }
 
                     // speculative contacts:
                     //
@@ -562,9 +533,36 @@ define(['lodash', 'core/math'], function (_, math) {
                         debugger;
                     }
 
-                    var separating_vector = this.getSepVec(entity1.collidable, entity2.collidable, entity1.position, entity2.position),
+                    // test data
+                    var x = {
+                            type: 'obb',
+                            half_width: Math.sqrt(2),
+                            half_height: Math.sqrt(2),
+                            rotation: Math.PI / 4
+                        },
 
-                        velocity_fragment = 0;
+                        p = math.vec2(2.5, 0),
+                        q = math.vec2(0, 2.5),
+
+                        v1 = math.vec2(1, 0),
+                        v2 = math.vec2(0, 0),
+                        v3 = math.vec2(-0.1, 0),
+                        v4 = math.vec2(0, 0),
+                        v5 = math.vec2(-1, 0),
+                        v6 = math.vec2(0, -1),
+
+                        s, s2, s3, s4;
+
+
+                    debugger;
+                    s = math.testGJKIntersection(x, x, p, q);
+                    // should return no collision
+                    s2 = math.testGJKRaycast(x, x, p, q, v1, v2);
+                    // should return no collision
+                    s3 = math.testGJKRaycast(x, x, p, q, v3, v4);
+                    // should return yes collision
+                    s4 = math.testGJKRaycast(x, x, p, q, v5, v6);
+
 
 
 
